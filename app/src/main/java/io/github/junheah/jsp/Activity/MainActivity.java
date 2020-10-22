@@ -1,4 +1,4 @@
-package io.github.junheah.jsp.activity;
+package io.github.junheah.jsp.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -20,15 +21,13 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CHECK;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_PAUSE;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_STOP;
 
 public class MainActivity extends AppCompatActivity {
 
-    boolean bound = false;
+    Button playbtn, pausebtn;
     Player player;
     PlayerStatus status;
 
@@ -49,11 +48,22 @@ public class MainActivity extends AppCompatActivity {
 
 
         //play btn
-        this.findViewById(R.id.play_btn).setOnClickListener(new View.OnClickListener() {
+        playbtn = this.findViewById(R.id.play_btn);
+        playbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent player = new Intent(getApplicationContext(), Player.class);
                 player.setAction(ACTION_PLAYER_START);
+                startPlayer(player);
+            }
+        });
+
+        pausebtn = this.findViewById(R.id.pause_btn);
+        pausebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent player = new Intent(getApplicationContext(), Player.class);
+                player.setAction(ACTION_PLAYER_PAUSE);
                 startPlayer(player);
             }
         });
@@ -63,6 +73,11 @@ public class MainActivity extends AppCompatActivity {
         BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 status = new Gson().fromJson(intent.getStringExtra("status"), new TypeToken<PlayerStatus>(){}.getType());
+                if(status.isPlaying()){
+                    pausebtn.setText("pause");
+                }else{
+                    pausebtn.setText("resume");
+                }
             }
         };
         IntentFilter filter = new IntentFilter();
