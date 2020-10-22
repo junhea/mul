@@ -22,4 +22,12 @@ public class Song{
     Song prev;
     Song next;
 
+    String name;
+    String url;
+
+    public Song(String name, String url){
+        this.name = name;
+        this.url = url;
+    }
+
 }

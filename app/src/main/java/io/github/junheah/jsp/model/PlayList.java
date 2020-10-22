@@ -14,6 +14,9 @@ public class PlayList extends ArrayList<Song> {
         super();
         this.name = name;
     }
+    public PlayList() {
+        super();
+    }
 
     @Override
     public boolean add(Song song) {

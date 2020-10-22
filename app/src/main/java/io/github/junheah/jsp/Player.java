@@ -44,20 +44,27 @@ public class Player extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         switch(intent.getAction()){
             case ACTION_PLAYER_CHECK:
-                broadcast();
                 break;
             case ACTION_PLAYER_CREATE:
                 playList = new Gson().fromJson(intent.getStringExtra("playlist"),  new TypeToken<PlayList>(){}.getType());
                 break;
             case ACTION_PLAYER_START:
+                //play
 
                 break;
             case ACTION_PLAYER_STOP:
+                //stop
                 break;
             case ACTION_PLAYER_PAUSE:
+                //pause
                 break;
         }
+        broadcast();
         return START_STICKY;
+    }
+
+    public void play(){
+
     }
 
 
