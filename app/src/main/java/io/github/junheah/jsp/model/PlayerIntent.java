@@ -8,6 +8,6 @@ import io.github.junheah.jsp.Player;
 public class PlayerIntent extends Intent {
     public PlayerIntent(Context context, String action){
         super(context, Player.class);
-        setAction(action);
+        super.setAction(action);
     }
 }

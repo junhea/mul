@@ -131,7 +131,9 @@ public class MainActivity extends AppCompatActivity {
         pausebtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) player.pause();
+                if(bound){
+                    player.pause();
+                }
             }
         });
 
@@ -287,10 +289,13 @@ public class MainActivity extends AppCompatActivity {
                 }catch (Exception e){
                     return;
                 }
-                if(bound && status != null && status.playing && !seekbarTouch){
-                    Message msg = new Message();
-                    msg.arg1 = player.getCurrentPosition();
-                    handler.sendMessage(msg);
+                if(bound) {
+                    status = player.getStatus();
+                    if (status != null && status.playing && status.loaded && !seekbarTouch) {
+                        Message msg = new Message();
+                        msg.arg1 = player.getCurrentPosition();
+                        handler.sendMessage(msg);
+                    }
                 }
             }
         }
