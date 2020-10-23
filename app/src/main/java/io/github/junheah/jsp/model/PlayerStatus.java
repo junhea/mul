@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class PlayerStatus {
-    public long time;
+    public int duration;
     public boolean playing;
     public boolean loaded;
 }

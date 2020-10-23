@@ -57,11 +57,20 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         return this.current;
     }
 
+    public int getCurrentPosition(){
+        if(mediaPlayer != null)
+            return mediaPlayer.getCurrentPosition();
+        else
+            return 0;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         running = true;
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
@@ -125,17 +134,33 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
     }
 
-    public void next(){
+    public void seekTo(int pos){
+        mediaPlayer.seekTo(pos);
+    }
+
+    public boolean next(){
         if(current.getNext() != null){
             current = current.getNext();
             play();
+            return true;
+        }else {
+            broadcast();
+            return false;
         }
     }
 
-    public void prev(){
-        if(current.getPrev() != null){
+    public boolean prev(){
+        if(mediaPlayer.getCurrentPosition() > 3000) {
+            seekTo(0);
+            broadcast();
+            return true;
+        }else if(current.getPrev() != null){
             current = current.getPrev();
             play();
+            return true;
+        }else {
+            broadcast();
+            return false;
         }
     }
 
@@ -143,11 +168,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
         }else {
-            try {
-                mediaPlayer.start();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+            mediaPlayer.start();
         }
         broadcast();
     }
@@ -162,7 +183,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(current.getUrl());
-            mediaPlayer.setOnPreparedListener(this);
             mediaPlayer.prepareAsync();
             status.loaded = false;
         } catch (Exception e) {
@@ -182,13 +202,22 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        broadcast();
+        if(running) {
+            if(!next()) {
+                seekTo(0);
+                broadcast();
+            }
+        }
     }
 
     public void broadcast(){
         Intent intent = new Intent();
         intent.setAction(ACTION_PLAYER_BROADCAST);
         status.playing = mediaPlayer.isPlaying();
+        if(status.loaded)
+            status.duration = mediaPlayer.getDuration();
+        else
+            status.duration = 0;
         intent.putExtra("status", new Gson().toJson(status));
         sendBroadcast(intent);
     }

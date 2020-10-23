@@ -10,9 +10,13 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -29,15 +33,17 @@ import static io.github.junheah.jsp.Player.ACTION_PLAYER_CHECK;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_STOP;
+import static io.github.junheah.jsp.Player.running;
 
 public class MainActivity extends AppCompatActivity {
 
     Context context;
     Button pausebtn, nextbtn, prevbtn, stopbtn, playbtn;
-    TextView infotext;
+    TextView infotext, timestamp_cur, timestamp_dur;
+    SeekBar seekBar;
     Player player;
     PlayerStatus status;
-    boolean bound = false;
+    boolean bound = false, seekbarTouch = false;
     private ServiceConnection connection = new ServiceConnection() {
 
         @Override
@@ -54,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("service unbound");
             infotext.setText("");
             toggleButtons(false);
+            seekBar.setProgress(0);
+            seekBar.setEnabled(false);
+            timestamp_cur.setText("");
+            timestamp_dur.setText("");
             player = null;
             bound = false;
         }
@@ -66,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
 
         context = this;
 
+        timestamp_cur = this.findViewById(R.id.timestamp_current);
+        timestamp_dur = this.findViewById(R.id.timestamp_duration);
+        seekBar = this.findViewById(R.id.seekBar);
+
         //play btn
         playbtn = this.findViewById(R.id.play_btn);
         playbtn.setOnClickListener(new View.OnClickListener() {
@@ -73,8 +87,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(bound) {
                     player.play();
-                }
-                else{
+                }else{
                     startPlayer(ACTION_PLAYER_START);
                 }
             }
@@ -125,6 +138,28 @@ public class MainActivity extends AppCompatActivity {
         //info text
         infotext = this.findViewById(R.id.info_text);
 
+        //seek bar
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(b){
+                    timestamp_cur.setText(String.valueOf(i));
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                seekbarTouch = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekbarTouch = false;
+                if(bound)
+                    player.seekTo(seekBar.getProgress());
+            }
+        });
+
         //broadcast receiver
         BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -146,26 +181,38 @@ public class MainActivity extends AppCompatActivity {
                     pausebtn.setText(">");
                 }
 
+                //manual seekbar & timestamp
+                if(bound && !status.playing){
+                    seekBar.setProgress(player.getCurrentPosition());
+                    timestamp_cur.setText(String.valueOf(player.getCurrentPosition()));
+                }
+
+                //update ui depending on status.loaded
                 pausebtn.setEnabled(status.loaded);
+                seekBar.setEnabled(status.loaded);
+
+                if(status.loaded){
+                    timestamp_dur.setText(String.valueOf(status.duration));
+                    seekBar.setMax(status.duration);
+                }else{
+                    seekBar.setProgress(0);
+                    timestamp_cur.setText("");
+                    timestamp_dur.setText("");
+                }
 
                 //get info directly from bound service
                 if(bound) {
                     Song current = player.getCurrent();
                     if(current == null) {
-                        //current is null
+                        //no song loaded
                         nextbtn.setEnabled(false);
                         prevbtn.setEnabled(false);
                         pausebtn.setEnabled(false);
                     }else{
-                        if (current.getNext() == null)
-                            nextbtn.setEnabled(false);
-                        else
-                            nextbtn.setEnabled(true);
-
-                        if (current.getPrev() == null)
-                            prevbtn.setEnabled(false);
-                        else
-                            prevbtn.setEnabled(true);
+                        if (current.getNext() == null) nextbtn.setEnabled(false);
+                        else nextbtn.setEnabled(true);
+                        if (current.getPrev() == null) prevbtn.setEnabled(false);
+                        else prevbtn.setEnabled(true);
 
                         infotext.setText(current.getName());
                     }
@@ -187,10 +234,14 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(ACTION_PLAYER_BROADCAST);
         registerReceiver(receiver, filter);
 
+        //timestamp thread
+        new Thread(new TimeStampThread()).start();
+
         toggleButtons(false);
     }
 
     void toggleButtons(boolean playerIsRunning){
+        seekBar.setEnabled(false);
         prevbtn.setEnabled(false);
         nextbtn.setEnabled(false);
         stopbtn.setEnabled(playerIsRunning);
@@ -216,4 +267,32 @@ public class MainActivity extends AppCompatActivity {
     private void startPlayer(String action){
         startPlayer(new Intent(getApplicationContext(), Player.class), action);
     }
+
+    Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if(!prevbtn.isEnabled() && msg.arg1>3000)
+                prevbtn.setEnabled(true);
+            timestamp_cur.setText(String.valueOf(msg.arg1));
+            seekBar.setProgress(msg.arg1);
+        }
+    };
+
+    public class TimeStampThread implements Runnable{
+        @Override
+        public void run() {
+            while(true){
+                try {
+                    Thread.sleep(10);
+                }catch (Exception e){
+                    return;
+                }
+                if(bound && status != null && status.playing && !seekbarTouch){
+                    Message msg = new Message();
+                    msg.arg1 = player.getCurrentPosition();
+                    handler.sendMessage(msg);
+                }
+            }
+        }
+    };
 }
