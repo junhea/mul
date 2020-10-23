@@ -25,16 +25,15 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
+import static io.github.junheah.jsp.Player.ACTION_PLAYER_CHECK;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_NEXT;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_PAUSE;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_PREV;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_STOP;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button pausebtn, nextbtn, prevbtn;
+    Context context;
+    Button pausebtn, nextbtn, prevbtn, stopbtn, playbtn;
     TextView infotext;
     Player player;
     PlayerStatus status;
@@ -42,27 +41,19 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection connection = new ServiceConnection() {
 
         @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
+        public void onServiceConnected(ComponentName className, IBinder service) {
             Player.PlayerBinder binder = (Player.PlayerBinder) service;
             player = binder.getService();
-
-            //debug
-            PlayList playList = new PlayList();
-            playList.add(new Song("kimi", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
-            playList.add(new Song("asu", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
-            playList.add(new Song("koe", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
-            playList.add(new Song("sugar", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
-            player.setPlayList(playList);
-
-
             player.broadcast();
             bound = true;
+            System.out.println("service bound");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
+            System.out.println("service unbound");
+            infotext.setText("");
+            toggleButtons(false);
             player = null;
             bound = false;
         }
@@ -73,23 +64,30 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //start service
-        Intent intent = new Intent(getApplicationContext(), Player.class);
-        startPlayer(intent, ACTION_PLAYER_CREATE);
+        context = this;
 
         //play btn
-        this.findViewById(R.id.play_btn).setOnClickListener(new View.OnClickListener() {
+        playbtn = this.findViewById(R.id.play_btn);
+        playbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) player.play();
+                if(bound) {
+                    player.play();
+                }
+                else{
+                    startPlayer(ACTION_PLAYER_START);
+                }
             }
         });
 
         //stop btn
-        this.findViewById(R.id.stop_btn).setOnClickListener(new View.OnClickListener() {
+        stopbtn = this.findViewById(R.id.stop_btn);
+        stopbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) player.stop();
+                if(bound) {
+                    player.stop();
+                }
             }
         });
 
@@ -98,7 +96,9 @@ public class MainActivity extends AppCompatActivity {
         nextbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) player.next();
+                if(bound) {
+                    player.next();
+                }
             }
         });
 
@@ -107,7 +107,9 @@ public class MainActivity extends AppCompatActivity {
         prevbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) player.prev();
+                if(bound) {
+                    player.prev();
+                }
             }
         });
 
@@ -126,43 +128,80 @@ public class MainActivity extends AppCompatActivity {
         //broadcast receiver
         BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
+                //if broadcast recieved, player is running
+                toggleButtons(true);
+
+                //if not bound, bind to service
+                if(!bound){
+                    bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
+                }
+
                 //update status
                 status = new Gson().fromJson(intent.getStringExtra("status"), new TypeToken<PlayerStatus>(){}.getType());
 
                 //update ui
-                if(status.isPlaying()){
+                if(status.playing){
                     pausebtn.setText("||");
                 }else{
                     pausebtn.setText(">");
                 }
 
+                pausebtn.setEnabled(status.loaded);
 
+                //get info directly from bound service
                 if(bound) {
                     Song current = player.getCurrent();
-                    if(current.getNext() == null)
+                    if(current == null) {
+                        //current is null
                         nextbtn.setEnabled(false);
-                    else
-                        nextbtn.setEnabled(true);
-
-                    if(current.getPrev() == null)
                         prevbtn.setEnabled(false);
-                    else
-                        prevbtn.setEnabled(true);
+                        pausebtn.setEnabled(false);
+                    }else{
+                        if (current.getNext() == null)
+                            nextbtn.setEnabled(false);
+                        else
+                            nextbtn.setEnabled(true);
 
-                    infotext.setText(current.getName());
+                        if (current.getPrev() == null)
+                            prevbtn.setEnabled(false);
+                        else
+                            prevbtn.setEnabled(true);
+
+                        infotext.setText(current.getName());
+                    }
+                }
+
+                //debug
+                if(bound && player.getCurrent() == null){
+                    PlayList playList = new PlayList();
+                    playList.add(new Song("kimi", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
+                    playList.add(new Song("asu", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
+                    playList.add(new Song("koe", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
+                    playList.add(new Song("sugar", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
+                    player.setPlayList(playList);
+                    player.play();
                 }
             }
         };
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_PLAYER_BROADCAST);
         registerReceiver(receiver, filter);
+
+        toggleButtons(false);
+    }
+
+    void toggleButtons(boolean playerIsRunning){
+        prevbtn.setEnabled(false);
+        nextbtn.setEnabled(false);
+        stopbtn.setEnabled(playerIsRunning);
+        pausebtn.setEnabled(false);
+        playbtn.setEnabled(!playerIsRunning);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, Player.class);
-        bindService(intent, connection, Context.BIND_ABOVE_CLIENT);
+        bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
     }
 
     private void startPlayer(Intent intent, String action){
@@ -177,7 +216,4 @@ public class MainActivity extends AppCompatActivity {
     private void startPlayer(String action){
         startPlayer(new Intent(getApplicationContext(), Player.class), action);
     }
-
-
-
 }

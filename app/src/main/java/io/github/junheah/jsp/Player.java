@@ -35,11 +35,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public static final String ACTION_PLAYER_PREV = "jsp.player_prev";
     public static final String ACTION_PLAYER_APPEND = "jsp.player_append";
     public static final String ACTION_PLAYER_BROADCAST = "jsp.player_broadcast";
+    public static final String ACTION_PLAYER_CREATED = "jsp.player_created";
     public static final int sid = 31525694;
 
     public static boolean running = false;
-    boolean busy = false;
-    boolean playing = false;
     PlayerStatus status;
     PlayList playList;
     Song current;
@@ -93,10 +92,11 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        switch(intent.getAction()){
+        switch (intent.getAction()) {
             case ACTION_PLAYER_CHECK:
-                break;
+                broadcast();
             case ACTION_PLAYER_CREATE:
+                sendBroadcast(new Intent().setAction(ACTION_PLAYER_CREATED));
                 break;
             case ACTION_PLAYER_START:
                 play();
@@ -115,7 +115,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 break;
 
         }
-        broadcast();
         return START_STICKY;
     }
 
@@ -131,7 +130,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             current = current.getNext();
             play();
         }
-        broadcast();
     }
 
     public void prev(){
@@ -139,35 +137,34 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             current = current.getPrev();
             play();
         }
-        broadcast();
     }
 
     public void pause(){
         if(mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
-            status.setPlaying(false);
         }else {
-            mediaPlayer.start();
-            status.setPlaying(true);
+            try {
+                mediaPlayer.start();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
         broadcast();
     }
 
     public void stop(){
         mediaPlayer.stop();
-        status.setPlaying(false);
         stopSelf();
     }
 
     public void play(){
         try {
-            status.setPlaying(false);
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(current.getUrl());
             mediaPlayer.setOnPreparedListener(this);
             mediaPlayer.prepareAsync();
-            //showNotification();
+            status.loaded = false;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -176,29 +173,30 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        mediaPlayer.start();
-        status.setPlaying(true);
-        broadcast();
+        if(running) {
+            status.loaded = true;
+            mediaPlayer.start();
+            broadcast();
+        }
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        status.setPlaying(false);
         broadcast();
     }
 
     public void broadcast(){
         Intent intent = new Intent();
         intent.setAction(ACTION_PLAYER_BROADCAST);
-        status.setPlaying(mediaPlayer.isPlaying());
+        status.playing = mediaPlayer.isPlaying();
         intent.putExtra("status", new Gson().toJson(status));
         sendBroadcast(intent);
     }
 
     @Override
     public void onDestroy() {
+        running = false;
         super.onDestroy();
-        broadcast();
     }
 
     @Nullable
