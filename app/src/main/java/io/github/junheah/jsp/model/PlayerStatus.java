@@ -12,14 +12,6 @@ public class PlayerStatus {
         this.time = time;
     }
 
-    public Song getCurrent() {
-        return current;
-    }
-
-    public void setCurrent(Song current) {
-        this.current = current;
-    }
-
     public boolean isPlaying() {
         return playing;
     }
@@ -28,16 +20,6 @@ public class PlayerStatus {
         this.playing = playing;
     }
 
-    public PlayList getPlayList() {
-        return playList;
-    }
-
-    public void setPlayList(PlayList playList) {
-        this.playList = playList;
-    }
-
     long time;
-    Song current;
     boolean playing;
-    PlayList playList;
 }

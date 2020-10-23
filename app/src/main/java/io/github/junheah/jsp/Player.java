@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -30,6 +31,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public static final String ACTION_PLAYER_STOP = "jsp.player_stop";
     public static final String ACTION_PLAYER_START = "jsp.player_start";
     public static final String ACTION_PLAYER_PAUSE = "jsp.player_pause";
+    public static final String ACTION_PLAYER_NEXT = "jsp.player_next";
+    public static final String ACTION_PLAYER_PREV = "jsp.player_prev";
     public static final String ACTION_PLAYER_APPEND = "jsp.player_append";
     public static final String ACTION_PLAYER_BROADCAST = "jsp.player_broadcast";
     public static final int sid = 31525694;
@@ -43,11 +46,16 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     MediaPlayer mediaPlayer;
     WifiManager.WifiLock wifiLock;
     Intent pendingIntent;
+    final IBinder binder = new PlayerBinder();
 
 
     public Player() {
         super();
         status = new PlayerStatus();
+    }
+
+    public Song getCurrent(){
+        return this.current;
     }
 
     @Override
@@ -61,7 +69,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         wifiLock.acquire();
         pendingIntent = new Intent();
         showNotification();
-
     }
 
     void showNotification(){
@@ -90,24 +97,49 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             case ACTION_PLAYER_CHECK:
                 break;
             case ACTION_PLAYER_CREATE:
-                playList = new Gson().fromJson(intent.getStringExtra("playlist"),  new TypeToken<PlayList>(){}.getType());
-                current = playList.get(0);
                 break;
             case ACTION_PLAYER_START:
-                //play
                 play();
                 break;
             case ACTION_PLAYER_STOP:
-                //stop
                 stop();
                 break;
             case ACTION_PLAYER_PAUSE:
                 pause();
-                //pause
                 break;
+            case ACTION_PLAYER_NEXT:
+                next();
+                break;
+            case ACTION_PLAYER_PREV:
+                prev();
+                break;
+
         }
         broadcast();
         return START_STICKY;
+    }
+
+    public void setPlayList(PlayList playList){
+        this.playList = playList;
+        if(this.playList != null && this.playList.size()>0){
+            this.current = this.playList.get(0);
+        }
+    }
+
+    public void next(){
+        if(current.getNext() != null){
+            current = current.getNext();
+            play();
+        }
+        broadcast();
+    }
+
+    public void prev(){
+        if(current.getPrev() != null){
+            current = current.getPrev();
+            play();
+        }
+        broadcast();
     }
 
     public void pause(){
@@ -118,13 +150,12 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.start();
             status.setPlaying(true);
         }
+        broadcast();
     }
 
     public void stop(){
         mediaPlayer.stop();
         status.setPlaying(false);
-        status.setCurrent(null);
-        status.setPlayList(null);
         stopSelf();
     }
 
@@ -147,7 +178,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.start();
         status.setPlaying(true);
-        status.setCurrent(current);
         broadcast();
     }
 
@@ -160,6 +190,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void broadcast(){
         Intent intent = new Intent();
         intent.setAction(ACTION_PLAYER_BROADCAST);
+        status.setPlaying(mediaPlayer.isPlaying());
         intent.putExtra("status", new Gson().toJson(status));
         sendBroadcast(intent);
     }
@@ -173,6 +204,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
+
+
+    public class PlayerBinder extends Binder {
+        public Player getService(){
+            return Player.this;
+        }
+    };
 }
