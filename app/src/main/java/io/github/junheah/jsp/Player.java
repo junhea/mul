@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -22,10 +23,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.Song;
 
-public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener{
+public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener{
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
     public static final String ACTION_PLAYER_CHECK = "jsp.player_check";
     public static final String ACTION_PLAYER_STOP = "jsp.player_stop";
@@ -59,7 +61,11 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     public int getCurrentPosition(){
         if(mediaPlayer != null)
-            return mediaPlayer.getCurrentPosition();
+            try {
+                return mediaPlayer.getCurrentPosition();
+            }catch (Exception e){
+                return 0;
+            }
         else
             return 0;
     }
@@ -69,8 +75,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         super.onCreate();
         running = true;
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setOnPreparedListener(this);
-        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
@@ -81,6 +86,20 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     void showNotification(){
         Intent notificationIntent = new Intent(this, io.github.junheah.jsp.Activity.MainActivity.class);
+
+        Bitmap largeIcon = null;
+
+        Intent inext = new PlayerIntent(Player.this, ACTION_PLAYER_NEXT);
+        Intent iprev = new PlayerIntent(Player.this, ACTION_PLAYER_PREV);
+        Intent ipause = new PlayerIntent(Player.this, ACTION_PLAYER_PAUSE);
+        Intent istop = new PlayerIntent(Player.this, ACTION_PLAYER_STOP);
+
+        PendingIntent pnext = PendingIntent.getService(Player.this, 0, inext, 0);
+        PendingIntent pprev = PendingIntent.getService(Player.this, 0, iprev, 0);
+        PendingIntent ppause = PendingIntent.getService(Player.this, 0, ipause, 0);
+        PendingIntent pstop = PendingIntent.getService(Player.this, 0, istop, 0);
+
+
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -90,11 +109,27 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mchannel.enableVibration(false);
             mchannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         }
+        int[] actionsViewIndexes = new int[]{1,2,3};
+
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, getApplication().getPackageName())
-                .setContentText("media player running")
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2))
                 .setOngoing(true);
+
+        if(current != null) {
+            notification.setContentTitle(current.getName());
+            notification.setContentText(current.getArtist());
+            //set album art
+            notification.setLargeIcon(largeIcon);
+        }
+
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",pprev));
+        notification.addAction(new NotificationCompat.Action(mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", ppause));
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", pnext));
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", pstop));
+
         startForeground(sid, notification.build());
     }
 
@@ -105,7 +140,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             case ACTION_PLAYER_CHECK:
                 broadcast();
             case ACTION_PLAYER_CREATE:
-                sendBroadcast(new Intent().setAction(ACTION_PLAYER_CREATED));
+                sendBroadcast(new Intent(ACTION_PLAYER_CREATED));
                 break;
             case ACTION_PLAYER_START:
                 play();
@@ -165,23 +200,33 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void pause(){
-        if(mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-        }else {
-            mediaPlayer.start();
+        if(status.loaded) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            } else {
+                mediaPlayer.start();
+            }
+            broadcast();
         }
-        broadcast();
     }
 
     public void stop(){
+        running = false;
         mediaPlayer.stop();
+        mediaPlayer.release();
         stopSelf();
     }
 
     public void play(){
+        System.out.println(current);
         try {
+            if(mediaPlayer.isPlaying())
+                mediaPlayer.pause();
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setOnPreparedListener(this);
+            mediaPlayer.setOnCompletionListener(this);
+            mediaPlayer.setOnErrorListener(this);
             mediaPlayer.setDataSource(current.getUrl());
             mediaPlayer.prepareAsync();
             status.loaded = false;
@@ -203,28 +248,35 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         if(running) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
             if(!next()) {
-                seekTo(0);
                 broadcast();
             }
         }
     }
 
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        return false;
+    }
+
     public void broadcast(){
-        Intent intent = new Intent();
-        intent.setAction(ACTION_PLAYER_BROADCAST);
-        status.playing = mediaPlayer.isPlaying();
-        if(status.loaded)
-            status.duration = mediaPlayer.getDuration();
-        else
-            status.duration = 0;
-        intent.putExtra("status", new Gson().toJson(status));
-        sendBroadcast(intent);
+        if(running) {
+            Intent intent = new Intent(ACTION_PLAYER_BROADCAST);
+            status.playing = mediaPlayer.isPlaying();
+            if (status.loaded)
+                status.duration = mediaPlayer.getDuration();
+            else
+                status.duration = 0;
+            intent.putExtra("status", new Gson().toJson(status));
+            sendBroadcast(intent);
+            //showNotification();
+        }
     }
 
     @Override
     public void onDestroy() {
-        running = false;
         super.onDestroy();
     }
 

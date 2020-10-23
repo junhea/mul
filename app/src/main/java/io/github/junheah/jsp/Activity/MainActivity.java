@@ -221,10 +221,10 @@ public class MainActivity extends AppCompatActivity {
                 //debug
                 if(bound && player.getCurrent() == null){
                     PlayList playList = new PlayList();
-                    playList.add(new Song("kimi", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
-                    playList.add(new Song("asu", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
-                    playList.add(new Song("koe", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
-                    playList.add(new Song("sugar", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
+                    playList.add(new Song("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
+                    playList.add(new Song("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
+                    playList.add(new Song("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
+                    playList.add(new Song("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
                     player.setPlayList(playList);
                     player.play();
                 }

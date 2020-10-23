@@ -23,10 +23,12 @@ public class Song{
     Song next;
 
     String name;
+    String artist;
     String url;
 
-    public Song(String name, String url){
+    public Song(String name, String artist, String url){
         this.name = name;
+        this.artist = artist;
         this.url = url;
     }
 
@@ -36,5 +38,15 @@ public class Song{
 
     public String getUrl() {
         return url;
+    }
+
+    public String getArtist(){
+        return artist;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return super.toString() + "  "+url + "  next: " + next;
     }
 }
