@@ -131,7 +131,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             notification.setContentTitle(current.getName());
             notification.setContentText(current.getArtist());
             //set album art
-            notification.setLargeIcon(largeIcon);
+            notification.setLargeIcon(null);
         }
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",pprev));

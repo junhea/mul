@@ -1,6 +1,8 @@
 package io.github.junheah.jsp.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -8,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,16 +18,17 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
@@ -33,23 +37,19 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CHECK;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_STOP;
-import static io.github.junheah.jsp.Player.running;
 
 public class MainActivity extends AppCompatActivity {
 
     Context context;
-    Button pausebtn, nextbtn, prevbtn, stopbtn, playbtn;
-    TextView infotext, timestamp_cur, timestamp_dur;
+    ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn;
+    Button stopbtn, playbtn;
+    TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
+    ProgressBar mini_progress;
     SeekBar seekBar;
     Player player;
     PlayerStatus status;
     boolean bound = false, seekbarTouch = false;
-
-    TextView logcat;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -65,7 +65,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             System.out.println("service unbound");
-            infotext.setText("");
+            name.setText("");
+            artist.setText("");
+            mini_name.setText("");
+            mini_artist.setText("");
             toggleButtons(false);
             seekBar.setProgress(0);
             seekBar.setEnabled(false);
@@ -81,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        logcat = findViewById( R.id.logcat);
 
         context = this;
 
@@ -89,28 +91,54 @@ public class MainActivity extends AppCompatActivity {
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
 
-        this.findViewById(R.id.logcat_refresh).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    Process process = Runtime.getRuntime().exec("logcat -d");
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(process.getInputStream()));
+        //sliding up panel
+        SlidingUpPanelLayout panel = this.findViewById(R.id.panel);
+        LinearLayoutCompat miniPlayer = this.findViewById(R.id.mini_player);
+        LinearLayoutCompat miniPlayerInfoContainer = this.findViewById(R.id.mini_infoContainer);
+        ImageButton miniPlayerPlaybtn = this.findViewById(R.id.mini_pause_btn);
+        ImageView miniPlayerCover = this.findViewById(R.id.mini_cover);
+        ConstraintLayout playerControl = this.findViewById(R.id.playerControl);
+        mini_progress = this.findViewById(R.id.mini_progress);
+        int playerOriginalHeight = Math.round(68 * getResources().getDisplayMetrics().density);
+        int miniPlayerCoverOriginalWidth = Math.round(50 * getResources().getDisplayMetrics().density);
+        int miniPlayerCoverMaxWidth = Resources.getSystem().getDisplayMetrics().widthPixels - Math.round(20 * getResources().getDisplayMetrics().density);
+        int screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
 
-                    StringBuilder log=new StringBuilder();
-                    String line = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        log.append(line);
-                    }
-                    logcat.setText(log.toString());
-                } catch (IOException e) {
-                    // Handle Exception
-                }
+        panel.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
+                int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
+                miniPlayer.getLayoutParams().height = height;
+                miniPlayer.setLayoutParams(params);
+
+                //info container
+                miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
+
+                //play button
+                miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
+
+                //cover image
+                int width = miniPlayerCoverOriginalWidth +
+                        Math.round((miniPlayerCoverMaxWidth - miniPlayerCoverOriginalWidth)*slideOffset);
+                ViewGroup.LayoutParams paramss = miniPlayerCover.getLayoutParams();
+                paramss.height = width;
+                paramss.width = width;
+                miniPlayerCover.setLayoutParams(paramss);
+                //player controls
+                playerControl.setAlpha(slideOffset);
+
+
+            }
+
+            @Override
+            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+//                if(newState== SlidingUpPanelLayout.PanelState.EXPANDED) updatePlayer(playerCurrentSong);
             }
         });
 
         //play btn
-        playbtn = this.findViewById(R.id.play_btn);
+        playbtn = this.findViewById(R.id.start_btn);
         playbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -156,25 +184,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //pause btn
-        pausebtn = this.findViewById(R.id.pause_btn);
-        pausebtn.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener pauseListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(bound){
                     player.pause();
                 }
             }
-        });
+        };
+        pausebtn = this.findViewById(R.id.pause_btn);
+        pausebtn.setOnClickListener(pauseListener);
+        mini_pausebtn = this.findViewById(R.id.mini_pause_btn);
+        mini_pausebtn.setOnClickListener(pauseListener);
 
         //info text
-        infotext = this.findViewById(R.id.info_text);
+        name = this.findViewById(R.id.playerSongName);
+        artist = this.findViewById(R.id.playerArtistName);
+        mini_name = this.findViewById(R.id.mini_name);
+        mini_artist = this.findViewById(R.id.mini_artist);
+
 
         //seek bar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if(b){
-                    timestamp_cur.setText(String.valueOf(i));
+                    timestamp_cur.setText(getTimeStamp(i));
                 }
             }
 
@@ -207,15 +242,17 @@ public class MainActivity extends AppCompatActivity {
 
                 //update ui
                 if(status.playing){
-                    pausebtn.setText("||");
+                    pausebtn.setImageResource(R.drawable.player_pause);
+                    mini_pausebtn.setImageResource(R.drawable.player_pause);
                 }else{
-                    pausebtn.setText(">");
+                    pausebtn.setImageResource(R.drawable.player_start);
+                    mini_pausebtn.setImageResource(R.drawable.player_start);
                 }
 
                 //manual seekbar & timestamp
                 if(bound && !status.playing){
                     seekBar.setProgress(player.getCurrentPosition());
-                    timestamp_cur.setText(String.valueOf(player.getCurrentPosition()));
+                    timestamp_cur.setText(getTimeStamp(player.getCurrentPosition()));
                 }
 
                 //update ui depending on status.loaded
@@ -223,10 +260,12 @@ public class MainActivity extends AppCompatActivity {
                 seekBar.setEnabled(status.loaded);
 
                 if(status.loaded){
-                    timestamp_dur.setText(String.valueOf(status.duration));
+                    timestamp_dur.setText(getTimeStamp(status.duration));
                     seekBar.setMax(status.duration);
+                    mini_progress.setMax(status.duration);
                 }else{
                     seekBar.setProgress(0);
+                    mini_progress.setProgress(0);
                     timestamp_cur.setText("");
                     timestamp_dur.setText("");
                 }
@@ -239,13 +278,17 @@ public class MainActivity extends AppCompatActivity {
                         nextbtn.setEnabled(false);
                         prevbtn.setEnabled(false);
                         pausebtn.setEnabled(false);
+                        miniPlayerCover.setImageResource(R.drawable.music);
                     }else{
                         if (current.getNext() == null) nextbtn.setEnabled(false);
                         else nextbtn.setEnabled(true);
                         if (current.getPrev() == null) prevbtn.setEnabled(false);
                         else prevbtn.setEnabled(true);
 
-                        infotext.setText(current.getName());
+                        name.setText(current.getName());
+                        mini_name.setText(current.getName());
+                        artist.setText(current.getArtist());
+                        mini_artist.setText(current.getArtist());
                     }
                 }
 
@@ -280,6 +323,13 @@ public class MainActivity extends AppCompatActivity {
         playbtn.setEnabled(!playerIsRunning);
     }
 
+    public String getTimeStamp(int m){
+        long second = (m / 1000) % 60;
+        long minute = (m / (1000 * 60)) % 60;
+        long hour = (m / (1000 * 60 * 60)) % 24;
+        return(String.format("%02d:%02d:%02d", hour, minute, second));
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -304,8 +354,10 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             if(!prevbtn.isEnabled() && msg.arg1>3000)
                 prevbtn.setEnabled(true);
-            timestamp_cur.setText(String.valueOf(msg.arg1));
+            String timestamp = getTimeStamp(msg.arg1);
+            timestamp_cur.setText(timestamp);
             seekBar.setProgress(msg.arg1);
+            mini_progress.setProgress(msg.arg1);
         }
     };
 

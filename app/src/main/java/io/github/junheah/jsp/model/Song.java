@@ -22,8 +22,8 @@ public class Song{
     Song prev;
     Song next;
 
-    String name;
-    String artist;
+    String name="";
+    String artist="";
     String url;
 
     public Song(String name, String artist, String url){

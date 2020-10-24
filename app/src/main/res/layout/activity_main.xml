@@ -1,90 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/panel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".Activity.MainActivity">
+    android:gravity="bottom"
+    sothree:umanoPanelHeight="68dp"
+    sothree:umanoShadowHeight="4dp">
 
-    <androidx.appcompat.widget.AppCompatSeekBar
+    <include
+        layout="@layout/content_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/seekBar"/>
-    <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_height="match_parent"
+        android:visibility="visible" />
+
+    <include
+        layout="@layout/content_panel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        tools:context=".Activity.MainActivity">
-        <TextView
-            android:text="current"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/timestamp_current"/>
-        <TextView
-            android:text="duration"
-            android:layout_marginLeft="50dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/timestamp_duration"/>
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/info_text"/>
-
-    <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        tools:context=".Activity.MainActivity">
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="&lt;&lt;"
-            android:id="@+id/prev_btn"/>
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="x"
-            android:id="@+id/stop_btn"/>
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="||"
-            android:id="@+id/pause_btn"/>
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="|&gt;"
-            android:id="@+id/play_btn"/>
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="&gt;&gt;"
-            android:id="@+id/next_btn"/>
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/logcat_refresh"
-        android:text="refresh"/>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:id="@+id/logcat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </ScrollView>
-
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+        android:layout_height="match_parent"
+        android:visibility="visible" />
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>
