@@ -22,9 +22,18 @@ tools:context=".Activity.MainActivity">
     <Button
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:text="|&gt;"
-        android:id="@+id/start_btn"/>
+        android:text="+"
+        android:id="@+id/add_btn"/>
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="+p"
+        android:id="@+id/add_playlist_btn"/>
 </androidx.appcompat.widget.LinearLayoutCompat>
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/viewPager"/>
 
 
 </androidx.appcompat.widget.LinearLayoutCompat>

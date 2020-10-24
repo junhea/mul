@@ -25,11 +25,19 @@ public class Song{
     String name="";
     String artist="";
     String url;
+    String cover;
 
     public Song(String name, String artist, String url){
         this.name = name;
         this.artist = artist;
         this.url = url;
+    }
+
+    public Song(String name, String artist, String url, String cover){
+        this.name = name;
+        this.artist = artist;
+        this.url = url;
+        this.cover = cover;
     }
 
     public String getName() {
@@ -42,6 +50,10 @@ public class Song{
 
     public String getArtist(){
         return artist;
+    }
+
+    public String getCover(){
+        return cover;
     }
 
     @NonNull

@@ -1,8 +1,15 @@
 package io.github.junheah.jsp.Activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.lifecycle.Lifecycle;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -32,24 +39,38 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.adapter.MainFragmentAdapter;
+import io.github.junheah.jsp.fragment.PlayListFragment;
+import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
+import io.github.junheah.jsp.interfaces.SongCallback;
+import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
+import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
+import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATED;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
+import static io.github.junheah.jsp.Utils.singleInputPopup;
+import static io.github.junheah.jsp.Utils.songAdderPopup;
 
 public class MainActivity extends AppCompatActivity {
 
     Context context;
     ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn;
-    Button stopbtn, playbtn;
+    Button stopbtn;
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
     Player player;
     PlayerStatus status;
     boolean bound = false, seekbarTouch = false;
+    ViewPager2 viewPager;
+    MainFragmentAdapter adapter;
+    PlayListItemClickCallback playListCallback;
+    PlayList playListQueue;
+    Song songQueue;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -60,6 +81,15 @@ public class MainActivity extends AppCompatActivity {
             player.broadcast();
             bound = true;
             System.out.println("service bound");
+            if(playListQueue != null){
+                if(songQueue == null)
+                    player.setPlayList(playListQueue);
+                else
+                    player.setPlayList(playListQueue, songQueue);
+                playListQueue = null;
+                songQueue = null;
+            }
+
         }
 
         @Override
@@ -127,8 +157,6 @@ public class MainActivity extends AppCompatActivity {
                 miniPlayerCover.setLayoutParams(paramss);
                 //player controls
                 playerControl.setAlpha(slideOffset);
-
-
             }
 
             @Override
@@ -137,16 +165,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //play btn
-        playbtn = this.findViewById(R.id.start_btn);
-        playbtn.setOnClickListener(new View.OnClickListener() {
+        //playlist callback
+        playListCallback = new PlayListItemClickCallback() {
+            @Override
+            public void SongClicked(Song song, PlayList list) {
+                System.out.println("song clicked!");
+                if(bound){
+                    player.setPlayList(list, song);
+                }else{
+                    //set playlist when service connected
+                    playListQueue = list;
+                    songQueue = song;
+                    startPlayer(ACTION_PLAYER_CREATE);
+                }
+            }
+        };
+
+
+        //add song btn
+        this.findViewById(R.id.add_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bound) {
-                    player.play();
-                }else{
-                    startPlayer(ACTION_PLAYER_START);
-                }
+                songAdderPopup(context, new SongCallback(){
+                    @Override
+                    public void callback(Song song) {
+                        //add song to current playlist
+                        adapter.addSong(viewPager.getCurrentItem(), song);
+                    }
+                });
+            }
+        });
+
+        //add playlist btn
+        this.findViewById(R.id.add_playlist_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                singleInputPopup(context, new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        adapter.append(new PlayListFragment(new PlayList(data), playListCallback));
+                    }
+                });
             }
         });
 
@@ -230,77 +289,69 @@ public class MainActivity extends AppCompatActivity {
         BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 //if broadcast recieved, player is running
-                toggleButtons(true);
+                if(intent.getAction().equals(ACTION_PLAYER_BROADCAST)) {
+                    toggleButtons(true);
 
-                //if not bound, bind to service
-                if(!bound){
-                    bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
-                }
-
-                //update status
-                status = new Gson().fromJson(intent.getStringExtra("status"), new TypeToken<PlayerStatus>(){}.getType());
-
-                //update ui
-                if(status.playing){
-                    pausebtn.setImageResource(R.drawable.player_pause);
-                    mini_pausebtn.setImageResource(R.drawable.player_pause);
-                }else{
-                    pausebtn.setImageResource(R.drawable.player_start);
-                    mini_pausebtn.setImageResource(R.drawable.player_start);
-                }
-
-                //manual seekbar & timestamp
-                if(bound && !status.playing){
-                    seekBar.setProgress(player.getCurrentPosition());
-                    timestamp_cur.setText(getTimeStamp(player.getCurrentPosition()));
-                }
-
-                //update ui depending on status.loaded
-                pausebtn.setEnabled(status.loaded);
-                seekBar.setEnabled(status.loaded);
-
-                if(status.loaded){
-                    timestamp_dur.setText(getTimeStamp(status.duration));
-                    seekBar.setMax(status.duration);
-                    mini_progress.setMax(status.duration);
-                }else{
-                    seekBar.setProgress(0);
-                    mini_progress.setProgress(0);
-                    timestamp_cur.setText("");
-                    timestamp_dur.setText("");
-                }
-
-                //get info directly from bound service
-                if(bound) {
-                    Song current = player.getCurrent();
-                    if(current == null) {
-                        //no song loaded
-                        nextbtn.setEnabled(false);
-                        prevbtn.setEnabled(false);
-                        pausebtn.setEnabled(false);
-                        miniPlayerCover.setImageResource(R.drawable.music);
-                    }else{
-                        if (current.getNext() == null) nextbtn.setEnabled(false);
-                        else nextbtn.setEnabled(true);
-                        if (current.getPrev() == null) prevbtn.setEnabled(false);
-                        else prevbtn.setEnabled(true);
-
-                        name.setText(current.getName());
-                        mini_name.setText(current.getName());
-                        artist.setText(current.getArtist());
-                        mini_artist.setText(current.getArtist());
+                    //if not bound, bind to service
+                    if (!bound) {
+                        bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
                     }
-                }
 
-                //debug
-                if(bound && player.getCurrent() == null){
-                    PlayList playList = new PlayList();
-                    playList.add(new Song("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
-                    playList.add(new Song("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
-                    playList.add(new Song("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
-                    playList.add(new Song("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
-                    player.setPlayList(playList);
-                    player.play();
+                    //update status
+                    status = new Gson().fromJson(intent.getStringExtra("status"), new TypeToken<PlayerStatus>() {
+                    }.getType());
+
+                    //update ui
+                    if (status.playing) {
+                        pausebtn.setImageResource(R.drawable.player_pause);
+                        mini_pausebtn.setImageResource(R.drawable.player_pause);
+                    } else {
+                        pausebtn.setImageResource(R.drawable.player_start);
+                        mini_pausebtn.setImageResource(R.drawable.player_start);
+                    }
+
+                    //manual seekbar & timestamp
+                    if (bound && !status.playing) {
+                        seekBar.setProgress(player.getCurrentPosition());
+                        timestamp_cur.setText(getTimeStamp(player.getCurrentPosition()));
+                    }
+
+                    //update ui depending on status.loaded
+                    pausebtn.setEnabled(status.loaded);
+                    seekBar.setEnabled(status.loaded);
+
+                    if (status.loaded) {
+                        timestamp_dur.setText(getTimeStamp(status.duration));
+                        seekBar.setMax(status.duration);
+                        mini_progress.setMax(status.duration);
+                    } else {
+                        seekBar.setProgress(0);
+                        mini_progress.setProgress(0);
+                        timestamp_cur.setText("");
+                        timestamp_dur.setText("");
+                    }
+
+                    //get info directly from bound service
+                    if (bound) {
+                        Song current = player.getCurrent();
+                        if (current == null) {
+                            //no song loaded
+                            nextbtn.setEnabled(false);
+                            prevbtn.setEnabled(false);
+                            pausebtn.setEnabled(false);
+                            miniPlayerCover.setImageResource(R.drawable.music);
+                        } else {
+                            if (current.getNext() == null) nextbtn.setEnabled(false);
+                            else nextbtn.setEnabled(true);
+                            if (current.getPrev() == null) prevbtn.setEnabled(false);
+                            else prevbtn.setEnabled(true);
+
+                            name.setText(current.getName());
+                            mini_name.setText(current.getName());
+                            artist.setText(current.getArtist());
+                            mini_artist.setText(current.getArtist());
+                        }
+                    }
                 }
             }
         };
@@ -312,6 +363,23 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new TimeStampThread()).start();
 
         toggleButtons(false);
+
+
+        //example fragment
+        PlayList playList = new PlayList("test1");
+        playList.add(new Song("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
+        playList.add(new Song("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
+        playList.add(new Song("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
+        playList.add(new Song("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
+        PlayListFragment fragment = new PlayListFragment(playList, playListCallback);
+
+        //viewPager
+        viewPager = this.findViewById(R.id.viewPager);
+        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+        viewPager.setOffscreenPageLimit(3);
+        adapter = new MainFragmentAdapter(this, fragment);
+        viewPager.setAdapter(adapter);
+
     }
 
     void toggleButtons(boolean playerIsRunning){
@@ -320,7 +388,6 @@ public class MainActivity extends AppCompatActivity {
         nextbtn.setEnabled(false);
         stopbtn.setEnabled(playerIsRunning);
         pausebtn.setEnabled(false);
-        playbtn.setEnabled(!playerIsRunning);
     }
 
     public String getTimeStamp(int m){

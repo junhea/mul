@@ -10,6 +10,10 @@ public class PlayList extends ArrayList<Song> {
 
     String name;
 
+    public String getName(){
+        return name == null ? "" : name;
+    }
+
     public PlayList(String name) {
         super();
         this.name = name;

@@ -151,7 +151,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 broadcast();
                 break;
             case ACTION_PLAYER_CREATE:
-                sendBroadcast(new Intent(ACTION_PLAYER_CREATED));
+                //sendBroadcast(new Intent(ACTION_PLAYER_CREATED));
+                broadcast();
                 break;
             case ACTION_PLAYER_START:
                 play();
@@ -178,6 +179,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(this.playList != null && this.playList.size()>0){
             this.current = this.playList.get(0);
         }
+        play();
+    }
+
+    public void setPlayList(PlayList playList, Song song){
+        this.playList = playList;
+        this.current = song;
+        play();
     }
 
     public void seekTo(int pos){
@@ -225,6 +233,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void stop(){
         running = false;
         mediaPlayer.stop();
+        mediaPlayer.release();
+        mediaPlayer = null;
         stopSelf();
     }
 
@@ -252,7 +262,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         if(running) {
-            mediaPlayer.stop();
+            mediaPlayer.pause();
+            mediaPlayer.seekTo(0);
             if(!next()) {
                 broadcast();
             }

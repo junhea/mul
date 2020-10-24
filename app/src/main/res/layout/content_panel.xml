@@ -33,7 +33,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_margin="10dp"
-            android:background="@android:color/black"
+            android:background="#292929"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/music" />
 
@@ -171,7 +171,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/pause_btn"
             app:srcCompat="@drawable/player_next"
             android:background="?android:selectableItemBackground"
@@ -197,7 +196,6 @@
             android:layout_margin="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/pause_btn"
-            app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/player_prev"
             android:background="?android:selectableItemBackground"
             android:padding="15dp"/>
