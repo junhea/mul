@@ -20,7 +20,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
@@ -38,7 +37,9 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public static final String ACTION_PLAYER_APPEND = "jsp.player_append";
     public static final String ACTION_PLAYER_BROADCAST = "jsp.player_broadcast";
     public static final String ACTION_PLAYER_CREATED = "jsp.player_created";
-    public static final int sid = 31525694;
+
+    private static final String CHANNEL_ID = "jsp.media_player_service";
+    public static final int nid = 31525694;
 
     public static boolean running = false;
     PlayerStatus status;
@@ -109,19 +110,22 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel mchannel = new NotificationChannel(getApplication().getPackageName(), "media player", NotificationManager.IMPORTANCE_LOW);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel mchannel = new NotificationChannel(CHANNEL_ID, "media player", NotificationManager.IMPORTANCE_LOW);
             mchannel.setDescription("media player");
             mchannel.enableLights(false);
             mchannel.enableVibration(false);
             mchannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            notificationManager.createNotificationChannel(mchannel);
         }
 
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, getApplication().getPackageName())
+        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setOngoing(true)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(0,1,2))
-                .setOngoing(true);
+                        .setShowActionsInCompactView(0,1,2));
+
 
         if(current != null) {
             notification.setContentTitle(current.getName());
@@ -136,7 +140,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", pstop));
 
 
-        startForeground(sid, notification.build());
+        startForeground(nid, notification.build());
     }
 
 
@@ -178,6 +182,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     public void seekTo(int pos){
         mediaPlayer.seekTo(pos);
+        broadcast();
     }
 
     public boolean next(){

@@ -22,6 +22,10 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.model.PlayList;
@@ -44,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     Player player;
     PlayerStatus status;
     boolean bound = false, seekbarTouch = false;
+
+    TextView logcat;
+
     private ServiceConnection connection = new ServiceConnection() {
 
         @Override
@@ -74,11 +81,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        logcat = findViewById( R.id.logcat);
+
         context = this;
 
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
+
+        this.findViewById(R.id.logcat_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    Process process = Runtime.getRuntime().exec("logcat -d");
+                    BufferedReader bufferedReader = new BufferedReader(
+                            new InputStreamReader(process.getInputStream()));
+
+                    StringBuilder log=new StringBuilder();
+                    String line = "";
+                    while ((line = bufferedReader.readLine()) != null) {
+                        log.append(line);
+                    }
+                    logcat.setText(log.toString());
+                } catch (IOException e) {
+                    // Handle Exception
+                }
+            }
+        });
 
         //play btn
         playbtn = this.findViewById(R.id.play_btn);

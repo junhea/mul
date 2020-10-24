@@ -71,4 +71,20 @@
             android:id="@+id/next_btn"/>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/logcat_refresh"
+        android:text="refresh"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/logcat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </ScrollView>
+
+
 </androidx.appcompat.widget.LinearLayoutCompat>
