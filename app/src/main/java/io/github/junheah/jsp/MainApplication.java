@@ -19,12 +19,14 @@ import static org.acra.ReportField.STACK_TRACE;
 @AcraDialog(resText=R.string.acra_dialog_text)
 
 public class MainApplication extends Application {
+    public static Preference p;
 
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         System.out.println("main app start");
         ACRA.init(this);
+        p = new Preference(this);
     }
 
     @Override

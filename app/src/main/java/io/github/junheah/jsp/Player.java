@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -24,7 +25,7 @@ import com.google.gson.Gson;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
-import io.github.junheah.jsp.model.Song;
+import io.github.junheah.jsp.model.song.Song;
 
 public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener{
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
@@ -41,7 +42,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     private static final String CHANNEL_ID = "jsp.media_player_service";
     public static final int nid = 31525694;
 
-    public static boolean running = false;
+    public static boolean running = false;  //used to check if player is created or not
+    // (액티비티에서 서비스 생성을 명령한 시점부터 액티비티가 서비스가 생성되었음을 인지할때까지 다른 인스턴스를 만드는 일을 방지)
     PlayerStatus status;
     PlayList playList;
     Song current;
@@ -49,6 +51,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     WifiManager.WifiLock wifiLock;
     Intent pendingIntent;
     final IBinder binder = new PlayerBinder();
+    Bitmap defaultCover;
 
 
     public Player() {
@@ -88,6 +91,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
         wifiLock.acquire();
+        defaultCover = BitmapFactory.decodeResource(this.getResources(), R.drawable.music);
         pendingIntent = new Intent();
         showNotification();
     }
@@ -121,7 +125,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.music_note)
                 .setOngoing(true)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setShowActionsInCompactView(0,1,2));
@@ -131,7 +135,11 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             notification.setContentTitle(current.getName());
             notification.setContentText(current.getArtist());
             //set album art
-            notification.setLargeIcon(null);
+            if(current.getCover() == null){
+                notification.setLargeIcon(defaultCover);
+            }else{
+                notification.setLargeIcon(null);
+            }
         }
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",pprev));
@@ -242,9 +250,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         status.loaded = false;
         try {
             mediaPlayer.reset();
-            mediaPlayer.setDataSource(current.getUrl());
+            mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
+            mediaPlayer.reset();
             e.printStackTrace();
         }
         broadcast();

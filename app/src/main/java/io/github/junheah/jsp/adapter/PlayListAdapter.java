@@ -14,9 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.interfaces.PlayListAdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.Song;
+import io.github.junheah.jsp.model.song.Song;
 
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     PlayList playList;
@@ -28,6 +29,22 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.playList = playList;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
+        playList.setNotifier(new PlayListAdapterNotifier() {
+            @Override
+            public void songRemoved(int index) {
+                notifyItemRemoved(index);
+            }
+
+            @Override
+            public void songAdded(int index) {
+                notifyItemInserted(index);
+            }
+
+            @Override
+            public void songUpdated(int index) {
+                notifyItemChanged(index);
+            }
+        });
     }
 
     @NonNull
@@ -58,6 +75,16 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             }
         });
+        ((PlayListViewHolder)holder).layout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if(callback != null){
+                    callback.SongLongClicked(item, playList);
+                }
+                return false;
+            }
+        });
+
     }
 
     @Override

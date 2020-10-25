@@ -8,9 +8,6 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.junheah.jsp.fragment.PlayListFragment;
-import io.github.junheah.jsp.model.Song;
-
 public class MainFragmentAdapter extends FragmentStateAdapter {
 
     List<Fragment> fragments;
@@ -25,11 +22,8 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
         notifyItemInserted(fragments.size()-1);
     }
 
-    public void addSong(int index, Song song){
-        Fragment fragment = fragments.get(index);
-        if(fragment instanceof PlayListFragment){
-            ((PlayListFragment)fragment).addSong(song);
-        }
+    public Fragment getItemAt(int index){
+        return fragments.get(index);
     }
 
     @NonNull

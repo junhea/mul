@@ -1,19 +1,15 @@
 package io.github.junheah.jsp.Activity;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.lifecycle.Lifecycle;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -41,17 +37,21 @@ import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
 import io.github.junheah.jsp.fragment.PlayListFragment;
+import io.github.junheah.jsp.gson.PlayListSerializer;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerStatus;
-import io.github.junheah.jsp.model.Song;
+import io.github.junheah.jsp.model.song.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATED;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_START;
+import static io.github.junheah.jsp.Utils.YesNoPopup;
+import static io.github.junheah.jsp.Utils.playListDeserializer;
+import static io.github.junheah.jsp.Utils.playListSerializer;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 import static io.github.junheah.jsp.Utils.songAdderPopup;
 
@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     PlayListItemClickCallback playListCallback;
     PlayList playListQueue;
     Song songQueue;
+    Thread timeStampThread;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 playListQueue = null;
                 songQueue = null;
             }
-
+            timeStampThread.start();
         }
 
         @Override
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
             timestamp_dur.setText("");
             player = null;
             bound = false;
+            timeStampThread.interrupt();
         }
     };
 
@@ -113,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         context = this;
 
@@ -172,12 +173,33 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("song clicked!");
                 if(bound){
                     player.setPlayList(list, song);
-                }else{
+                }else if(!Player.running){  //is player.running, wait for it to bind
                     //set playlist when service connected
                     playListQueue = list;
                     songQueue = song;
                     startPlayer(ACTION_PLAYER_CREATE);
                 }
+            }
+
+            @Override
+            public void SongLongClicked(Song song, PlayList list) {
+                //delete song
+                //todo: add more options (use menu popup)
+                YesNoPopup(context, song.getName(), "이 곡을 플레이리스트에서 삭제하겠습니까?",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //yes
+                                list.remove(song);
+                                if(bound) {
+                                    //check if player is playing target song
+                                    if(player.getCurrent().equals(song)){
+                                        player.stop();
+                                    }else
+                                        player.broadcast();
+                                }
+                            }
+                        });
             }
         };
 
@@ -189,8 +211,14 @@ public class MainActivity extends AppCompatActivity {
                 songAdderPopup(context, new SongCallback(){
                     @Override
                     public void callback(Song song) {
-                        //add song to current playlist
-                        adapter.addSong(viewPager.getCurrentItem(), song);
+                        //add to current visible playlist
+                        Fragment targetFragment = adapter.getItemAt(viewPager.getCurrentItem());
+                        if(targetFragment instanceof PlayListFragment){
+                            ((PlayListFragment)targetFragment).getPlayList().add(song);
+                        }
+                        //update ui
+                        if(bound)
+                            player.broadcast();
                     }
                 });
             }
@@ -360,17 +388,22 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(receiver, filter);
 
         //timestamp thread
-        new Thread(new TimeStampThread()).start();
+        timeStampThread = new Thread(new TimeStampThread());
 
         toggleButtons(false);
 
 
-        //example fragment
+        //example playlist
         PlayList playList = new PlayList("test1");
-        playList.add(new Song("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp"));
-        playList.add(new Song("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG"));
-        playList.add(new Song("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om"));
-        playList.add(new Song("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq"));
+        try {
+            playList.add(new ExternalSong("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp",null));
+            playList.add(new ExternalSong("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG",null));
+            playList.add(new ExternalSong("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om",null));
+            playList.add(new ExternalSong("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq",null));
+            playList.add(new LocalSong("melt", "local", "/sdcard/Download/melt.mp3",null));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         PlayListFragment fragment = new PlayListFragment(playList, playListCallback);
 
         //viewPager

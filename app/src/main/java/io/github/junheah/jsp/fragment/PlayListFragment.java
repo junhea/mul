@@ -16,7 +16,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.Song;
+import io.github.junheah.jsp.model.song.Song;
 
 public class PlayListFragment extends Fragment {
     PlayList playList;
@@ -26,6 +26,10 @@ public class PlayListFragment extends Fragment {
     public PlayListFragment(PlayList playList, PlayListItemClickCallback callback) {
         this.playList = playList;
         this.callback = callback;
+    }
+
+    public PlayList getPlayList(){
+        return this.playList;
     }
 
     @Nullable

@@ -1,14 +1,17 @@
 package io.github.junheah.jsp.model;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+
+import io.github.junheah.jsp.interfaces.PlayListAdapterNotifier;
+import io.github.junheah.jsp.model.song.Song;
 
 public class PlayList extends ArrayList<Song> {
     //doubly linked list
 
     String name;
+    transient public PlayListAdapterNotifier notifier;
 
     public String getName(){
         return name == null ? "" : name;
@@ -18,6 +21,11 @@ public class PlayList extends ArrayList<Song> {
         super();
         this.name = name;
     }
+
+    public void setNotifier(PlayListAdapterNotifier notifier){
+        this.notifier = notifier;
+    }
+
     public PlayList() {
         super();
     }
@@ -25,19 +33,25 @@ public class PlayList extends ArrayList<Song> {
     @Override
     public boolean add(Song song) {
         boolean res = super.add(song);
+        song.setParent(this);
         int size = size();
         updateIndex(size-1);
         if(size>1)
             updateIndex(size-2);
+        if(notifier != null)
+            notifier.songAdded(size-1);
         return res;
     }
 
     @Override
     public void add(int index, Song song) {
         super.add(index, song);
+        song.setParent(this);
         updateIndex(index);
         updateIndex(index-1);
         updateIndex(index+1);
+        if(notifier != null)
+            notifier.songAdded(index);
     }
 
     @Override
@@ -48,18 +62,21 @@ public class PlayList extends ArrayList<Song> {
             if(size > 0){
                 updateIndex(index);
             }
-        }else if(index == size-1){
+        }else if(index >= size-1){
             updateIndex(index-1);
         }else{
             updateIndex(index);
             updateIndex(index-1);
         }
+        if(notifier != null)
+            notifier.songRemoved(index);
         return obj;
     }
 
     @Override
     public boolean remove(@Nullable Object o) {
-        remove(indexOf(o));
+        int index = indexOf(o);
+        remove(index);
         return true;
     }
 

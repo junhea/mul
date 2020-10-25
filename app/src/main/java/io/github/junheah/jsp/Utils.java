@@ -8,12 +8,41 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import io.github.junheah.jsp.gson.PlayListDeserializer;
+import io.github.junheah.jsp.gson.PlayListSerializer;
+import io.github.junheah.jsp.gson.RuntimeTypeAdapterFactory;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
-import io.github.junheah.jsp.model.Song;
+import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
+import io.github.junheah.jsp.model.song.Song;
 
 public class Utils {
     // static functions
+
+    public static Gson playListSerializer(){
+        return new GsonBuilder()
+                .registerTypeAdapter(new TypeToken<PlayList>() {}.getType(), new PlayListSerializer())
+                .create();
+    }
+
+    public static Gson playListDeserializer(){
+        RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
+                .of(Song.class, "TYPE")
+                .registerSubtype(Song.class, "SONG")
+                .registerSubtype(LocalSong.class, "LOCAL")
+                .registerSubtype(ExternalSong.class, "EXTERNAL");
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
+                .registerTypeAdapter(new TypeToken<PlayList>() {}.getType(), new PlayListDeserializer())
+                .create();
+    }
+
     public static void songAdderPopup(Context context, SongCallback callback){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         final LinearLayoutCompat layout = new LinearLayoutCompat(context);
@@ -45,12 +74,16 @@ public class Utils {
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
-                        Song song = new Song(nameInput.getText().toString(),
-                                artistInput.getText().toString(),
-                                urlInput.getText().toString(),
-                                coverInput.getText().toString());
-                        callback.callback(song);
+                        try {
+                            Song song = new Song(nameInput.getText().toString(),
+                                    artistInput.getText().toString(),
+                                    urlInput.getText().toString(),
+                                    coverInput.getText().toString());
+                            callback.callback(song);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                            showPopup(context, "오류", "error in song info");
+                        }
                     }
                 })
                 .show();
@@ -76,6 +109,14 @@ public class Utils {
                         callback.callback(editText.getText().toString());
                     }
                 })
+                .show();
+    }
+
+    public static void YesNoPopup(Context context, String title, String content, DialogInterface.OnClickListener positiveCallback){
+        new AlertDialog.Builder(context).setTitle(title)
+                .setMessage(content)
+                .setPositiveButton("예", positiveCallback)
+                .setNegativeButton("아니오", null)
                 .show();
     }
 
