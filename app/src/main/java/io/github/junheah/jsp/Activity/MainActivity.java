@@ -33,6 +33,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     PlayList playListQueue;
     Song songQueue;
     Thread timeStampThread;
+    PlayListIO playListIO;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -198,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
                                     }else
                                         player.broadcast();
                                 }
+                                playListIO.write(list);
                             }
                         });
             }
@@ -214,11 +217,15 @@ public class MainActivity extends AppCompatActivity {
                         //add to current visible playlist
                         Fragment targetFragment = adapter.getItemAt(viewPager.getCurrentItem());
                         if(targetFragment instanceof PlayListFragment){
-                            ((PlayListFragment)targetFragment).getPlayList().add(song);
+                            PlayList pl = ((PlayListFragment)targetFragment).getPlayList();
+                            pl.add(song);
+                            //save
+                            playListIO.write(pl);
                         }
                         //update ui
                         if(bound)
                             player.broadcast();
+
                     }
                 });
             }
@@ -231,9 +238,44 @@ public class MainActivity extends AppCompatActivity {
                 singleInputPopup(context, new StringCallback() {
                     @Override
                     public void callback(String data) {
-                        adapter.append(new PlayListFragment(new PlayList(data), playListCallback));
+                        PlayList pl = new PlayList(data);
+                        adapter.append(new PlayListFragment(pl, playListCallback));
+                        playListIO.write(pl);
                     }
                 });
+            }
+        });
+
+        //remove playlist btn
+        this.findViewById(R.id.remove_playlist_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int fragIndex = viewPager.getCurrentItem();
+                System.out.println("current page = " +fragIndex);
+                Fragment targetFragment = adapter.getItemAt(fragIndex);
+                if(targetFragment instanceof PlayListFragment){
+                    PlayList pl = ((PlayListFragment)targetFragment).getPlayList();
+                    YesNoPopup(context, pl.getName(), "이 플레이리스트를 삭제하겠습니까?",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //delete fragment
+                                    adapter.remove(fragIndex);
+
+                                    //check player
+                                    if(bound){
+                                        Song current = player.getCurrent();
+                                        if(current.getParent().equals(pl))
+                                            player.stop();
+                                    }
+
+                                    //save
+                                    playListIO.delete(pl);
+                                }
+                            });
+
+                }
+
             }
         });
 
@@ -392,26 +434,21 @@ public class MainActivity extends AppCompatActivity {
 
         toggleButtons(false);
 
-
-        //example playlist
-        PlayList playList = new PlayList("test1");
-        try {
-            playList.add(new ExternalSong("kimi", "test", "http://utaitebox.com/api/play/stream/v6MoDvMxyp",null));
-            playList.add(new ExternalSong("asu", "test", "http://utaitebox.com/api/play/stream/AoYIokv0dG",null));
-            playList.add(new ExternalSong("koe", "test", "http://utaitebox.com/api/play/stream/t5pEquO2Om",null));
-            playList.add(new ExternalSong("sugar", "test", "http://utaitebox.com/api/play/stream/E39T7bT1Xq",null));
-            playList.add(new LocalSong("melt", "local", "/sdcard/Download/melt.mp3",null));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        PlayListFragment fragment = new PlayListFragment(playList, playListCallback);
-
         //viewPager
         viewPager = this.findViewById(R.id.viewPager);
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         viewPager.setOffscreenPageLimit(3);
-        adapter = new MainFragmentAdapter(this, fragment);
+        adapter = new MainFragmentAdapter(this);
         viewPager.setAdapter(adapter);
+
+        //load playlists
+        playListIO = new PlayListIO(context);
+        PlayListFragment tmpfrag;
+        for(PlayList pl : playListIO.get()){
+            tmpfrag = new PlayListFragment(pl, playListCallback);
+            adapter.append(tmpfrag);
+        }
+
 
     }
 

@@ -11,15 +11,25 @@ import java.util.List;
 public class MainFragmentAdapter extends FragmentStateAdapter {
 
     List<Fragment> fragments;
-    public MainFragmentAdapter(@NonNull FragmentActivity fragmentActivity, Fragment fragment) {
+    public MainFragmentAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
         fragments = new ArrayList<>();
-        fragments.add(fragment);
     }
 
     public void append(Fragment fragment){
         fragments.add(fragment);
         notifyItemInserted(fragments.size()-1);
+    }
+
+    public void remove(int index){
+        fragments.remove(index);
+        notifyItemRemoved(index);
+    }
+
+
+    @Override
+    public long getItemId(int position) {
+        return fragments.get(position).hashCode();
     }
 
     public Fragment getItemAt(int index){

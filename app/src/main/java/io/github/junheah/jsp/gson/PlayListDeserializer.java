@@ -21,7 +21,7 @@ public class PlayListDeserializer implements JsonDeserializer<PlayList> {
     @Override
     public PlayList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject obj = json.getAsJsonObject();
-        PlayList playList = new PlayList(obj.get("name").toString());
+        PlayList playList = new PlayList(obj.get("name").getAsString());
         JsonArray data = obj.getAsJsonArray("data");
         List<Song> songs = context.deserialize(data, new TypeToken<List<Song>>() {}.getType());
         for(Song s : songs){

@@ -29,6 +29,11 @@ tools:context=".Activity.MainActivity">
         android:layout_height="wrap_content"
         android:text="+p"
         android:id="@+id/add_playlist_btn"/>
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="-p"
+        android:id="@+id/remove_playlist_btn"/>
 </androidx.appcompat.widget.LinearLayoutCompat>
     <androidx.viewpager2.widget.ViewPager2
         android:layout_width="match_parent"

@@ -17,6 +17,10 @@ public class PlayList extends ArrayList<Song> {
         return name == null ? "" : name;
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
+
     public PlayList(String name) {
         super();
         this.name = name;

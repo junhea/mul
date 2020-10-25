@@ -45,6 +45,10 @@ public class Song{
         this.parent = parent;
     }
 
+    public PlayList getParent() {
+        return this.parent;
+    }
+
     public String getName() {
         return name;
     }
