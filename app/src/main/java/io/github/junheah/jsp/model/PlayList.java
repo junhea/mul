@@ -4,14 +4,14 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
-import io.github.junheah.jsp.interfaces.PlayListAdapterNotifier;
+import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.model.song.Song;
 
 public class PlayList extends ArrayList<Song> {
     //doubly linked list
 
     String name;
-    transient public PlayListAdapterNotifier notifier;
+    transient public AdapterNotifier notifier;
 
     public String getName(){
         return name == null ? "" : name;
@@ -26,7 +26,7 @@ public class PlayList extends ArrayList<Song> {
         this.name = name;
     }
 
-    public void setNotifier(PlayListAdapterNotifier notifier){
+    public void setNotifier(AdapterNotifier notifier){
         this.notifier = notifier;
     }
 
@@ -43,7 +43,7 @@ public class PlayList extends ArrayList<Song> {
         if(size>1)
             updateIndex(size-2);
         if(notifier != null)
-            notifier.songAdded(size-1);
+            notifier.itemAdded(size-1);
         return res;
     }
 
@@ -55,7 +55,7 @@ public class PlayList extends ArrayList<Song> {
         updateIndex(index-1);
         updateIndex(index+1);
         if(notifier != null)
-            notifier.songAdded(index);
+            notifier.itemAdded(index);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class PlayList extends ArrayList<Song> {
             updateIndex(index-1);
         }
         if(notifier != null)
-            notifier.songRemoved(index);
+            notifier.itemRemoved(index);
         return obj;
     }
 

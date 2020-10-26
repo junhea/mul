@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.interfaces.PlayListAdapterNotifier;
+import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.Song;
@@ -29,19 +29,19 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.playList = playList;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
-        playList.setNotifier(new PlayListAdapterNotifier() {
+        playList.setNotifier(new AdapterNotifier() {
             @Override
-            public void songRemoved(int index) {
+            public void itemRemoved(int index) {
                 notifyItemRemoved(index);
             }
 
             @Override
-            public void songAdded(int index) {
+            public void itemAdded(int index) {
                 notifyItemInserted(index);
             }
 
             @Override
-            public void songUpdated(int index) {
+            public void itemUpdated(int index) {
                 notifyItemChanged(index);
             }
         });

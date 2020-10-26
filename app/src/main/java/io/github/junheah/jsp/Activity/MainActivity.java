@@ -2,6 +2,7 @@ package io.github.junheah.jsp.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
@@ -33,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import io.github.junheah.jsp.Animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
@@ -60,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
 
     Context context;
     ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn;
-    Button stopbtn;
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     Song songQueue;
     Thread timeStampThread;
     PlayListIO playListIO;
+    Toolbar toolbar;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -92,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
                 playListQueue = null;
                 songQueue = null;
             }
+            //timestamp thread
+            timeStampThread = new Thread(new TimeStampThread());
             timeStampThread.start();
         }
 
@@ -110,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
             player = null;
             bound = false;
             timeStampThread.interrupt();
+            timeStampThread = null;
         }
     };
 
@@ -123,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
+
+        //action bar
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         //sliding up panel
         SlidingUpPanelLayout panel = this.findViewById(R.id.panel);
@@ -205,90 +214,6 @@ public class MainActivity extends AppCompatActivity {
                         });
             }
         };
-
-
-        //add song btn
-        this.findViewById(R.id.add_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                songAdderPopup(context, new SongCallback(){
-                    @Override
-                    public void callback(Song song) {
-                        //add to current visible playlist
-                        Fragment targetFragment = adapter.getItemAt(viewPager.getCurrentItem());
-                        if(targetFragment instanceof PlayListFragment){
-                            PlayList pl = ((PlayListFragment)targetFragment).getPlayList();
-                            pl.add(song);
-                            //save
-                            playListIO.write(pl);
-                        }
-                        //update ui
-                        if(bound)
-                            player.broadcast();
-
-                    }
-                });
-            }
-        });
-
-        //add playlist btn
-        this.findViewById(R.id.add_playlist_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                singleInputPopup(context, new StringCallback() {
-                    @Override
-                    public void callback(String data) {
-                        PlayList pl = new PlayList(data);
-                        adapter.append(new PlayListFragment(pl, playListCallback));
-                        playListIO.write(pl);
-                    }
-                });
-            }
-        });
-
-        //remove playlist btn
-        this.findViewById(R.id.remove_playlist_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int fragIndex = viewPager.getCurrentItem();
-                System.out.println("current page = " +fragIndex);
-                Fragment targetFragment = adapter.getItemAt(fragIndex);
-                if(targetFragment instanceof PlayListFragment){
-                    PlayList pl = ((PlayListFragment)targetFragment).getPlayList();
-                    YesNoPopup(context, pl.getName(), "이 플레이리스트를 삭제하겠습니까?",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    //delete fragment
-                                    adapter.remove(fragIndex);
-
-                                    //check player
-                                    if(bound){
-                                        Song current = player.getCurrent();
-                                        if(current.getParent().equals(pl))
-                                            player.stop();
-                                    }
-
-                                    //save
-                                    playListIO.delete(pl);
-                                }
-                            });
-
-                }
-
-            }
-        });
-
-        //stop btn
-        stopbtn = this.findViewById(R.id.stop_btn);
-        stopbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(bound) {
-                    player.stop();
-                }
-            }
-        });
 
         //next btn
         nextbtn = this.findViewById(R.id.next_btn);
@@ -429,9 +354,6 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(ACTION_PLAYER_BROADCAST);
         registerReceiver(receiver, filter);
 
-        //timestamp thread
-        timeStampThread = new Thread(new TimeStampThread());
-
         toggleButtons(false);
 
         //viewPager
@@ -440,6 +362,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setOffscreenPageLimit(3);
         adapter = new MainFragmentAdapter(this);
         viewPager.setAdapter(adapter);
+        viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
         //load playlists
         playListIO = new PlayListIO(context);
@@ -456,7 +379,6 @@ public class MainActivity extends AppCompatActivity {
         seekBar.setEnabled(false);
         prevbtn.setEnabled(false);
         nextbtn.setEnabled(false);
-        stopbtn.setEnabled(playerIsRunning);
         pausebtn.setEnabled(false);
     }
 
@@ -505,6 +427,8 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Thread.sleep(10);
                 }catch (Exception e){
+                    //interrupted
+                    e.printStackTrace();
                     return;
                 }
                 if(bound) {
