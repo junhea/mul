@@ -12,14 +12,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
-import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
@@ -47,8 +45,8 @@ public class PlayListFragment extends CallbackFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.content_recycler,container,false);
-        return view;
+        setTheme();
+        return inflater.inflate(R.layout.fragment_playlist,container,false);
     }
 
     @Override
@@ -76,8 +74,17 @@ public class PlayListFragment extends CallbackFragment {
                     singleInputPopup(getContext(), new StringCallback() {
                         @Override
                         public void callback(String data) {
+                            //create playlist instance
                             PlayList pl = new PlayList(data);
-                            fragmentAdapterCallback.addItem(new PlayListFragment(pl, callback));
+
+                            //create playlist fragment and set callbacks
+                            PlayListFragment fragment = new PlayListFragment(pl, callback);
+                            fragment.setAdapterCallback(fragmentAdapterCallback);
+
+                            //add to adapter
+                            fragmentAdapterCallback.addItem(fragment);
+
+                            //save
                             new PlayListIO(getContext()).write(pl);
                         }
                     });
@@ -91,6 +98,9 @@ public class PlayListFragment extends CallbackFragment {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     //delete fragment
                                     fragmentAdapterCallback.removeItem(PlayListFragment.this);
+
+                                    //notify player
+                                    playList.playListRemoved();
 
                                     //save
                                     new PlayListIO(getContext()).delete(playList);

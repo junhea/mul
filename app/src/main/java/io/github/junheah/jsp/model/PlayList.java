@@ -5,13 +5,15 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
+import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.song.Song;
 
 public class PlayList extends ArrayList<Song> {
     //doubly linked list
 
     String name;
-    transient public AdapterNotifier notifier;
+    transient AdapterNotifier notifier;
+    transient PlayListChangeCallback playListChangeCallback;
 
     public String getName(){
         return name == null ? "" : name;
@@ -26,8 +28,17 @@ public class PlayList extends ArrayList<Song> {
         this.name = name;
     }
 
+    public void playListRemoved(){
+        if(playListChangeCallback != null)
+            playListChangeCallback.playListRemoved();
+    }
+
     public void setNotifier(AdapterNotifier notifier){
         this.notifier = notifier;
+    }
+
+    public void setPlayListChangeCallback(PlayListChangeCallback playListChangeCallback){
+        this.playListChangeCallback = playListChangeCallback;
     }
 
     public PlayList() {
@@ -44,6 +55,10 @@ public class PlayList extends ArrayList<Song> {
             updateIndex(size-2);
         if(notifier != null)
             notifier.itemAdded(size-1);
+
+        //notify player (if attached)
+        if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
+
         return res;
     }
 
@@ -56,6 +71,9 @@ public class PlayList extends ArrayList<Song> {
         updateIndex(index+1);
         if(notifier != null)
             notifier.itemAdded(index);
+
+        //notify player (if attached)
+        if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
     }
 
     @Override
@@ -74,6 +92,10 @@ public class PlayList extends ArrayList<Song> {
         }
         if(notifier != null)
             notifier.itemRemoved(index);
+
+        //notify player (if attached)
+        if(playListChangeCallback != null) playListChangeCallback.songRemoved(obj);
+
         return obj;
     }
 
@@ -81,6 +103,7 @@ public class PlayList extends ArrayList<Song> {
     public boolean remove(@Nullable Object o) {
         int index = indexOf(o);
         remove(index);
+
         return true;
     }
 

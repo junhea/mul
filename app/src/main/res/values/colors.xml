@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#212121</color>
-    <color name="colorPrimaryDark">#222222</color>
-    <color name="colorAccent">#FFD748</color>
-    <color name="panel">#292929</color>
-    <color name="colorWindowBackground">#222222</color>
+    <color name="fragmentBackground">#FDFDFD</color>
     <color name="colorDarkWindowBackground">#1A1A1A</color>
+    <color name="panel">#292929</color>
 </resources>

@@ -22,6 +22,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
 
+import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
@@ -52,11 +53,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     Intent pendingIntent;
     final IBinder binder = new PlayerBinder();
     Bitmap defaultCover;
-
+    PlayListChangeCallback playListChangeCallback;
 
     public Player() {
         super();
-        status = new PlayerStatus();
     }
 
     public Song getCurrent(){
@@ -93,6 +93,28 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         wifiLock.acquire();
         defaultCover = BitmapFactory.decodeResource(this.getResources(), R.drawable.music);
         pendingIntent = new Intent();
+        status = new PlayerStatus();
+        playListChangeCallback = new PlayListChangeCallback() {
+            @Override
+            public void playListRemoved() {
+                stop();
+            }
+
+            @Override
+            public void playListUpdated() {
+                broadcast();
+                showNotification();
+            }
+
+            @Override
+            public void songRemoved(Song song) {
+                if(current.hashCode() == song.hashCode()){
+                    stop();
+                }else{
+                    this.playListUpdated();
+                }
+            }
+        };
         showNotification();
     }
 
@@ -138,12 +160,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             if(current.getCover() == null){
                 notification.setLargeIcon(defaultCover);
             }else{
-                notification.setLargeIcon(null);
+                //todo implement this
+                notification.setLargeIcon(defaultCover);
             }
         }
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",pprev));
-        notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", ppause));
+        notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", ppause));
         notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", pnext));
         notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", pstop));
 
@@ -183,7 +206,16 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void setPlayList(PlayList playList){
+        //remove callback from previous playlist
+        if(this.playList != null){
+            this.playList.setPlayListChangeCallback(null);
+        }
+
         this.playList = playList;
+
+        //set callback to new playlist
+        this.playList.setPlayListChangeCallback(playListChangeCallback);
+
         if(this.playList != null && this.playList.size()>0){
             this.current = this.playList.get(0);
         }
@@ -191,7 +223,16 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void setPlayList(PlayList playList, Song song){
+        //remove callback from previous playlist
+        if(this.playList != null){
+            this.playList.setPlayListChangeCallback(null);
+        }
+
         this.playList = playList;
+
+        //set callback to new playlist
+        this.playList.setPlayListChangeCallback(playListChangeCallback);
+
         this.current = song;
         play();
     }

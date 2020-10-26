@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -44,7 +45,7 @@ public class Utils {
     }
 
     public static void songAdderPopup(Context context, SongCallback callback){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme);
         final LinearLayoutCompat layout = new LinearLayoutCompat(context);
         layout.setOrientation(LinearLayoutCompat.VERTICAL);
         final EditText nameInput = new EditText(context);
@@ -68,7 +69,6 @@ public class Utils {
         layout.addView(coverLabel);
         layout.addView(coverInput);
 
-
         builder.setTitle("곡 정보 입력")
                 .setView(layout)
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -90,7 +90,7 @@ public class Utils {
     }
 
     public static void showPopup(Context context, String title, String content){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme);
         builder.setTitle(title)
                 .setMessage(content)
                 .setPositiveButton("확인", null)
@@ -100,7 +100,7 @@ public class Utils {
     public static void singleInputPopup(Context context, StringCallback callback){
         final EditText editText = new EditText(context);
         editText.setHint("플레이리스트 이름");
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme);
         builder.setTitle("플레이리스트 생성")
                 .setView(editText)
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -113,7 +113,8 @@ public class Utils {
     }
 
     public static void YesNoPopup(Context context, String title, String content, DialogInterface.OnClickListener positiveCallback){
-        new AlertDialog.Builder(context).setTitle(title)
+        new MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+                .setTitle(title)
                 .setMessage(content)
                 .setPositiveButton("예", positiveCallback)
                 .setNegativeButton("아니오", null)

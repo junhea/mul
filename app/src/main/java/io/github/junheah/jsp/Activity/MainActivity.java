@@ -34,11 +34,14 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.List;
+
 import io.github.junheah.jsp.Animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
+import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.gson.PlayListSerializer;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
@@ -202,13 +205,8 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //yes
                                 list.remove(song);
-                                if(bound) {
-                                    //check if player is playing target song
-                                    if(player.getCurrent().equals(song)){
-                                        player.stop();
-                                    }else
-                                        player.broadcast();
-                                }
+
+                                //save
                                 playListIO.write(list);
                             }
                         });
@@ -364,6 +362,9 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(adapter);
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
+        //add home fragment
+        adapter.append(new HomeFragment(playListCallback));
+
         //load playlists
         playListIO = new PlayListIO(context);
         PlayListFragment tmpfrag;
@@ -371,8 +372,6 @@ public class MainActivity extends AppCompatActivity {
             tmpfrag = new PlayListFragment(pl, playListCallback);
             adapter.append(tmpfrag);
         }
-
-
     }
 
     void toggleButtons(boolean playerIsRunning){

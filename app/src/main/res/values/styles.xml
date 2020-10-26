@@ -1,12 +1,16 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents">
         <!-- Customize your theme here. -->
         <item name="android:windowActionBarOverlay">true</item>
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorBackground">@color/colorWindowBackground</item>
+        <item name="colorPrimary">#202020</item>
+        <item name="colorPrimaryDark">#202020</item>
+        <item name="colorPrimaryVariant">#252525</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#FFD748</item>
+        <item name="colorSecondaryVariant">#CDA40E</item>
+        <item name="colorOnSecondary">#272727</item>
+        <item name="android:colorBackground">#202020</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">
@@ -14,8 +18,21 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
+
+    <style name="FragmentTheme" parent="Theme.MaterialComponents.Light">
+        <item name="colorPrimary">#FFD748</item>
+        <item name="colorPrimaryDark">#453B15</item>
+        <item name="colorPrimaryVariant">#CDA40E</item>
+        <item name="colorAccent">#FFD748</item>
+    </style>
+
+    <style name="AlertDialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">#FFFFFF</item>
+        <item name="colorOnBackground">#FFFFFF</item>
+        <item name="colorOnSurface">#FFFFFF</item>
+    </style>
 
 </resources>

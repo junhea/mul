@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/fragmentBackground">
+
+    <Button
+        android:id="@+id/home_add_playlist"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add playlist"/>
+    <Button
+        android:id="@+id/home_add_local_song"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add local songs"/>
+    <Button
+        android:id="@+id/home_add_online_song"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add online songs"/>
+
+
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>
