@@ -94,7 +94,6 @@ public class PlayListFragment extends CallbackFragment {
 
         outState.putString("name", playList.getName());
         outState.putString("playlist", playListSerializer().toJson(playList));
-        System.out.println("on save : " + playList.getName());
     }
 
     @Override

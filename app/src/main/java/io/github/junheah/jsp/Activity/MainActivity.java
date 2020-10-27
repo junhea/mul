@@ -5,6 +5,7 @@ import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.BroadcastReceiver;
@@ -36,6 +37,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.List;
 
+import io.github.junheah.jsp.Animation.MarginPageTransformer;
 import io.github.junheah.jsp.Animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.Player;
@@ -379,6 +381,14 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         viewPager.setOffscreenPageLimit(3);
         adapter = new MainFragmentAdapter(this);
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                if(positionStart > 0){
+                    viewPager.setCurrentItem(positionStart-1,false);
+                }
+            }
+        });
         viewPager.setAdapter(adapter);
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
@@ -400,9 +410,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     adapter.append(tmpfrag);
                 }
-
-                for(int i=0; i<100; i++)
-                    adapter.append(PlayListFragment.newInstance(new PlayList(String.valueOf(i))));
             }
         };
         if(!Player.running){

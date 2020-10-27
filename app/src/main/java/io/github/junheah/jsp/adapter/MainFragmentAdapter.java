@@ -28,9 +28,9 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
             @Override
             public void removeItem(Object obj) {
                 int i = fragments.indexOf(obj);
+                System.out.println(i);
                 if(i>-1){
-                    fragments.remove(i);
-                    notifyItemRemoved(i);
+                    remove(i);
                 }
             }
         };
