@@ -63,6 +63,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         return this.current;
     }
 
+    public PlayList getPlayList(){
+        return this.playList;
+    }
+
     public int getCurrentPosition(){
         if(mediaPlayer != null)
             try {
@@ -219,6 +223,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(this.playList != null && this.playList.size()>0){
             this.current = this.playList.get(0);
         }
+
         play();
     }
 
@@ -280,6 +285,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void stop(){
+        if(playList != null) playList.setPlayListChangeCallback(null);
         running = false;
         mediaPlayer.stop();
         mediaPlayer.release();

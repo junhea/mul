@@ -69,8 +69,9 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar mini_progress;
     SeekBar seekBar;
     Player player;
+    boolean bound = false;
     PlayerStatus status;
-    boolean bound = false, seekbarTouch = false;
+    boolean seekbarTouch = false;
     ViewPager2 viewPager;
     MainFragmentAdapter adapter;
     PlayListItemClickCallback playListCallback;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     Thread timeStampThread;
     PlayListIO playListIO;
     Toolbar toolbar;
+    Runnable onPlayerConnected;
 
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -100,26 +102,44 @@ public class MainActivity extends AppCompatActivity {
             //timestamp thread
             timeStampThread = new Thread(new TimeStampThread());
             timeStampThread.start();
+
+            if(onPlayerConnected != null){
+                onPlayerConnected.run();
+                onPlayerConnected = null;
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             System.out.println("service unbound");
-            name.setText("");
-            artist.setText("");
-            mini_name.setText("");
-            mini_artist.setText("");
-            toggleButtons(false);
-            seekBar.setProgress(0);
-            seekBar.setEnabled(false);
-            timestamp_cur.setText("");
-            timestamp_dur.setText("");
-            player = null;
-            bound = false;
+            resetPlayer();
             timeStampThread.interrupt();
             timeStampThread = null;
         }
     };
+
+    private void resetPlayer(){
+        name.setText("");
+        artist.setText("");
+        mini_name.setText("");
+        mini_artist.setText("");
+        toggleButtons(false);
+        seekBar.setProgress(0);
+        seekBar.setEnabled(false);
+        timestamp_cur.setText("");
+        timestamp_dur.setText("");
+        player = null;
+        bound = false;
+    }
+
+    public PlayListItemClickCallback getPlayListCallback() {
+        return this.playListCallback;
+    }
+
+    public Player getPlayer(){
+        return this.player;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-//                if(newState== SlidingUpPanelLayout.PanelState.EXPANDED) updatePlayer(playerCurrentSong);
+                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
             }
         });
 
@@ -363,14 +383,31 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
         //add home fragment
-        adapter.append(new HomeFragment(playListCallback));
+        adapter.append(HomeFragment.newInstance());
 
         //load playlists
         playListIO = new PlayListIO(context);
-        PlayListFragment tmpfrag;
-        for(PlayList pl : playListIO.get()){
-            tmpfrag = new PlayListFragment(pl, playListCallback);
-            adapter.append(tmpfrag);
+        onPlayerConnected = new Runnable() {
+            @Override
+            public void run() {
+                PlayListFragment tmpfrag;
+                for(PlayList pl : playListIO.get()){
+                    System.out.println(pl.getName());
+                    if(bound && player.getPlayList().getName().equals(pl.getName())){
+                        tmpfrag = PlayListFragment.newInstance(player.getPlayList());
+                    }else {
+                        tmpfrag = PlayListFragment.newInstance(pl);
+                    }
+                    adapter.append(tmpfrag);
+                }
+
+                for(int i=0; i<100; i++)
+                    adapter.append(PlayListFragment.newInstance(new PlayList(String.valueOf(i))));
+            }
+        };
+        if(!Player.running){
+            onPlayerConnected.run();
+            onPlayerConnected = null;
         }
     }
 
@@ -389,8 +426,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onPause() {
+        super.onPause();
+        //unbind player service
+        unbindService(connection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //bind service
+        resetPlayer();
         bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
     }
 

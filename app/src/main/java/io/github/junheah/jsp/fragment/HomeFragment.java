@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.github.junheah.jsp.Activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
@@ -22,8 +23,13 @@ import static io.github.junheah.jsp.Utils.singleInputPopup;
 public class HomeFragment extends CallbackFragment {
     PlayListItemClickCallback playListCallback; //used when adding playlists
 
-    public HomeFragment(PlayListItemClickCallback callback){
-        this.playListCallback = callback;
+    public HomeFragment(){
+        //don't do anything
+    }
+
+    public static final HomeFragment newInstance() {
+        HomeFragment f = new HomeFragment();
+        return f;
     }
 
     @Nullable
@@ -35,8 +41,9 @@ public class HomeFragment extends CallbackFragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(false);
+        playListCallback = ((MainActivity)getActivity()).getPlayListCallback();
     }
 
     @Override
@@ -53,7 +60,7 @@ public class HomeFragment extends CallbackFragment {
                             PlayList pl = new PlayList(data);
 
                             //create playlist fragment and set callbacks
-                            PlayListFragment fragment = new PlayListFragment(pl, playListCallback);
+                            PlayListFragment fragment = PlayListFragment.newInstance(pl);
                             fragment.setAdapterCallback(fragmentAdapterCallback);
 
                             //add to adapter
@@ -89,7 +96,7 @@ public class HomeFragment extends CallbackFragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
         menu.clear();
+        inflater.inflate(R.menu.home_menu, menu);
     }
 }

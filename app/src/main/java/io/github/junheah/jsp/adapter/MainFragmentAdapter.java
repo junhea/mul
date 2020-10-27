@@ -22,8 +22,7 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
         callback = new FragmentAdapterCallback() {
             @Override
             public void addItem(Object obj) {
-                fragments.add((Fragment)obj);
-                notifyItemInserted(fragments.size()-1);
+                append((Fragment)obj);
             }
 
             @Override
@@ -49,14 +48,9 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
         notifyItemRemoved(index);
     }
 
-
     @Override
     public long getItemId(int position) {
         return fragments.get(position).hashCode();
-    }
-
-    public Fragment getItemAt(int index){
-        return fragments.get(index);
     }
 
     @NonNull
