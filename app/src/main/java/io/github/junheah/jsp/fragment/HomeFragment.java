@@ -18,6 +18,7 @@ import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 
+import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
 public class HomeFragment extends CallbackFragment {
@@ -56,18 +57,26 @@ public class HomeFragment extends CallbackFragment {
                     singleInputPopup(getContext(), new StringCallback() {
                         @Override
                         public void callback(String data) {
-                            //create playlist instance
-                            PlayList pl = new PlayList(data);
+                            //playlist io
+                            PlayListIO io =  new PlayListIO(getContext());
 
-                            //create playlist fragment and set callbacks
-                            PlayListFragment fragment = PlayListFragment.newInstance(pl);
-                            fragment.setAdapterCallback(fragmentAdapterCallback);
+                            if(io.getNames().contains(data)){
+                                //duplicate
+                                showPopup(getContext(),data,"이 플레이리스트는 이미 존재합니다");
+                            } else {
+                                //create playlist instance
+                                PlayList pl = new PlayList(data);
 
-                            //add to adapter
-                            fragmentAdapterCallback.addItem(fragment);
+                                //create playlist fragment and set callbacks
+                                PlayListFragment fragment = PlayListFragment.newInstance(pl);
+                                fragment.setAdapterCallback(fragmentAdapterCallback);
 
-                            //save
-                            new PlayListIO(getContext()).write(pl);
+                                //add to adapter
+                                fragmentAdapterCallback.addItem(fragment);
+
+                                //save
+                                io.write(pl);
+                            }
                         }
                     });
                 }

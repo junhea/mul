@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.junheah.jsp.model.PlayList;
 
@@ -54,6 +55,10 @@ public class PlayListIO {
     public void write(PlayList playList){
         editor.putString(playList.getName(), s.toJson(playList));
         editor.commit();
+    }
+
+    public Set<String> getNames(){
+        return reader.getAll().keySet();
     }
 
     public void rename(PlayList playList, String newName){
