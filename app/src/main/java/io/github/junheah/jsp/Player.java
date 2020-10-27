@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -16,9 +18,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.media.AudioAttributesCompat;
+import androidx.media.AudioFocusRequestCompat;
+import androidx.media.AudioManagerCompat;
 
 import com.google.gson.Gson;
 
@@ -28,7 +35,7 @@ import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.Song;
 
-public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener{
+public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, AudioManager.OnAudioFocusChangeListener {
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
     public static final String ACTION_PLAYER_CHECK = "jsp.player_check";
     public static final String ACTION_PLAYER_STOP = "jsp.player_stop";
@@ -54,6 +61,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     final IBinder binder = new PlayerBinder();
     Bitmap defaultCover;
     PlayListChangeCallback playListChangeCallback;
+    AudioManager audioManager;
+    AudioAttributes audioAttr;
 
     public Player() {
         super();
@@ -86,6 +95,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void onCreate() {
         super.onCreate();
         running = true;
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            audioAttr = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build();
+        }
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnPreparedListener(this);
@@ -278,13 +294,14 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
             } else {
-                mediaPlayer.start();
+                requestFocusAndPlay();
             }
             broadcast();
         }
     }
 
     public void stop(){
+        audioManager.abandonAudioFocus(this);
         if(playList != null) playList.setPlayListChangeCallback(null);
         running = false;
         mediaPlayer.stop();
@@ -310,8 +327,25 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void onPrepared(MediaPlayer mediaPlayer) {
         if(running) {
             status.loaded = true;
-            mediaPlayer.start();
+            requestFocusAndPlay();
             broadcast();
+        }
+    }
+
+    public void requestFocusAndPlay(){
+        int focus;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
+                    .setAudioAttributes(audioAttr)
+                    .setOnAudioFocusChangeListener(this)
+                    .build();
+            focus = audioManager.requestAudioFocus(request);
+        }else{
+            focus = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        }
+
+        if(focus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED){
+            mediaPlayer.start();
         }
     }
 
@@ -321,6 +355,17 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.pause();
             mediaPlayer.seekTo(0);
             if(!next()) {
+                broadcast();
+            }
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(int i) {
+        if(i == AudioManager.AUDIOFOCUS_LOSS){
+            //lost focus
+            if(mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
                 broadcast();
             }
         }
