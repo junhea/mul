@@ -16,10 +16,12 @@ import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.provider.MediaStore;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -27,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import androidx.media.AudioAttributesCompat;
 import androidx.media.AudioFocusRequestCompat;
 import androidx.media.AudioManagerCompat;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.google.gson.Gson;
 
@@ -35,6 +38,11 @@ import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.Song;
+
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
 
 public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, AudioManager.OnAudioFocusChangeListener {
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
@@ -68,7 +76,35 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     MediaSessionCompat.Callback sessionCallback = new MediaSessionCompat.Callback() {
         // https://androidpedia.net/en/tutorial/6250/mediasession
 
-        
+        @Override
+        public void onPlay() {
+            play();
+        }
+
+        @Override
+        public void onPause() {
+            pause();
+        }
+
+        @Override
+        public void onSkipToNext() {
+            next();
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            prev();
+        }
+
+        @Override
+        public void onStop() {
+            stop();
+        }
+
+        @Override
+        public void onCustomAction(String action, Bundle extras) {
+            System.out.println(action);
+        }
     };
 
     //todo: https://developer.android.com/guide/topics/media-apps/working-with-a-media-session
@@ -100,6 +136,25 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         return this.status;
     }
 
+    void setState(int state){
+        PlaybackStateCompat playBackstate = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                        | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        | PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                .setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0)
+                .build();
+        session.setPlaybackState(playBackstate);
+    }
+
+    void setMetaData(Song song){
+        MediaMetadataCompat data = new MediaMetadataCompat.Builder()
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, defaultCover)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getName())
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getArtist())
+                .build();
+        session.setMetadata(data);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -113,7 +168,11 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
 
         session = new MediaSessionCompat(this, getPackageName());
+        session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
         session.setCallback(sessionCallback);
+        setState(STATE_NONE);
+        session.setActive(true);
+
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -124,7 +183,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
         wifiLock.acquire();
-        defaultCover = BitmapFactory.decodeResource(this.getResources(), R.drawable.music);
+        defaultCover = BitmapFactory.decodeResource(this.getResources(), R.drawable.music_dark);
         pendingIntent = new Intent();
         status = new PlayerStatus();
         playListChangeCallback = new PlayListChangeCallback() {
@@ -181,9 +240,9 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.music_note)
-                .setOngoing(true)
-                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(0,1,2));
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this,
+                        PlaybackStateCompat.ACTION_STOP));
 
 
         if(current != null) {
@@ -198,10 +257,17 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             }
         }
 
-        notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",pprev));
-        notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", ppause));
-        notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", pnext));
-        notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", pstop));
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
+        notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)));
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)));
+        notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP)));
+
+        notification.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(session.getSessionToken())
+                .setShowActionsInCompactView(0,1,2)
+                .setShowCancelButton(true)
+                .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this,
+                        PlaybackStateCompat.ACTION_STOP)));
 
 
         startForeground(nid, notification.build());
@@ -210,6 +276,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        MediaButtonReceiver.handleIntent(session, intent);
         switch (intent.getAction()) {
             case ACTION_PLAYER_CHECK:
                 broadcast();
@@ -305,6 +372,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void pause(){
         if(status.loaded) {
             if (mediaPlayer.isPlaying()) {
+                setState(STATE_PAUSED);
                 mediaPlayer.pause();
             } else {
                 requestFocusAndPlay();
@@ -329,6 +397,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.reset();
             mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();
+            setState(STATE_BUFFERING);
+            setMetaData(current);
         } catch (Exception e) {
             mediaPlayer.reset();
             e.printStackTrace();
@@ -346,6 +416,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void requestFocusAndPlay(){
+        setState(STATE_PLAYING);
         int focus;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
@@ -408,6 +479,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (session != null)
+            session.release();
     }
 
     @Nullable

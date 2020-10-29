@@ -34,7 +34,6 @@ public class Utils {
     public static Gson playListDeserializer(){
         RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
                 .of(Song.class, "TYPE")
-                .registerSubtype(Song.class, "SONG")
                 .registerSubtype(LocalSong.class, "LOCAL")
                 .registerSubtype(ExternalSong.class, "EXTERNAL");
         return new GsonBuilder()
@@ -74,7 +73,7 @@ public class Utils {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
-                            Song song = new Song(nameInput.getText().toString(),
+                            Song song = new ExternalSong(nameInput.getText().toString(),
                                     artistInput.getText().toString(),
                                     urlInput.getText().toString(),
                                     coverInput.getText().toString());

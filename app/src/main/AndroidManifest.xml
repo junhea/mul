@@ -20,7 +20,17 @@
         android:theme="@style/AppTheme.NoActionBar">
         <service
             android:name=".Player"
-            android:enabled="true"/>
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="androidx.media.session.MediaButtonReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".Activity.MainActivity"

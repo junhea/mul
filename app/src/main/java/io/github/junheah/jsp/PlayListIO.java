@@ -2,6 +2,7 @@ package io.github.junheah.jsp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
