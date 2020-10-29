@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -63,6 +64,12 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     PlayListChangeCallback playListChangeCallback;
     AudioManager audioManager;
     AudioAttributes audioAttr;
+    MediaSessionCompat session;
+    MediaSessionCompat.Callback sessionCallback = new MediaSessionCompat.Callback() {
+        // https://androidpedia.net/en/tutorial/6250/mediasession
+
+        
+    };
 
     //todo: https://developer.android.com/guide/topics/media-apps/working-with-a-media-session
 
@@ -104,6 +111,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
         }
+
+        session = new MediaSessionCompat(this, getPackageName());
+        session.setCallback(sessionCallback);
+
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnPreparedListener(this);
