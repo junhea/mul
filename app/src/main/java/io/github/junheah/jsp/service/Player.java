@@ -1,4 +1,4 @@
-package io.github.junheah.jsp;
+package io.github.junheah.jsp.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -8,7 +8,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -26,19 +25,16 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-import androidx.media.AudioAttributesCompat;
-import androidx.media.AudioFocusRequestCompat;
 import androidx.media.AudioManagerCompat;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.google.gson.Gson;
 
+import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
-import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 

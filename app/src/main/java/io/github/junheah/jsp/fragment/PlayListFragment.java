@@ -4,7 +4,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,7 +22,7 @@ import com.google.gson.reflect.TypeToken;
 
 import io.github.junheah.jsp.Activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.Player;
+import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;

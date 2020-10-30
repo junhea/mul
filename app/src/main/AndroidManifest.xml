@@ -22,7 +22,7 @@
         android:usesCleartextTraffic="true">
 
         <service
-            android:name=".Player"
+            android:name=".service.Player"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />

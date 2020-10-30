@@ -22,7 +22,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -37,11 +36,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.w3c.dom.Text;
-
 import io.github.junheah.jsp.Animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.Player;
+import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
 import io.github.junheah.jsp.fragment.HomeFragment;
@@ -52,8 +49,8 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
+import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
+import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
 
 public class MainActivity extends AppCompatActivity {

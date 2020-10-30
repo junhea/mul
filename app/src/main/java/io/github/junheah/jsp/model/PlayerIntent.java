@@ -3,7 +3,7 @@ package io.github.junheah.jsp.model;
 import android.content.Context;
 import android.content.Intent;
 
-import io.github.junheah.jsp.Player;
+import io.github.junheah.jsp.service.Player;
 
 public class PlayerIntent extends Intent {
     public PlayerIntent(Context context, String action){
