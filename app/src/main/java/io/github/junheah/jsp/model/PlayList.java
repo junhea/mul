@@ -138,11 +138,9 @@ public class PlayList extends ArrayList<Song> {
         StringBuilder sb = new StringBuilder();
         sb.append('[');
         for(Song s : this){
-            sb.append(s.getPrev());
-            sb.append('|');
-            sb.append(s);
-            sb.append('|');
-            sb.append(s.getNext());
+            sb.append(s.getName());
+            sb.append("__");
+            sb.append(s.getType());
             sb.append(", ");
         }
         sb.delete(sb.length()-2, sb.length()-1);

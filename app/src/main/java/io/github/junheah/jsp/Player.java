@@ -38,6 +38,8 @@ import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING;
@@ -254,13 +256,21 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(current != null) {
             notification.setContentTitle(current.getName());
             notification.setContentText(current.getArtist());
+
             //set album art
-            if(current.getCover() == null){
-                notification.setLargeIcon(defaultCover);
+            String coverImage = current.getCover();
+            if(coverImage == null){
+                if (current instanceof LocalSong) {
+                    Bitmap coverBitmap = ((LocalSong)current).getCoverBitmap();
+                    if(coverBitmap == null)
+                        notification.setLargeIcon(defaultCover);
+                    else
+                        notification.setLargeIcon(coverBitmap);
+                } else notification.setLargeIcon(defaultCover);
             }else{
-                //todo implement this
-                notification.setLargeIcon(defaultCover);
+                //load external image
             }
+
         }
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));

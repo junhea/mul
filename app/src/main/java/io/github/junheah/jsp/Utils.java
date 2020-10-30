@@ -37,7 +37,8 @@ public class Utils {
 
     public static Gson playListDeserializer(){
         RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-                .of(Song.class, "TYPE")
+                .of(Song.class, "type")
+                .registerSubtype(Song.class, "SONG")
                 .registerSubtype(LocalSong.class, "LOCAL")
                 .registerSubtype(ExternalSong.class, "EXTERNAL");
         return new GsonBuilder()

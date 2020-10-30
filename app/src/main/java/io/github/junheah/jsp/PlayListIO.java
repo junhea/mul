@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +49,6 @@ public class PlayListIO {
         PlayList list;
         t = new TypeToken<PlayList>() {}.getType();
         for(Map.Entry<String,?> e : data.entrySet()){
-            System.out.println((String)e.getValue());
             try {
                 list = d.fromJson((String) e.getValue(), t);
                 playLists.add(list);
@@ -62,14 +62,31 @@ public class PlayListIO {
 
     public String getRaw(){
         Map<String,?> data = reader.getAll();
-        return new Gson().toJson(data);
+        StringBuilder builder = new StringBuilder();
+        builder.append('{');
+        for(Map.Entry<String,?> e : data.entrySet()){
+            builder.append('\"');
+            builder.append(e.getKey());
+            builder.append("\" : ");
+            builder.append(e.getValue());
+            builder.append(", ");
+        }
+        builder.delete(builder.length()-2, builder.length()-1);
+        builder.append('}');
+        return builder.toString();
     }
 
     public void writeRaw(String s){
-        Map<String, String> data = new Gson().fromJson(s, new TypeToken<Map<String,String>>() {}.getType());
-        for(Map.Entry<String,String> e : data.entrySet()){
-            editor.putString(e.getKey(), e.getValue());
+        try {
+            JSONObject data = new JSONObject(s);
+            Iterator keys = data.keys();
+            while(keys.hasNext()){
+                String key = (String)keys.next();
+                editor.putString(key, data.getJSONObject(key).toString().replaceAll("\\\\",""));
+            }
             editor.commit();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

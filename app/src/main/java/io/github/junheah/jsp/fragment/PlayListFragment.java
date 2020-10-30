@@ -1,7 +1,10 @@
 package io.github.junheah.jsp.fragment;
 
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,7 +29,10 @@ import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.LocalSong;
+import io.github.junheah.jsp.model.song.Song;
 
+import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
 import static io.github.junheah.jsp.Utils.playListDeserializer;
 import static io.github.junheah.jsp.Utils.playListSerializer;
@@ -34,9 +40,9 @@ import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
 public class PlayListFragment extends CallbackFragment {
-    final static int REQUEST_ADD_SONG = 11;
-    final static int REQUEST_ADD_FOLDER = 12;
-    final static int REQUEST_ADD_EXTERNAL = 13;
+    final static int REQUEST_SELECT_SONG = 11;
+    final static int REQUEST_SELECT_FOLDER = 12;
+    final static int REQUEST_SELECT_EXTERNAL = 13;
 
     PlayList playList;
     PlayListAdapter adapter;
@@ -178,8 +184,10 @@ public class PlayListFragment extends CallbackFragment {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_addLocalSong:
+                        openFile(REQUEST_SELECT_SONG);
                         break;
                     case R.id.menu_addLocalFolder:
+                        openDirectory(REQUEST_SELECT_FOLDER);
                         break;
                     case R.id.menu_addExternal:
                         break;
@@ -188,5 +196,44 @@ public class PlayListFragment extends CallbackFragment {
             }
         });
         popupMenu.show();
+    }
+
+    private void openFile(int requestCode) {
+        Intent intent = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+        }else{
+            //internal file browser
+        }
+        startActivityForResult(intent, requestCode);
+    }
+
+    public void openDirectory(int requestCode) {
+        Intent intent = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }else{
+            //internal file browser
+        }
+        startActivityForResult(intent, requestCode);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
+            Uri uri = data.getData();
+            Song song = new LocalSong(uri.toString(), "", uri.toString(),"", getContext());
+
+            //add to current visible playlist
+            playList.add(song);
+            //save
+            new PlayListIO(getContext()).write(playList);
+        }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
+            Uri uri = data.getData();
+        }
     }
 }

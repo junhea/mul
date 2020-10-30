@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +32,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -47,6 +49,7 @@ import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerStatus;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static io.github.junheah.jsp.Player.ACTION_PLAYER_BROADCAST;
@@ -300,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
         landscapePanelListener = new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                System.out.println(slideOffset);
                 ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
                 int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
                 miniPlayer.getLayoutParams().height = height;
@@ -340,7 +342,6 @@ public class MainActivity extends AppCompatActivity {
         playListCallback = new PlayListItemClickCallback() {
             @Override
             public void SongClicked(Song song, PlayList list) {
-                System.out.println("song clicked!");
                 if(bound){
                     player.setPlayList(list, song);
                 }else if(!Player.running){  //is player.running, wait for it to bind
@@ -415,7 +416,6 @@ public class MainActivity extends AppCompatActivity {
                         timestamp_dur.setText("");
                     }
 
-                    //get info directly from bound service
                     if (bound) {
                         Song current = player.getCurrent();
                         if (current == null) {
@@ -434,6 +434,22 @@ public class MainActivity extends AppCompatActivity {
                             mini_name.setText(current.getName());
                             artist.setText(current.getArtist());
                             mini_artist.setText(current.getArtist());
+
+                            String coverImage = current.getCover();
+                            if(coverImage == null){
+                                if (current instanceof LocalSong) {
+                                    Bitmap coverBitmap = ((LocalSong)current).getCoverBitmap();
+                                    if(coverBitmap == null)
+                                        miniPlayerCover.setImageResource(R.drawable.music);
+                                    else
+                                        miniPlayerCover.setImageBitmap(coverBitmap);
+                                } else miniPlayerCover.setImageResource(R.drawable.music);
+                            }else{
+                                //load external image
+                                Glide.with(context)
+                                        .load(coverImage)
+                                        .into(miniPlayerCover);
+                            }
                         }
                     }
                 }
@@ -469,8 +485,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 PlayListFragment tmpfrag;
                 for(PlayList pl : playListIO.get()){
-                    System.out.println(pl.getName());
                     if(bound && player.getPlayList().getName().equals(pl.getName())){
+                        System.out.println("restore from player");
                         tmpfrag = PlayListFragment.newInstance(player.getPlayList());
                     }else {
                         tmpfrag = PlayListFragment.newInstance(pl);

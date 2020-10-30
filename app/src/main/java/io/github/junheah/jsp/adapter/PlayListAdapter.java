@@ -1,6 +1,7 @@
 package io.github.junheah.jsp.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -59,13 +61,23 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Song item = playList.get(position);
         ((PlayListViewHolder)holder).name.setText(item.getName());
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
-        if(item.getCover() != null){
-            Glide.with(context)
-                    .load(item.getCover())
-                    .into(((PlayListViewHolder)holder).cover);
+
+        String coverImage = item.getCover();
+        if(coverImage == null){
+            if (item instanceof LocalSong) {
+                Bitmap coverBitmap = ((LocalSong)item).getCoverBitmap();
+                if(coverBitmap == null)
+                    ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
+                else
+                    ((PlayListViewHolder) holder).cover.setImageBitmap(coverBitmap);
+            } else ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
         }else{
-            ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
+            //load external image
+            Glide.with(context)
+                    .load(coverImage)
+                    .into(((PlayListViewHolder) holder).cover);
         }
+
         ((PlayListViewHolder)holder).layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -90,11 +102,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public int getItemCount() {
         return playList.size();
-    }
-
-    public void addSong(Song song){
-        playList.add(song);
-        notifyItemInserted(playList.size()-1);
     }
 
     public void setCallback(PlayListItemClickCallback callback){

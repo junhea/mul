@@ -29,9 +29,12 @@ public class DebugActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
-        Button pref =this.findViewById(R.id.debug_pref);
+
+
+        Button pref = this.findViewById(R.id.debug_pref);
         output = this.findViewById(R.id.debug_out);
         context = this;
         io = new PlayListIO(context);

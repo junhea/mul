@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import io.github.junheah.jsp.model.PlayList;
 
 public class Song{
-    String TYPE="";   //gson
+
 
     public Song getNext(){
         return next;
@@ -33,13 +33,14 @@ public class Song{
     String artist="";
     String path;
     String cover;
+    String type;   //gson
 
     public Song(String name, String artist, String path, String cover){
         this.name = name;
         this.artist = artist;
         this.path = path;
         this.cover = cover;
-        this.TYPE = "SONG";
+        this.type = "SONG";
     }
 
     public void setParent(PlayList parent) {
@@ -48,6 +49,10 @@ public class Song{
 
     public PlayList getParent() {
         return this.parent;
+    }
+
+    public String getType(){
+        return this.type;
     }
 
     public String getName() {
@@ -65,11 +70,5 @@ public class Song{
     public String getCover(){
         if(cover != null && cover.length()>0) return cover;
         else return null;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return super.toString() + "  "+path + "  next: " + next;
     }
 }
