@@ -213,7 +213,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     void showNotification(){
-        Intent notificationIntent = new Intent(this, io.github.junheah.jsp.Activity.MainActivity.class);
+        Intent notificationIntent = new Intent(this, io.github.junheah.jsp.Activity2.MainActivity.class);
 
         Bitmap largeIcon = null;
 

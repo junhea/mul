@@ -1,11 +1,7 @@
-package io.github.junheah.jsp.Activity;
+package io.github.junheah.jsp.Activity2;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,7 +15,6 @@ import android.widget.TextView;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
-import okhttp3.Response;
 
 public class DebugActivity extends AppCompatActivity {
     TextView output;

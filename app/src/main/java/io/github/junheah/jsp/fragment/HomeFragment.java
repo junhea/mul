@@ -12,8 +12,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.github.junheah.jsp.Activity.DebugActivity;
-import io.github.junheah.jsp.Activity.MainActivity;
+import io.github.junheah.jsp.Activity2.DebugActivity;
+import io.github.junheah.jsp.Activity2.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;

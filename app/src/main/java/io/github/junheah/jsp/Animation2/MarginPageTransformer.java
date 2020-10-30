@@ -1,12 +1,8 @@
-package io.github.junheah.jsp.Animation;
+package io.github.junheah.jsp.Animation2;
 
-import android.content.res.Resources;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.viewpager2.widget.ViewPager2;
-
-import io.github.junheah.jsp.R;
 
 public class MarginPageTransformer implements ViewPager2.PageTransformer {
     private static final float SCALE = 0.95f;
