@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import io.github.junheah.jsp.model.PlayList;
 
 public class Song{
-    String TYPE;   //gson
+    String TYPE="";   //gson
 
     public Song getNext(){
         return next;

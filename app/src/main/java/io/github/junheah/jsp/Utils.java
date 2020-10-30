@@ -1,12 +1,16 @@
 package io.github.junheah.jsp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,8 +48,10 @@ public class Utils {
 
     public static void songAdderPopup(Context context, SongCallback callback){
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AlertDialogTheme);
+        final ScrollView scrollView = new ScrollView(context);
         final LinearLayoutCompat layout = new LinearLayoutCompat(context);
         layout.setOrientation(LinearLayoutCompat.VERTICAL);
+
         final EditText nameInput = new EditText(context);
         final TextView nameLabel = new TextView(context);
         nameLabel.setText("제목");
@@ -67,8 +73,10 @@ public class Utils {
         layout.addView(coverLabel);
         layout.addView(coverInput);
 
+        scrollView.addView(layout);
+
         builder.setTitle("곡 정보 입력")
-                .setView(layout)
+                .setView(scrollView)
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {

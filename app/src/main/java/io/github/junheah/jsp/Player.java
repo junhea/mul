@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -74,11 +75,12 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     AudioAttributes audioAttr;
     MediaSessionCompat session;
     MediaSessionCompat.Callback sessionCallback = new MediaSessionCompat.Callback() {
-        // https://androidpedia.net/en/tutorial/6250/mediasession
-
         @Override
         public void onPlay() {
-            play();
+            if(status.loaded)
+                pause();
+            else
+                play();
         }
 
         @Override
@@ -160,12 +162,15 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         super.onCreate();
         running = true;
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             audioAttr = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
         }
+
+        defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
 
         session = new MediaSessionCompat(this, getPackageName());
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -183,7 +188,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
         wifiLock.acquire();
-        defaultCover = BitmapFactory.decodeResource(this.getResources(), R.drawable.music_dark);
         pendingIntent = new Intent();
         status = new PlayerStatus();
         playListChangeCallback = new PlayListChangeCallback() {
@@ -241,6 +245,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.music_note)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setOnlyAlertOnce(true)
+                .setShowWhen(false)
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                         PlaybackStateCompat.ACTION_STOP));
 

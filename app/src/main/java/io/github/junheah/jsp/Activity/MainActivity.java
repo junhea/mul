@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
         bound = false;
     }
 
-
     private void reloadPlayerControls(boolean portrait) {
         //called on orientation change
         name = this.findViewById(portrait ? R.id.playerSongName : R.id.playerSongName_landscape);
@@ -330,9 +329,9 @@ public class MainActivity extends AppCompatActivity {
                 if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
             }
         };
-        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if(portrait) {
             panel.addPanelSlideListener(portraitPanelListener);
-        }else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+        }else {
             panel.addPanelSlideListener(landscapePanelListener);
         }
         reloadPlayerControls(portrait);

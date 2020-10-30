@@ -1,8 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,20 +24,20 @@ import io.github.junheah.jsp.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
-import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.song.Song;
 
-import static io.github.junheah.jsp.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
 import static io.github.junheah.jsp.Utils.playListDeserializer;
 import static io.github.junheah.jsp.Utils.playListSerializer;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
-import static io.github.junheah.jsp.Utils.songAdderPopup;
 
 public class PlayListFragment extends CallbackFragment {
+    final static int REQUEST_ADD_SONG = 11;
+    final static int REQUEST_ADD_FOLDER = 12;
+    final static int REQUEST_ADD_EXTERNAL = 13;
+
     PlayList playList;
     PlayListAdapter adapter;
     PlayListItemClickCallback callback;
@@ -111,7 +110,7 @@ public class PlayListFragment extends CallbackFragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.addPlayList:
+            case R.id.menu_addPlayList:
                 if (fragmentAdapterCallback != null) {
                     singleInputPopup(getContext(), new StringCallback() {
                         @Override
@@ -140,7 +139,7 @@ public class PlayListFragment extends CallbackFragment {
                     });
                 }
                 break;
-            case R.id.deletePlayList:
+            case R.id.menu_deletePlayList:
                 if (fragmentAdapterCallback != null) {
                     YesNoPopup(getContext(), playList.getName(), "이 플레이리스트를 삭제하겠습니까?",
                             new DialogInterface.OnClickListener() {
@@ -158,16 +157,8 @@ public class PlayListFragment extends CallbackFragment {
                             });
                 }
                 break;
-            case R.id.addSong:
-                songAdderPopup(getContext(), new SongCallback() {
-                    @Override
-                    public void callback(Song song) {
-                        //add to current visible playlist
-                        playList.add(song);
-                        //save
-                        new PlayListIO(getContext()).write(playList);
-                    }
-                });
+            case R.id.menu_addSong:
+                showAddMenu();
                 break;
         }
         return true;
@@ -177,5 +168,25 @@ public class PlayListFragment extends CallbackFragment {
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         menu.clear();
         inflater.inflate(R.menu.playlist_menu, menu);
+    }
+
+    void showAddMenu(){
+        View view = getActivity().findViewById(R.id.menu_addSong);
+        PopupMenu popupMenu = new PopupMenu(getContext(), view);
+        popupMenu.inflate(R.menu.add_menu);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_addLocalSong:
+                        break;
+                    case R.id.menu_addLocalFolder:
+                        break;
+                    case R.id.menu_addExternal:
+                        break;
+                }
+                return true;
+            }
+        });
+        popupMenu.show();
     }
 }

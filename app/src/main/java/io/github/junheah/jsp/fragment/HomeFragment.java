@@ -1,5 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.github.junheah.jsp.Activity.DebugActivity;
 import io.github.junheah.jsp.Activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
@@ -100,7 +102,12 @@ public class HomeFragment extends CallbackFragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        switch (item.getItemId()){
+            case R.id.menu_debug:
+                startActivity(new Intent(getContext(), DebugActivity.class));
+                break;
+        }
+        return true;
     }
 
     @Override

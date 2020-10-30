@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/addSong"
+    <item android:id="@+id/menu_addSong"
         android:icon="@drawable/add"
         android:title="add song"
         app:showAsAction="always" />
-    <item android:id="@+id/addPlayList"
+    <item android:id="@+id/menu_addPlayList"
         android:icon="@drawable/add_playlist"
         android:title="add playlist"
         app:showAsAction="always" />
-    <item android:id="@+id/deletePlayList"
+    <item android:id="@+id/menu_deletePlayList"
         android:icon="@drawable/delete_playlist"
         android:title="remove playlist"
         app:showAsAction="always" />

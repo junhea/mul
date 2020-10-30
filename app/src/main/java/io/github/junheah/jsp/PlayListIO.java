@@ -7,6 +7,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONObject;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,15 +48,33 @@ public class PlayListIO {
         PlayList list;
         t = new TypeToken<PlayList>() {}.getType();
         for(Map.Entry<String,?> e : data.entrySet()){
-            list = d.fromJson((String)e.getValue(), t);
-            playLists.add(list);
+            System.out.println((String)e.getValue());
+            try {
+                list = d.fromJson((String) e.getValue(), t);
+                playLists.add(list);
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
         }
 
         return playLists;
     }
 
+    public String getRaw(){
+        Map<String,?> data = reader.getAll();
+        return new Gson().toJson(data);
+    }
+
+    public void writeRaw(String s){
+        Map<String, String> data = new Gson().fromJson(s, new TypeToken<Map<String,String>>() {}.getType());
+        for(Map.Entry<String,String> e : data.entrySet()){
+            editor.putString(e.getKey(), e.getValue());
+            editor.commit();
+        }
+    }
+
     public void write(PlayList playList){
-        editor.putString(playList.getName(), s.toJson(playList));
+        editor.putString(playList.getName(), s.toJson(playList, t));
         editor.commit();
     }
 
