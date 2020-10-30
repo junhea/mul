@@ -1,4 +1,4 @@
-package io.github.junheah.jsp.Activity2;
+package io.github.junheah.jsp.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,7 +36,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import io.github.junheah.jsp.Animation2.ZoomOutPageTransformer;
+import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;

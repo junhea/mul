@@ -1,4 +1,4 @@
-package io.github.junheah.jsp.Animation2;
+package io.github.junheah.jsp.animation;
 
 import android.view.View;
 

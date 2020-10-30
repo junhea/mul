@@ -1,6 +1,6 @@
 // source: https://developer.android.com/training/animation/screen-slide-2
 
-package io.github.junheah.jsp.Animation2;
+package io.github.junheah.jsp.animation;
 
 import android.view.View;
 

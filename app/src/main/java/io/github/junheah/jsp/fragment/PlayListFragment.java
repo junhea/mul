@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.github.junheah.jsp.Activity2.MainActivity;
+import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;

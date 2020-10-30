@@ -1,4 +1,4 @@
-package io.github.junheah.jsp.Activity2;
+package io.github.junheah.jsp.activity;
 
 import android.content.Context;
 
