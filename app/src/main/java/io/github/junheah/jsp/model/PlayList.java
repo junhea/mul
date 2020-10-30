@@ -6,9 +6,10 @@ import java.util.ArrayList;
 
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
+import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.song.Song;
 
-public class PlayList extends ArrayList<Song> {
+public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     //doubly linked list
 
     String name;
@@ -146,5 +147,10 @@ public class PlayList extends ArrayList<Song> {
         sb.delete(sb.length()-2, sb.length()-1);
         sb.append(']');
         return sb.toString();
+    }
+
+    @Override
+    public void itemUpdated(Song song) {
+        notifier.itemUpdated(indexOf(song));
     }
 }

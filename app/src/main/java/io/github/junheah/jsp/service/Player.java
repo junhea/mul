@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -23,14 +24,21 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.media.AudioManagerCompat;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
@@ -212,21 +220,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         showNotification();
     }
 
-    void showNotification(){
+    void showNotification(Bitmap bitmap) {
         Intent notificationIntent = new Intent(this, io.github.junheah.jsp.activity.MainActivity.class);
-
-        Bitmap largeIcon = null;
-
-        Intent inext = new PlayerIntent(this, ACTION_PLAYER_NEXT);
-        Intent iprev = new PlayerIntent(this, ACTION_PLAYER_PREV);
-        Intent ipause = new PlayerIntent(this, ACTION_PLAYER_PAUSE);
-        Intent istop = new PlayerIntent(this, ACTION_PLAYER_STOP);
-
-        PendingIntent pnext = PendingIntent.getService(this, 0, inext, 0);
-        PendingIntent pprev = PendingIntent.getService(this, 0, iprev, 0);
-        PendingIntent ppause = PendingIntent.getService(this, 0, ipause, 0);
-        PendingIntent pstop = PendingIntent.getService(this, 0, istop, 0);
-
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -254,19 +249,22 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             notification.setContentText(current.getArtist());
 
             //set album art
-            String coverImage = current.getCover();
-            if(coverImage == null){
-                if (current instanceof LocalSong) {
-                    Bitmap coverBitmap = ((LocalSong)current).getCoverBitmap();
-                    if(coverBitmap == null)
-                        notification.setLargeIcon(defaultCover);
-                    else
-                        notification.setLargeIcon(coverBitmap);
-                } else notification.setLargeIcon(defaultCover);
+            if(bitmap == null) {
+                notification.setLargeIcon(defaultCover);
+                Bitmap coverImage = current.getCover();
+                if(coverImage == null){
+                    current.loadCover(this, new BitmapCallback() {
+                        @Override
+                        public void resourceLoaded(Bitmap bitmap) {
+                            showNotification(bitmap);
+                        }
+                    });
+                }else{
+                    notification.setLargeIcon(coverImage);
+                }
             }else{
-                //load external image
+                notification.setLargeIcon(bitmap);
             }
-
         }
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
@@ -285,9 +283,15 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         startForeground(nid, notification.build());
     }
 
+    void showNotification(){
+        showNotification(null);
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent == null)
+            stop();
         MediaButtonReceiver.handleIntent(session, intent);
         switch (intent.getAction()) {
             case ACTION_PLAYER_CHECK:
@@ -394,12 +398,15 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void stop(){
-        audioManager.abandonAudioFocus(this);
+        if(audioManager!=null)
+            audioManager.abandonAudioFocus(this);
         if(playList != null) playList.setPlayListChangeCallback(null);
         running = false;
-        mediaPlayer.stop();
-        mediaPlayer.release();
-        mediaPlayer = null;
+        if(mediaPlayer!=null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         stopSelf();
     }
 
@@ -409,6 +416,9 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.reset();
             mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();
+            if(current instanceof LocalSong){
+                ((LocalSong) current).getInfo(this);
+            }
             setState(STATE_BUFFERING);
             setMetaData(current);
         } catch (Exception e) {
@@ -469,7 +479,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        return false;
+        stop();
+        return true;
     }
 
     public void broadcast(){

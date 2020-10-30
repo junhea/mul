@@ -16,8 +16,10 @@ import com.bumptech.glide.Glide;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
+import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
@@ -26,27 +28,31 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     Context context;
     LayoutInflater inflater;
     PlayListItemClickCallback callback;
+    RecyclerView view;
 
-    public PlayListAdapter(Context context, PlayList playList){
+    AdapterNotifier notifier = new AdapterNotifier() {
+        @Override
+        public void itemRemoved(int index) {
+            notifyItemRemoved(index);
+        }
+
+        @Override
+        public void itemAdded(int index) {
+            notifyItemInserted(index);
+        }
+
+        @Override
+        public void itemUpdated(int index) {
+            notifyItemChanged(index);
+        }
+    };
+
+    public PlayListAdapter(Context context, PlayList playList, RecyclerView recyclerView){
         this.playList = playList;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
-        playList.setNotifier(new AdapterNotifier() {
-            @Override
-            public void itemRemoved(int index) {
-                notifyItemRemoved(index);
-            }
-
-            @Override
-            public void itemAdded(int index) {
-                notifyItemInserted(index);
-            }
-
-            @Override
-            public void itemUpdated(int index) {
-                notifyItemChanged(index);
-            }
-        });
+        this.view = recyclerView;
+        playList.setNotifier(notifier);
     }
 
     @NonNull
@@ -62,21 +68,22 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ((PlayListViewHolder)holder).name.setText(item.getName());
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
 
-        String coverImage = item.getCover();
+
+        //dont load images from onbind : infinite loop
+        Bitmap coverImage = item.getCover();
         if(coverImage == null){
-            if (item instanceof LocalSong) {
-                Bitmap coverBitmap = ((LocalSong)item).getCoverBitmap();
-                if(coverBitmap == null)
-                    ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
-                else
-                    ((PlayListViewHolder) holder).cover.setImageBitmap(coverBitmap);
-            } else ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
+            if(item instanceof ExternalSong){
+                String url = ((ExternalSong)item).getCoverUrl();
+                if(url != null && url.length()>0)
+                Glide.with(context)
+                        .load(url)
+                        .into(((PlayListViewHolder)holder).cover);
+            }
+            ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
         }else{
-            //load external image
-            Glide.with(context)
-                    .load(coverImage)
-                    .into(((PlayListViewHolder) holder).cover);
+            ((PlayListViewHolder)holder).cover.setImageBitmap(coverImage);
         }
+
 
         ((PlayListViewHolder)holder).layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,6 +128,4 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             cover = itemView.findViewById(R.id.item_cover);
         }
     }
-
-
 }

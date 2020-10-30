@@ -32,6 +32,11 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
                     remove(i);
                 }
             }
+
+            @Override
+            public void insertItem(int index, Object obj) {
+                insert(index, (Fragment) obj);
+            }
         };
     }
 
@@ -40,6 +45,13 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
             ((CallbackFragment) fragment).setAdapterCallback(callback);
         fragments.add(fragment);
         notifyItemInserted(fragments.size()-1);
+    }
+
+    public void insert(int index, Fragment fragment){
+        if(fragment instanceof CallbackFragment)
+            ((CallbackFragment) fragment).setAdapterCallback(callback);
+        fragments.add(index, fragment);
+        notifyItemInserted(index);
     }
 
     public void remove(int index){

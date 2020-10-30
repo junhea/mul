@@ -69,12 +69,8 @@ public class HomeFragment extends CallbackFragment {
                                 //create playlist instance
                                 PlayList pl = new PlayList(data);
 
-                                //create playlist fragment and set callbacks
-                                PlayListFragment fragment = PlayListFragment.newInstance(pl);
-                                fragment.setAdapterCallback(fragmentAdapterCallback);
-
-                                //add to adapter
-                                fragmentAdapterCallback.addItem(fragment);
+                                //create fragment and add to adapter
+                                fragmentAdapterCallback.addItem(PlayListFragment.newInstance(pl));
 
                                 //save
                                 io.write(pl);
@@ -85,17 +81,12 @@ public class HomeFragment extends CallbackFragment {
             }
         });
 
-        view.findViewById(R.id.home_add_local_song).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.home_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-            }
-        });
-
-        view.findViewById(R.id.home_add_online_song).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
+                SearchFragment fragment = SearchFragment.newInstance();
+                fragment.setAdapterCallback(fragmentAdapterCallback);
+                fragmentAdapterCallback.insertItem(0, fragment);
             }
         });
     }

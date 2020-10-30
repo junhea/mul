@@ -1,12 +1,16 @@
 package io.github.junheah.jsp.model.song;
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
+import io.github.junheah.jsp.interfaces.BitmapCallback;
+import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.PlayList;
 
 public class Song{
+
+    //todo : on application start, automatically parse metadata in background
 
 
     public Song getNext(){
@@ -28,23 +32,25 @@ public class Song{
     transient Song prev;
     transient Song next;
     transient PlayList parent;
+    transient SongInfoObserver callback;
+    transient boolean noCover; // = false
 
     String name="";
     String artist="";
     String path;
-    String cover;
+    transient Bitmap cover;
     String type;   //gson
 
-    public Song(String name, String artist, String path, String cover){
+    public Song(String name, String artist, String path){
         this.name = name;
         this.artist = artist;
         this.path = path;
-        this.cover = cover;
         this.type = "SONG";
     }
 
     public void setParent(PlayList parent) {
         this.parent = parent;
+        this.callback = parent;
     }
 
     public PlayList getParent() {
@@ -56,7 +62,7 @@ public class Song{
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public Uri getUri() {
@@ -64,11 +70,18 @@ public class Song{
     }
 
     public String getArtist(){
-        return artist;
+        return this.artist;
     }
 
-    public String getCover(){
-        if(cover != null && cover.length()>0) return cover;
-        else return null;
+    public Bitmap getCover(){
+        return this.cover;
+    }
+
+    public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
+        if(cover != null && bitmapCallback != null){
+            bitmapCallback.resourceLoaded(cover);
+            return true;
+        }
+        return false;
     }
 }

@@ -106,7 +106,7 @@ public class PlayListFragment extends CallbackFragment {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recycler = view.findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new PlayListAdapter(getContext(), playList);
+        adapter = new PlayListAdapter(getContext(), playList, recycler);
         adapter.setCallback(callback);
         recycler.setAdapter(adapter);
         ((TextView) view.findViewById(R.id.playlist_name)).setText(playList.getName());
@@ -225,7 +225,7 @@ public class PlayListFragment extends CallbackFragment {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
             Uri uri = data.getData();
-            Song song = new LocalSong(uri.toString(), "", uri.toString(),"", getContext());
+            Song song = new LocalSong(uri.toString(), "", uri.toString());
 
             //add to current visible playlist
             playList.add(song);

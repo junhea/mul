@@ -32,12 +32,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
+import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
@@ -372,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
         //broadcast receiver
         BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
-                //if broadcast recieved, player is running
+                //if broadcast received, player is running
                 if(intent.getAction().equals(ACTION_PLAYER_BROADCAST)) {
                     toggleButtons(true);
 
@@ -434,20 +436,17 @@ public class MainActivity extends AppCompatActivity {
                             artist.setText(current.getArtist());
                             mini_artist.setText(current.getArtist());
 
-                            String coverImage = current.getCover();
+                            miniPlayerCover.setImageResource(R.drawable.music);
+                            Bitmap coverImage = current.getCover();
                             if(coverImage == null){
-                                if (current instanceof LocalSong) {
-                                    Bitmap coverBitmap = ((LocalSong)current).getCoverBitmap();
-                                    if(coverBitmap == null)
-                                        miniPlayerCover.setImageResource(R.drawable.music);
-                                    else
-                                        miniPlayerCover.setImageBitmap(coverBitmap);
-                                } else miniPlayerCover.setImageResource(R.drawable.music);
+                                current.loadCover(context, new BitmapCallback() {
+                                    @Override
+                                    public void resourceLoaded(Bitmap bitmap) {
+                                        miniPlayerCover.setImageBitmap(bitmap);
+                                    }
+                                });
                             }else{
-                                //load external image
-                                Glide.with(context)
-                                        .load(coverImage)
-                                        .into(miniPlayerCover);
+                                miniPlayerCover.setImageBitmap(coverImage);
                             }
                         }
                     }
