@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     int playerOriginalHeight, miniPlayerCoverOriginal, miniPlayerCoverMax, screenWidth;
     SlidingUpPanelLayout panel;
     View playerControl;
+    ImageView miniPlayerCover;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -133,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         toggleButtons(false);
         player = null;
         bound = false;
+        miniPlayerCover.setImageResource(R.drawable.music);
     }
 
     private void reloadPlayerControls(boolean portrait) {
@@ -256,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
         View miniPlayer = this.findViewById(R.id.mini_player);
         View miniPlayerInfoContainer = this.findViewById(R.id.mini_infoContainer);
         ImageButton miniPlayerPlaybtn = this.findViewById(R.id.mini_pause_btn);
-        ImageView miniPlayerCover = this.findViewById(R.id.mini_cover);
+        miniPlayerCover = this.findViewById(R.id.mini_cover);
         mini_pausebtn = this.findViewById(R.id.mini_pause_btn);
         mini_name = this.findViewById(R.id.mini_name);
         mini_artist = this.findViewById(R.id.mini_artist);
