@@ -106,7 +106,7 @@ public class PlayListFragment extends CallbackFragment {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recycler = view.findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new PlayListAdapter(getContext(), playList, recycler);
+        adapter = new PlayListAdapter(getContext(), playList);
         adapter.setCallback(callback);
         recycler.setAdapter(adapter);
         ((TextView) view.findViewById(R.id.playlist_name)).setText(playList.getName());

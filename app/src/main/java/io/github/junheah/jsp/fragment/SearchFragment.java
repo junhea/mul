@@ -6,9 +6,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import io.github.junheah.jsp.R;
 
@@ -37,6 +39,10 @@ public class SearchFragment extends CallbackFragment{
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        RecyclerView recyclerView = view.findViewById(R.id.search_result);
+        EditText input = view.findViewById(R.id.search_input);
+
+
     }
 
     @Override

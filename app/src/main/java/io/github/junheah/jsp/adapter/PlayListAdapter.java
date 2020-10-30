@@ -22,13 +22,13 @@ import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     PlayList playList;
     Context context;
     LayoutInflater inflater;
     PlayListItemClickCallback callback;
-    RecyclerView view;
 
     AdapterNotifier notifier = new AdapterNotifier() {
         @Override
@@ -47,11 +47,10 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     };
 
-    public PlayListAdapter(Context context, PlayList playList, RecyclerView recyclerView){
+    public PlayListAdapter(Context context, PlayList playList){
         this.playList = playList;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
-        this.view = recyclerView;
         playList.setNotifier(notifier);
     }
 
@@ -115,17 +114,5 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.callback = callback;
     }
 
-    class PlayListViewHolder extends RecyclerView.ViewHolder{
-        ConstraintLayout layout;
-        TextView name, artist;
-        ImageView cover;
 
-        public PlayListViewHolder(@NonNull View itemView) {
-            super(itemView);
-            layout = itemView.findViewById(R.id.item_layout);
-            name = itemView.findViewById(R.id.item_name);
-            artist = itemView.findViewById(R.id.item_artist);
-            cover = itemView.findViewById(R.id.item_cover);
-        }
-    }
 }
