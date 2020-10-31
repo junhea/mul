@@ -24,6 +24,8 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
+import static io.github.junheah.jsp.MainApplication.defaultCover;
+
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     PlayList playList;
     Context context;
@@ -43,6 +45,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         @Override
         public void itemUpdated(int index) {
+            System.out.println("updated : index");
             notifyItemChanged(index);
         }
     };
@@ -69,20 +72,23 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
         //dont load images from onbind : infinite loop
-        Bitmap coverImage = item.getCover();
-        if(coverImage == null){
-            if(item instanceof ExternalSong){
+        Bitmap bitmap = item.getCover();
+        if(bitmap == null){
+            if (item instanceof ExternalSong) {
                 String url = ((ExternalSong)item).getCoverUrl();
-                if(url != null && url.length()>0)
-                Glide.with(context)
-                        .load(url)
-                        .into(((PlayListViewHolder)holder).cover);
+                if (url != null && url.length() > 0)
+                    Glide.with(context)
+                            .load(url)
+                            .into(((PlayListViewHolder)holder).cover);
+            } else {
+                ((PlayListViewHolder) holder).cover.setImageResource(R.drawable.music_dark);
             }
-            ((PlayListViewHolder)holder).cover.setImageResource(R.drawable.music_dark);
-        }else{
-            ((PlayListViewHolder)holder).cover.setImageBitmap(coverImage);
+        }else {
+            if (bitmap == defaultCover)
+                ((PlayListViewHolder) holder).cover.setImageResource(R.drawable.music_dark);
+            else
+                ((PlayListViewHolder) holder).cover.setImageBitmap(bitmap);
         }
-
 
         ((PlayListViewHolder)holder).layout.setOnClickListener(new View.OnClickListener() {
             @Override

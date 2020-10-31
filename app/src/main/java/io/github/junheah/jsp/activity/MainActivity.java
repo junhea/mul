@@ -51,6 +51,7 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
+import static io.github.junheah.jsp.MainApplication.defaultCover;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
@@ -437,17 +438,15 @@ public class MainActivity extends AppCompatActivity {
                             mini_artist.setText(current.getArtist());
 
                             miniPlayerCover.setImageResource(R.drawable.music);
-                            Bitmap coverImage = current.getCover();
-                            if(coverImage == null){
-                                current.loadCover(context, new BitmapCallback() {
-                                    @Override
-                                    public void resourceLoaded(Bitmap bitmap) {
+                            current.loadCover(context, new BitmapCallback() {
+                                @Override
+                                public void resourceLoaded(Bitmap bitmap) {
+                                    if(bitmap == defaultCover)
+                                        miniPlayerCover.setImageResource(R.drawable.music);
+                                    else
                                         miniPlayerCover.setImageBitmap(bitmap);
-                                    }
-                                });
-                            }else{
-                                miniPlayerCover.setImageBitmap(coverImage);
-                            }
+                                }
+                            });
                         }
                     }
                 }

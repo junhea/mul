@@ -8,6 +8,8 @@ import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.PlayList;
 
+import static io.github.junheah.jsp.MainApplication.defaultCover;
+
 public class Song{
 
     //todo : on application start, automatically parse metadata in background
@@ -33,7 +35,7 @@ public class Song{
     transient Song next;
     transient PlayList parent;
     transient SongInfoObserver callback;
-    transient boolean noCover; // = false
+    transient boolean isLoaded; // = false
 
     String name="";
     String artist="";
@@ -73,15 +75,24 @@ public class Song{
         return this.artist;
     }
 
-    public Bitmap getCover(){
-        return this.cover;
+    public final Bitmap getCover(){
+        if(isLoaded) {
+            if (cover == null)
+                return defaultCover;    //tried but no cover
+            else
+                return cover;       //tried and has cover
+        }else
+            return null;        //havent tried yet : need load
     }
 
     public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
-        if(cover != null && bitmapCallback != null){
-            bitmapCallback.resourceLoaded(cover);
+        if(isLoaded) {
+            if(bitmapCallback != null) {
+                bitmapCallback.resourceLoaded(getCover());
+            }
             return true;
         }
+        isLoaded = true;
         return false;
     }
 }

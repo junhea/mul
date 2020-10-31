@@ -2,6 +2,8 @@ package io.github.junheah.jsp;
 
 import android.app.Application;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 
 
 import org.acra.ACRA;
@@ -19,6 +21,7 @@ import static org.acra.ReportField.STACK_TRACE;
 @AcraDialog(resText=R.string.acra_dialog_text)
 
 public class MainApplication extends Application {
+    public static Bitmap defaultCover;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -31,7 +34,7 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
         System.out.println("main app oncreate");
-
+        defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
     }
 
 

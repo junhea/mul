@@ -10,6 +10,8 @@ import java.util.HashMap;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.model.song.Song;
 
+import static io.github.junheah.jsp.MainApplication.defaultCover;
+
 public class LocalSong extends Song {
 
     public LocalSong(String name, String artist, String path) {
@@ -17,37 +19,22 @@ public class LocalSong extends Song {
         this.type = "LOCAL";    //gson
     }
 
-    public void getInfo(Context context){
+    @Override
+    public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
+        if (super.loadCover(context, bitmapCallback))
+            return true;
+
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(context, getUri());
         name = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
         artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-        byte[] artBytes =  retriever.getEmbeddedPicture();
-        if(artBytes!=null)
-        {
-            cover =  BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
+        byte[] artBytes = retriever.getEmbeddedPicture();
+        if (artBytes != null) {
+            cover = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
         }
-        callback.itemUpdated(this);
-    }
 
-    @Override
-    public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
-        if(!noCover) {
-            if (super.loadCover(context, bitmapCallback))
-                return true;
-            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(context, getUri());
-            name = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-            byte[] artBytes = retriever.getEmbeddedPicture();
-            if (artBytes != null) {
-                cover = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
-                if (bitmapCallback != null) bitmapCallback.resourceLoaded(cover);
-            } else {
-                noCover = true;
-            }
-            callback.itemUpdated(this);
-        }
+        if(bitmapCallback !=null) bitmapCallback.resourceLoaded(getCover());
+        callback.itemUpdated(this);
         return true;
 
     }

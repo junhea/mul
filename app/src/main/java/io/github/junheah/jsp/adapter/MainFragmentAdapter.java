@@ -64,6 +64,15 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
         return fragments.get(position).hashCode();
     }
 
+    @Override
+    public boolean containsItem(long itemId) {
+        for(Fragment f : fragments){
+            if(f.hashCode() == itemId)
+                return true;
+        }
+        return false;
+    }
+
     @NonNull
     @Override
     public Fragment createFragment(int position) {

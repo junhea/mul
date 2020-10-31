@@ -50,6 +50,7 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERI
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
+import static io.github.junheah.jsp.MainApplication.defaultCover;
 
 public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, AudioManager.OnAudioFocusChangeListener {
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
@@ -71,11 +72,12 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     PlayerStatus status;
     PlayList playList;
     Song current;
+    Bitmap currentCover;
     MediaPlayer mediaPlayer;
     WifiManager.WifiLock wifiLock;
     Intent pendingIntent;
     final IBinder binder = new PlayerBinder();
-    Bitmap defaultCover;
+
     PlayListChangeCallback playListChangeCallback;
     AudioManager audioManager;
     AudioAttributes audioAttr;
@@ -176,7 +178,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                     .build();
         }
 
-        defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
+
 
         session = new MediaSessionCompat(this, getPackageName());
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -220,8 +222,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         showNotification();
     }
 
-    void showNotification(Bitmap bitmap) {
-        Intent notificationIntent = new Intent(this, io.github.junheah.jsp.activity.MainActivity.class);
+    void showNotification() {
+        Intent notificationIntent = new Intent(getApplicationContext(), io.github.junheah.jsp.activity.MainActivity.class);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -249,21 +251,18 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             notification.setContentText(current.getArtist());
 
             //set album art
-            if(bitmap == null) {
+            currentCover = current.getCover();
+            if(currentCover == null) {
                 notification.setLargeIcon(defaultCover);
-                Bitmap coverImage = current.getCover();
-                if(coverImage == null){
-                    current.loadCover(this, new BitmapCallback() {
-                        @Override
-                        public void resourceLoaded(Bitmap bitmap) {
-                            showNotification(bitmap);
-                        }
-                    });
-                }else{
-                    notification.setLargeIcon(coverImage);
-                }
+                current.loadCover(this, new BitmapCallback() {
+                    @Override
+                    public void resourceLoaded(Bitmap bitmap) {
+                        currentCover = bitmap;
+                        showNotification();
+                    }
+                });
             }else{
-                notification.setLargeIcon(bitmap);
+                notification.setLargeIcon(currentCover);
             }
         }
 
@@ -281,10 +280,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
 
         startForeground(nid, notification.build());
-    }
-
-    void showNotification(){
-        showNotification(null);
     }
 
 
@@ -416,9 +411,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.reset();
             mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();
-            if(current instanceof LocalSong){
-                ((LocalSong) current).getInfo(this);
-            }
             setState(STATE_BUFFERING);
             setMetaData(current);
         } catch (Exception e) {
