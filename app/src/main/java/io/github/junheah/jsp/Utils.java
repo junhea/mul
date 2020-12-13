@@ -16,6 +16,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
 import io.github.junheah.jsp.gson.PlayListDeserializer;
 import io.github.junheah.jsp.gson.PlayListSerializer;
 import io.github.junheah.jsp.gson.RuntimeTypeAdapterFactory;
@@ -127,5 +131,18 @@ public class Utils {
                 .setNegativeButton("아니오", null)
                 .show();
     }
+
+    public static String readFile(File f) throws Exception{
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+        StringBuilder builder = new StringBuilder();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            builder.append(line);
+            builder.append('\n');
+        }
+        return builder.toString();
+    }
+
 
 }

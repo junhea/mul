@@ -22,6 +22,7 @@ import static org.acra.ReportField.STACK_TRACE;
 
 public class MainApplication extends Application {
     public static Bitmap defaultCover;
+    public static HttpClient client;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -35,6 +36,7 @@ public class MainApplication extends Application {
         super.onCreate();
         System.out.println("main app oncreate");
         defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
+        this.client = new HttpClient();
     }
 
 

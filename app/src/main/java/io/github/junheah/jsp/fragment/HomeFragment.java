@@ -12,6 +12,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+
+import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
@@ -19,6 +26,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.source.Source;
 
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
@@ -47,6 +55,19 @@ public class HomeFragment extends CallbackFragment {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
         playListCallback = ((MainActivity)getActivity()).getPlayListCallback();
+
+        //source io
+        SourceIO sourceIO = new SourceIO(getContext());
+        sourceIO.createExample();
+
+        //debug
+        for(Source src : sourceIO.getSources()){
+            try {
+                src.init();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
