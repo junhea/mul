@@ -1,8 +1,10 @@
 package io.github.junheah.jsp.model;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
@@ -101,6 +103,14 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     }
 
     @Override
+    public boolean addAll(@NonNull Collection<? extends Song> c) {
+        for(Song s : c){
+            add(s);
+        }
+        return true;
+    }
+
+    @Override
     public boolean remove(@Nullable Object o) {
         int index = indexOf(o);
         remove(index);
@@ -151,6 +161,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     @Override
     public void itemUpdated(Song song) {
-        notifier.itemUpdated(indexOf(song));
+        if(notifier != null)
+            notifier.itemUpdated(indexOf(song));
     }
 }

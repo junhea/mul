@@ -43,6 +43,7 @@ import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
+import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
@@ -409,7 +410,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         status.loaded = false;
         try {
             mediaPlayer.reset();
-            mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
+            if(current instanceof ExternalSong)
+                mediaPlayer.setDataSource(getApplicationContext(), current.getUri(), ((ExternalSong) current).getHeaders());
+            else
+                mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();
             setState(STATE_BUFFERING);
             setMetaData(current);

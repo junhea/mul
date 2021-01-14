@@ -1,6 +1,7 @@
 package io.github.junheah.jsp;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Environment;
 
 import java.io.BufferedReader;
@@ -18,6 +19,9 @@ import io.github.junheah.jsp.model.source.Source;
 public class SourceIO {
     File root;
     List<Source> sources;
+    SharedPreferences reader;
+    SharedPreferences.Editor editor;
+    Context context;
     FilenameFilter scriptFilter = new FilenameFilter() {
         @Override
         public boolean accept(File file, String s) {
@@ -26,6 +30,12 @@ public class SourceIO {
     };
 
     public SourceIO(Context context){
+        this.context = context;
+        reader = context.getSharedPreferences("JSPlayer.source_data", Context.MODE_PRIVATE);
+        editor = reader.edit();
+
+    }
+    public void load(){
         try {
             root = new File(context.getExternalFilesDir(null), "srcs");
             if(!root.exists())
@@ -34,7 +44,11 @@ public class SourceIO {
 
             for(File f : root.listFiles(scriptFilter)){
                 try {
-                    sources.add(new Source(f));
+                    Source s = new Source(f);
+                    String udata = reader.getString(s.getName(), null);
+                    if(udata != null && udata.length()>0)
+                        s.setUserData(udata);
+                    sources.add(s);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -42,6 +56,11 @@ public class SourceIO {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void write(String key, String data){
+        editor.putString(key, data);
+        editor.commit();
     }
 
     public List<Source> getSources(){

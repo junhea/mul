@@ -14,7 +14,6 @@ public class Song{
 
     //todo : on application start, automatically parse metadata in background
 
-
     public Song getNext(){
         return next;
     }

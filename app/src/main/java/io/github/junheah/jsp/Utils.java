@@ -19,6 +19,8 @@ import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashMap;
+import java.util.List;
 
 import io.github.junheah.jsp.gson.PlayListDeserializer;
 import io.github.junheah.jsp.gson.PlayListSerializer;
@@ -27,6 +29,7 @@ import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
@@ -44,10 +47,23 @@ public class Utils {
                 .of(Song.class, "type")
                 .registerSubtype(Song.class, "SONG")
                 .registerSubtype(LocalSong.class, "LOCAL")
-                .registerSubtype(ExternalSong.class, "EXTERNAL");
+                .registerSubtype(ExternalSong.class, "EXTERNAL")
+                .registerSubtype(ExternalSongContainer.class, "EXTERNAL.CONTAINER");
         return new GsonBuilder()
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
                 .registerTypeAdapter(new TypeToken<PlayList>() {}.getType(), new PlayListDeserializer())
+                .create();
+    }
+
+    public static Gson songListDeserializer() {
+        RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
+                .of(Song.class, "type")
+                .registerSubtype(Song.class, "SONG")
+                .registerSubtype(LocalSong.class, "LOCAL")
+                .registerSubtype(ExternalSong.class, "EXTERNAL")
+                .registerSubtype(ExternalSongContainer.class, "EXTERNAL.CONTAINER");
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
                 .create();
     }
 
@@ -89,7 +105,8 @@ public class Utils {
                             Song song = new ExternalSong(nameInput.getText().toString(),
                                     artistInput.getText().toString(),
                                     urlInput.getText().toString(),
-                                    coverInput.getText().toString());
+                                    coverInput.getText().toString(),
+                                    new HashMap<>());
                             callback.callback(song);
                         }catch (Exception e){
                             e.printStackTrace();

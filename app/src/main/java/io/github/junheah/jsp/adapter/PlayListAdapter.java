@@ -70,7 +70,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ((PlayListViewHolder)holder).name.setText(item.getName());
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
 
-
         //dont load images from onbind : infinite loop
         Bitmap bitmap = item.getCover();
         if(bitmap == null){

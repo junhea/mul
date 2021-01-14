@@ -55,19 +55,6 @@ public class HomeFragment extends CallbackFragment {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
         playListCallback = ((MainActivity)getActivity()).getPlayListCallback();
-
-        //source io
-        SourceIO sourceIO = new SourceIO(getContext());
-        sourceIO.createExample();
-
-        //debug
-        for(Source src : sourceIO.getSources()){
-            try {
-                src.init();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -102,10 +89,15 @@ public class HomeFragment extends CallbackFragment {
             }
         });
 
+        //source io
+        SourceIO sourceIO = new SourceIO(getContext());
+        sourceIO.load();
+        sourceIO.createExample();   //debug
+
         view.findViewById(R.id.home_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SearchFragment fragment = SearchFragment.newInstance();
+                SearchFragment fragment = SearchFragment.newInstance(sourceIO.getSources().get(0));
                 fragment.setAdapterCallback(fragmentAdapterCallback);
                 fragmentAdapterCallback.insertItem(0, fragment);
             }

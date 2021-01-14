@@ -11,18 +11,30 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import java.util.Map;
+
 import io.github.junheah.jsp.interfaces.BitmapCallback;
+import io.github.junheah.jsp.model.source.Source;
 
 import static io.github.junheah.jsp.MainApplication.defaultCover;
 
 public class ExternalSong extends Song{
-
+    transient Source source;
     String coverUrl;
+    Map<String, String> headers;
 
-    public ExternalSong(String name, String artist, String path, String cover) {
-        super(name, artist, path);
+    public ExternalSong(String name, String artist, String url, String cover, Map<String, String> headers) {
+        super(name, artist, url);
         this.coverUrl = cover;
         this.type="EXTERNAL";   //gson
+        this.headers = headers;
+    }
+    public void setSource(Source source){
+        this.source = source;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
     public String getCoverUrl() {
