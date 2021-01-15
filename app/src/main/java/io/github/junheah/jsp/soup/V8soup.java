@@ -7,6 +7,7 @@ import com.eclipsesource.v8.V8Object;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
@@ -66,6 +67,10 @@ public class V8soup {
             data.add(e);
         }
         return res;
+    }
+
+    public void reset(){
+        data.clear();
     }
 
     public String ownText(Integer ep){

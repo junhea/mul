@@ -411,7 +411,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         try {
             mediaPlayer.reset();
             if(current instanceof ExternalSong)
-                mediaPlayer.setDataSource(getApplicationContext(), current.getUri(), ((ExternalSong) current).getHeaders());
+                mediaPlayer.setDataSource(((ExternalSong)current).getPath());
             else
                 mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
             mediaPlayer.prepareAsync();

@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,12 +18,16 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.InputActivity;
 import io.github.junheah.jsp.interfaces.V8Callback;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.soup.V8soup;
 
 import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.Utils.readFile;
+import static io.github.junheah.jsp.Utils.songListDeserializer;
 
 public class Source {
     String name;
@@ -45,7 +50,7 @@ public class Source {
         while ((line = reader.readLine()) != null) {
             if (!line.contains("@")) break;  //end of metadata
             line = line.split("@")[1];
-            String[] pair = line.split("\t");
+            String[] pair = line.split("::");
             String key = pair[0];
             String val = pair[1];
             switch (key) {
@@ -91,7 +96,7 @@ public class Source {
                 e.printStackTrace();
             }
 
-            if (userdata != null) {
+            if (userdata != null && fragment != null) {
                 Intent intent = new Intent(fragment.getContext(), InputActivity.class);
                 intent.putExtra("data", userdata);
                 intent.putExtra("name", this.name);
@@ -138,6 +143,11 @@ public class Source {
         }
     }
 
+    public void close(){
+        if(thread != null)
+            thread.forceStop();
+    }
+
     public class V8Thread extends Thread{
         // thread that has v8 runtime
 
@@ -146,6 +156,7 @@ public class Source {
         boolean running = true;
         V8Callback initialCallback;
         Context context;
+        V8soup soup;
 
         @Override
         public void run() {
@@ -163,42 +174,54 @@ public class Source {
             while(running){
                 if(queue.size()>0){
                     V8Request r = queue.get(0);
-                    try {
-                        //run script and get result
-                        Object obj = runtime.executeScript(r.getScript());
+                    if(r!= null) {
+                        try {
+                            //run script and get result
+                            Object obj = runtime.executeScript(r.getScript());
 
-                        //stringify result if needed
-                        if(obj instanceof V8Object){
-                            V8Object json = runtime.getObject("JSON");
-                            V8Array parameters = new V8Array(runtime).push(obj);
-                            String result = json.executeStringFunction("stringify", parameters);
-                            parameters.close();
-                            json.close();
-                            ((V8Object)obj).close();
-                            obj = result;
-                        }
+                            //reset v8soup
+                            soup.reset();
 
-                        //callback
-                        final String res = String.valueOf(obj);
-                        if (r.getCallback() != null)
-                            runOnUiThread(context, new Runnable() {
-                                @Override
-                                public void run() {
-                                    r.getCallback().callback(res);
-                                }
-                            });
-                    }catch (Exception e){
-                        e.printStackTrace();
-                        runOnUiThread(context, new Runnable() {
-                            @Override
-                            public void run() {
-                                r.getCallback().error(e);
+                            //stringify result if needed
+                            if (obj instanceof V8Object) {
+                                V8Object json = runtime.getObject("JSON");
+                                V8Array parameters = new V8Array(runtime).push(obj);
+                                String result = json.executeStringFunction("stringify", parameters);
+                                parameters.close();
+                                json.close();
+                                ((V8Object) obj).close();
+                                obj = result;
                             }
-                        });
+
+                            //callback
+                            final String res = String.valueOf(obj);
+                            if (r.getCallback() != null)
+                                runOnUiThread(context, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        r.getCallback().callback(res);
+                                    }
+                                });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            if(r.getCallback()!= null) {
+                                runOnUiThread(context, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        r.getCallback().error(e);
+                                    }
+                                });
+                            }
+                        }
                     }
                     queue.remove(0);
                 }
             }
+            //stop runtime
+            runtime.release(false);
+        }
+        public void forceStop(){
+            this.running = false;
         }
 
         public void runScript(V8Request r){
@@ -229,7 +252,7 @@ public class Source {
                 runtime.registerJavaMethod(this, "httpGet", "httpGet", new Class[] {V8Object.class});
 
                 // jsoup
-                V8soup soup = new V8soup(runtime);
+                soup = new V8soup(runtime);
                 V8Object v8soup = new V8Object(runtime);
                 runtime.add("jsoup", v8soup);
                 v8soup.registerJavaMethod(soup, "parse", "parse", new Class[]{String.class});
@@ -242,6 +265,7 @@ public class Source {
                 // filesystem
 
                 // run base script
+                runtime.executeScript(context.getString(R.string.base_script));
 
                 // initially run script
                 runtime.executeScript(readFile(script));

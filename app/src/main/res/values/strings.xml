@@ -5,4 +5,7 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="acra_dialog_text"></string>
+    <string name="base_script">
+            function get(t){return httpGet({url:t,headers:{}}).body}class Song{constructor(t,s,h,e,i){this.name=t,this.artist=s,this.path=h,this.coverUrl=e,this.headers=i,this.type=\"EXTERNAL\"}}class SongContainer{constructor(t,s,h,e,i,r){this.name=t,this.artist=s,this.path=h,this.coverUrl=e,this.headers=i,this.type=\"EXTERNAL.CONTAINER\",this.etype=r}}
+    </string>
 </resources>

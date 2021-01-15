@@ -1,5 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -7,40 +8,35 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.eclipsesource.v8.V8Object;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout;
+import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.MainActivity;
-import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
-import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.interfaces.V8Callback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
-import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
-import io.github.junheah.jsp.model.source.V8Request;
 
-import static io.github.junheah.jsp.Utils.playListSerializer;
 import static io.github.junheah.jsp.model.source.Source.USER_DATA_REQUEST;
 
 public class SearchFragment extends CallbackFragment{
@@ -49,6 +45,7 @@ public class SearchFragment extends CallbackFragment{
     LinearLayoutCompat container;
     List<ExternalSong> result = new ArrayList<>();
     PlayListItemClickCallback callback;
+    SearchResultAdapter adapter;
 
     public SearchFragment(){
         // do nothing
@@ -75,53 +72,110 @@ public class SearchFragment extends CallbackFragment{
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Activity activity = getActivity();
         RecyclerView recyclerView = view.findViewById(R.id.search_result);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         EditText input = view.findViewById(R.id.search_input);
+        Button prevResBtn = view.findViewById(R.id.prev_result_btn);
+        SwipyRefreshLayout result_layout = view.findViewById(R.id.search_result_layout);
+
+        List<Runnable> swipehistory = new ArrayList<>();
+
+        prevResBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(adapter.prevData()){
+                    prevResBtn.setVisibility(View.VISIBLE);
+                }else{
+                    prevResBtn.setVisibility(View.GONE);
+                }
+                if(swipehistory.size()>0){
+                    swipehistory.remove(swipehistory.size()-1);
+                }
+            }
+        });
+        result_layout.setOnRefreshListener(new SwipyRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh(SwipyRefreshLayoutDirection direction) {
+                if(swipehistory.size()>0){
+                    swipehistory.get(swipehistory.size()-1).run();
+                }
+            }
+        });
 
         container = view.findViewById(R.id.search_container);
-        SearchResultAdapter adapter = new SearchResultAdapter(getContext(), result);
+        adapter = new SearchResultAdapter(getContext(), result);
         adapter.setListener(new SearchResultInterface(){
             @Override
             public void clickedSong(ExternalSong song) {
-                //play in player
-                PlayList pl = new PlayList("");
-                pl.add(song);
-                callback.SongClicked(song, pl);
+                //fetch data
+                song.fetch(getContext(), new Runnable() {
+                    @Override
+                    public void run() {
+                        //play in player
+                        PlayList pl = new PlayList("");
+                        pl.add(song);
+                        callback.SongClicked(song, pl);
+                    }
+                });
             }
 
             @Override
             public void clickedSongContainer(ExternalSongContainer container) {
                 lockui(true);
-                adapter.clear();
-                container.fetch(new Runnable() {
+                Runnable onContainer = new Runnable() {
                     @Override
                     public void run() {
-                        adapter.addAll(container.getSongs());
+                        adapter.appendAndChangeData(container.getSongs());
+                        prevResBtn.setVisibility(adapter.hasHistory() ? View.VISIBLE : View.GONE);
                         lockui(false);
+                    }
+                };
+                container.fetch(getContext(), onContainer);
+                swipehistory.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        container.fetch(getContext(), new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.addAll(container.getSongs());
+                                prevResBtn.setVisibility(adapter.hasHistory() ? View.VISIBLE : View.GONE);
+                                lockui(false);
+                            }
+                        });
                     }
                 });
             }
         });
         recyclerView.setAdapter(adapter);
 
-        view.findViewById(R.id.testbtn).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.search_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 lockui(true);
-                adapter.clear();
+                adapter.reset();
+                prevResBtn.setVisibility(View.GONE);
                 Search search = source.getSearch(input.getText().toString());
-                search.fetch(new Runnable() {
+                Runnable onSearch = new Runnable() {
                     @Override
                     public void run() {
                         //update ui
                         adapter.addAll(search.getResult());
                         lockui(false);
                     }
+                };
+                search.fetch(onSearch);
+                swipehistory.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        search.fetch(onSearch);
+                    }
                 });
             }
         });
     }
+
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -174,6 +228,12 @@ public class SearchFragment extends CallbackFragment{
             for(int i =0 ; i<container.getChildCount(); i++){
                 View v = container.getChildAt(i);
                 v.setEnabled(!lock);
+                if(v instanceof RecyclerView){
+                    ((RecyclerView)v).suppressLayout(lock);
+                }
+                if(v instanceof SwipyRefreshLayout){
+                    ((SwipyRefreshLayout)v).setRefreshing(lock);
+                }
             }
         }
     }

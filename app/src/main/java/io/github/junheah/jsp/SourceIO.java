@@ -67,6 +67,14 @@ public class SourceIO {
         return this.sources;
     }
 
+    public Source getSource(String name){
+        for(Source s : sources){
+            if(name.equals(s.getName()))
+                return s;
+        }
+        return null;
+    }
+
     //debug
     public void createExample(){
         File path = new File(root, "test.mjs");
