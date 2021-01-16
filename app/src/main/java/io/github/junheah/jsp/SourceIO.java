@@ -44,7 +44,7 @@ public class SourceIO {
 
             for(File f : root.listFiles(scriptFilter)){
                 try {
-                    Source s = new Source(f);
+                    Source s = new Source(f, context);
                     sources.add(s);
                 }catch (Exception e){
                     e.printStackTrace();

@@ -35,9 +35,11 @@ public class Source {
     File script;
     transient V8Thread thread;
     String udata;
+    Context context;
 
 
-    public Source(File file) throws Exception{
+    public Source(File file, Context context) throws Exception{
+        this.context = context;
         this.script = file;
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -71,12 +73,7 @@ public class Source {
     }
 
     public void initThread(ScriptCallback callback, Context context){
-        if(udata != null)
-            this.udata = udata;
-        if(thread == null) {
-            thread = new V8Thread();
-            thread.execute(callback, context);
-        }
+
     }
 
     public Search getSearch(String query){
@@ -84,10 +81,15 @@ public class Source {
     }
 
     public void runScript(ScriptRequest request){
-        this.thread.runScript(request);
+        if(thread == null || !thread.running) {
+            thread = new V8Thread();
+            thread.execute(request);
+        }else{
+            thread.runScript(request);
+        }
     }
 
-    void runOnUiThread(Context context, Runnable r){
+    void runOnUiThread(Runnable r){
         if(context instanceof Activity)
             ((Activity)context).runOnUiThread(r);
         else if(context instanceof FragmentActivity){
@@ -106,25 +108,15 @@ public class Source {
         org.mozilla.javascript.Context rhino;
         List<ScriptRequest> queue;
         boolean running = true;
-        ScriptCallback initialCallback;
-        Context context;
         ScriptableObject scope;
 
         @Override
         public void run() {
-            if(rhino == null) {
-                init();
-                if(initialCallback != null && context != null) {
-                    runOnUiThread(context, new Runnable() {
-                        @Override
-                        public void run() {
-                            initialCallback.callback(null);
-                        }
-                    });
-                }
-            }
             while(running){
                 if(queue.size()>0){
+                    if(rhino == null) {
+                        init();
+                    }
                     ScriptRequest r = queue.get(0);
                     if(r!= null) {
                         try {
@@ -134,7 +126,7 @@ public class Source {
 
                             //callback
                             if (r.getCallback() != null)
-                                runOnUiThread(context, new Runnable() {
+                                runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         r.getCallback().callback(obj);
@@ -145,9 +137,17 @@ public class Source {
                         }
                     }
                     queue.remove(0);
+                }else{
+                    //queue empty
+                    if(rhino != null) {
+                        System.out.println("rhino exit!");
+                        rhino = null;
+                        org.mozilla.javascript.Context.exit();
+                    }
                 }
             }
         }
+
         public void forceStop(){
             this.running = false;
         }
@@ -156,15 +156,15 @@ public class Source {
             queue.add(r);
         }
 
-        public synchronized void execute(ScriptCallback callback, Context context) {
+        public synchronized void execute(ScriptRequest request) {
             queue = new ArrayList<>();
-            this.initialCallback = callback;
-            this.context = context;
+            queue.add(request);
             super.start();
         }
 
         public void init(){
             try {
+                System.out.println("rhino init!");
                 rhino = org.mozilla.javascript.Context.enter();
                 rhino.setOptimizationLevel(-1);
                 scope = new ImporterTopLevel(rhino);
