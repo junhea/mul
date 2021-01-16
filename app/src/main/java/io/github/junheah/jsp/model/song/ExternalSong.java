@@ -13,17 +13,18 @@ import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.mozilla.javascript.JavaAdapter;
+
 import java.util.List;
 import java.util.Map;
 
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
-import io.github.junheah.jsp.interfaces.V8Callback;
+import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.source.Source;
-import io.github.junheah.jsp.model.source.V8Request;
+import io.github.junheah.jsp.model.source.ScriptRequest;
 
 import static io.github.junheah.jsp.MainApplication.defaultCover;
-import static io.github.junheah.jsp.Utils.songListDeserializer;
 
 public class ExternalSong extends Song{
 
@@ -89,18 +90,11 @@ public class ExternalSong extends Song{
             io.load();
             source = io.getSource(this.sourceID);
         }else{
-            source.runScript(new V8Request("fetchSongInfo("+new Gson().toJson(ExternalSong.this)+");", new V8Callback() {
+            source.runScript(new ScriptRequest("fetchSongInfo", new Object[]{ExternalSong.this}, new ScriptCallback() {
                 @Override
-                public void callback(String res) {
+                public void callback(Object res) {
                     //song loaded
-                    ExternalSong newsong = new Gson().fromJson(res, new TypeToken<ExternalSong>(){}.getType());
-                    update(newsong);
                     cb.run();
-                }
-
-                @Override
-                public void error(Exception e) {
-                    source.close();
                 }
             }));
         }
@@ -108,33 +102,20 @@ public class ExternalSong extends Song{
         // one-time use of source
         if(source != null){
             //init source
-            source.init(null);
-            source.initThread(new V8Callback() {
+            source.initThread(new ScriptCallback() {
                 @Override
-                public void callback(String res) {
+                public void callback(Object res) {
                     //fetch song info
-                    source.runScript(new V8Request("fetchSongInfo("+new Gson().toJson(ExternalSong.this)+");", new V8Callback() {
+                    source.runScript(new ScriptRequest("fetchSongInfo",new Object[]{ExternalSong.this}, new ScriptCallback() {
                         @Override
-                        public void callback(String res) {
+                        public void callback(Object res) {
                             //song loaded
-                            ExternalSong newsong = new Gson().fromJson(res, new TypeToken<ExternalSong>(){}.getType());
-                            update(newsong);
                             source.close();
                             cb.run();
                         }
-
-                        @Override
-                        public void error(Exception e) {
-                            source.close();
-                        }
                     }));
                 }
-
-                @Override
-                public void error(Exception e) {
-                    source.close();
-                }
-            }, context, null);
+            }, context);
         }
     }
 
@@ -144,5 +125,13 @@ public class ExternalSong extends Song{
         this.coverUrl = song.getCoverUrl();
         this.headers = song.getHeaders();
         this.artist = song.getArtist();
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 }

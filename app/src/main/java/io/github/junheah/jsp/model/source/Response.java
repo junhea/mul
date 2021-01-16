@@ -1,30 +1,28 @@
 package io.github.junheah.jsp.model.source;
 
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Object;
-
 import java.io.IOException;
 
-public class Response extends V8Object {
-    int code;
-    String body;
+import okhttp3.Headers;
 
-    public Response(V8 v8, okhttp3.Response r){
-        super(v8);
+public class Response {
+    Headers headers;
+    String body;
+    int code;
+    public Response(okhttp3.Response r)throws IOException {
+        this.headers = r.headers();
+        this.body = r.body().string();
         this.code = r.code();
-        try {
-            this.body = r.body().string();
-        }catch (IOException e){
-            e.printStackTrace();
-            this.body = "";
-        }
-        this.add("code", this.code);
-        this.add("body", this.body);
     }
-    public Response(){
-        this.code = 0;
-        this.body = "";
-        this.add("code", this.code);
-        this.add("body", this.body);
+
+    public Headers getHeaders() {
+        return headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public int getCode() {
+        return code;
     }
 }

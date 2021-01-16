@@ -5,14 +5,14 @@ import android.content.Context;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.mozilla.javascript.JavaAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import io.github.junheah.jsp.SourceIO;
-import io.github.junheah.jsp.interfaces.V8Callback;
-import io.github.junheah.jsp.model.source.Source;
-import io.github.junheah.jsp.model.source.V8Request;
+import io.github.junheah.jsp.interfaces.ScriptCallback;
+import io.github.junheah.jsp.model.source.ScriptRequest;
 
 import static io.github.junheah.jsp.Utils.songListDeserializer;
 
@@ -35,26 +35,23 @@ public class ExternalSongContainer extends ExternalSong{
         this.type="EXTERNAL.CONTAINER";
     }
 
+    public String getEtype() {
+        return etype;
+    }
+
     @Override
     public void fetch(Context context, Runnable cb){
         int current = page++;
         //should only be called from search res
-        V8Request request = new V8Request("fetchContainerInfo("+new Gson().toJson(ExternalSongContainer.this)+","+current+");", new V8Callback() {
+        ScriptRequest request = new ScriptRequest("fetchContainerInfo", new Object[]{ExternalSongContainer.this, current}, new ScriptCallback() {
             @Override
-            public void callback(String res) {
+            public void callback(Object res) {
                 System.out.println(res);
-                songs = songListDeserializer().fromJson(res, new TypeToken<List<Song>>() {}.getType());
+                songs = (List<ExternalSong>) JavaAdapter.convertResult(res, List.class);
                 for(ExternalSong s : songs){
                     s.setSource(source);
                 }
                 cb.run();   // ui updates are done in runnable cb
-            }
-
-            @Override
-            public void error(Exception e) {
-                e.printStackTrace();
-                songs = new ArrayList<>();
-                cb.run();
             }
         });
         source.runScript(request);

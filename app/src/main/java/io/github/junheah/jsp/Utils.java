@@ -19,6 +19,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,6 +36,35 @@ import io.github.junheah.jsp.model.song.Song;
 
 public class Utils {
     // static functions
+
+
+    public static String getBaseScript(Context context){
+        StringBuilder builder = new StringBuilder();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(
+                    new InputStreamReader(context.getAssets().open("base.mjs")));
+
+            // do reading, usually loop until end of file reading
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                //process line
+                builder.append(line+"\n");
+            }
+        } catch (Exception e) {
+            //log the exception
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (Exception e) {
+                    //log the exception
+                }
+            }
+        }
+        return builder.toString();
+    }
+
 
     public static Gson playListSerializer(){
         return new GsonBuilder()

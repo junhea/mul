@@ -7,10 +7,11 @@ import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
-import com.eclipsesource.v8.V8Object;
-import com.google.gson.reflect.TypeToken;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.ImporterTopLevel;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.ast.Scope;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,14 +21,11 @@ import java.util.List;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.InputActivity;
-import io.github.junheah.jsp.interfaces.V8Callback;
-import io.github.junheah.jsp.model.song.ExternalSong;
-import io.github.junheah.jsp.model.song.Song;
-import io.github.junheah.jsp.soup.V8soup;
+import io.github.junheah.jsp.interfaces.ScriptCallback;
 
 import static io.github.junheah.jsp.MainApplication.client;
+import static io.github.junheah.jsp.Utils.getBaseScript;
 import static io.github.junheah.jsp.Utils.readFile;
-import static io.github.junheah.jsp.Utils.songListDeserializer;
 
 public class Source {
     String name;
@@ -36,9 +34,6 @@ public class Source {
     String version;
     File script;
     transient V8Thread thread;
-    final static String parseUserData = "JSON.stringify(user_data)";
-    final static String loadUserData = "";
-    public final static int USER_DATA_REQUEST = 92;
     String udata;
 
 
@@ -71,45 +66,11 @@ public class Source {
         System.out.println(name +"\t"+homepage +"\t"+author +"\t"+version +"\t");
     }
 
-
     public String getName() {
         return name;
     }
 
-    public void setUserData(String udata){
-        this.udata = udata;
-    }
-
-    public boolean init(Fragment fragment){
-        if(udata == null || udata.length() == 0) {
-        //if(udata == null || udata != null){
-            String userdata;
-            //get initial user data
-            try {
-                V8 runtime = V8.createV8Runtime();
-                runtime.executeScript(readFile(script));
-                userdata = runtime.executeStringScript(parseUserData);
-                runtime.release(false);
-            } catch (Exception e) {
-                //no user data
-                userdata = null;
-                e.printStackTrace();
-            }
-
-            if (userdata != null && fragment != null) {
-                Intent intent = new Intent(fragment.getContext(), InputActivity.class);
-                intent.putExtra("data", userdata);
-                intent.putExtra("name", this.name);
-                fragment.startActivityForResult(intent, USER_DATA_REQUEST);
-                return false;
-            } else {
-                return true;
-            }
-        }else
-            return true;
-    }
-
-    public void initThread(V8Callback callback, Context context, String udata){
+    public void initThread(ScriptCallback callback, Context context){
         if(udata != null)
             this.udata = udata;
         if(thread == null) {
@@ -122,16 +83,7 @@ public class Source {
         return new Search(this, query);
     }
 
-    private class Console {
-        public void log(final String message) {
-            System.out.println("[INFO] " + message);
-        }
-        public void err(final String message) {
-            System.out.println("[ERROR] " + message);
-        }
-    }
-
-    public void runScript(V8Request request){
+    public void runScript(ScriptRequest request){
         this.thread.runScript(request);
     }
 
@@ -151,16 +103,16 @@ public class Source {
     public class V8Thread extends Thread{
         // thread that has v8 runtime
 
-        V8 runtime;
-        List<V8Request> queue;
+        org.mozilla.javascript.Context rhino;
+        List<ScriptRequest> queue;
         boolean running = true;
-        V8Callback initialCallback;
+        ScriptCallback initialCallback;
         Context context;
-        V8soup soup;
+        ScriptableObject scope;
 
         @Override
         public void run() {
-            if(runtime == null) {
+            if(rhino == null) {
                 init();
                 if(initialCallback != null && context != null) {
                     runOnUiThread(context, new Runnable() {
@@ -173,62 +125,38 @@ public class Source {
             }
             while(running){
                 if(queue.size()>0){
-                    V8Request r = queue.get(0);
+                    ScriptRequest r = queue.get(0);
                     if(r!= null) {
                         try {
                             //run script and get result
-                            Object obj = runtime.executeScript(r.getScript());
-
-                            //reset v8soup
-                            soup.reset();
-
-                            //stringify result if needed
-                            if (obj instanceof V8Object) {
-                                V8Object json = runtime.getObject("JSON");
-                                V8Array parameters = new V8Array(runtime).push(obj);
-                                String result = json.executeStringFunction("stringify", parameters);
-                                parameters.close();
-                                json.close();
-                                ((V8Object) obj).close();
-                                obj = result;
-                            }
+                            Function fct = (Function)scope.get(r.getFunction(), scope);
+                            Object obj = fct.call(rhino, scope, scope, r.getArgs());
 
                             //callback
-                            final String res = String.valueOf(obj);
                             if (r.getCallback() != null)
                                 runOnUiThread(context, new Runnable() {
                                     @Override
                                     public void run() {
-                                        r.getCallback().callback(res);
+                                        r.getCallback().callback(obj);
                                     }
                                 });
                         } catch (Exception e) {
                             e.printStackTrace();
-                            if(r.getCallback()!= null) {
-                                runOnUiThread(context, new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        r.getCallback().error(e);
-                                    }
-                                });
-                            }
                         }
                     }
                     queue.remove(0);
                 }
             }
-            //stop runtime
-            runtime.release(false);
         }
         public void forceStop(){
             this.running = false;
         }
 
-        public void runScript(V8Request r){
+        public void runScript(ScriptRequest r){
             queue.add(r);
         }
 
-        public synchronized void execute(V8Callback callback, Context context) {
+        public synchronized void execute(ScriptCallback callback, Context context) {
             queue = new ArrayList<>();
             this.initialCallback = callback;
             this.context = context;
@@ -237,51 +165,22 @@ public class Source {
 
         public void init(){
             try {
-                runtime = V8.createV8Runtime();
-                // register callbacks
-                // console for debugging
-                Class[] consolecls = { String.class };
-                Console console = new Console();
-                V8Object v8Console = new V8Object(runtime);
-                runtime.add("console", v8Console);
-                v8Console.registerJavaMethod(console, "log", "log", new Class[]{String.class});
-                v8Console.registerJavaMethod(console, "err", "err", new Class[]{String.class});
-                v8Console.close();
-
-                // http
-                runtime.registerJavaMethod(this, "httpGet", "httpGet", new Class[] {V8Object.class});
-
-                // jsoup
-                soup = new V8soup(runtime);
-                V8Object v8soup = new V8Object(runtime);
-                runtime.add("jsoup", v8soup);
-                v8soup.registerJavaMethod(soup, "parse", "parse", new Class[]{String.class});
-                v8soup.registerJavaMethod(soup, "selectFirst", "selectFirst", new Class[]{Integer.class,String.class});
-                v8soup.registerJavaMethod(soup, "select", "select", new Class[]{Integer.class,String.class});
-                v8soup.registerJavaMethod(soup, "ownText", "ownText", new Class[]{Integer.class});
-                v8soup.registerJavaMethod(soup, "attr", "attr", new Class[]{Integer.class,String.class});
-                v8soup.close();
-
-                // filesystem
-
-                // run base script
-                runtime.executeScript(context.getString(R.string.base_script));
-
-                // initially run script
-                runtime.executeScript(readFile(script));
-
-                // set udata
-                if(udata!= null && udata.length()>0)
-                    runtime.executeScript("var user_data = " + udata + ";");
-
+                rhino = org.mozilla.javascript.Context.enter();
+                rhino.setOptimizationLevel(-1);
+                scope = new ImporterTopLevel(rhino);
+                //pass client
+                Object wrappedClient = org.mozilla.javascript.Context.javaToJS(client, scope);
+                ScriptableObject.putProperty(scope, "httpClient", wrappedClient);
+                //for debugging
+                Object wrappedOut = org.mozilla.javascript.Context.javaToJS(System.out, scope);
+                ScriptableObject.putProperty(scope, "out", wrappedOut);
+                //base script
+                rhino.evaluateString(scope, getBaseScript(context), "base", 1, null);
+                //script
+                rhino.evaluateString(scope, readFile(script), "JavaScript", 1, null);
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
-
-        public Response httpGet(final V8Object request){
-            return client.httpget(runtime, request);
-        }
-
     }
 }

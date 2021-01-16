@@ -94,4 +94,20 @@ public class Song{
         isLoaded = true;
         return false;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

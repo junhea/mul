@@ -45,9 +45,6 @@ public class SourceIO {
             for(File f : root.listFiles(scriptFilter)){
                 try {
                     Source s = new Source(f);
-                    String udata = reader.getString(s.getName(), null);
-                    if(udata != null && udata.length()>0)
-                        s.setUserData(udata);
                     sources.add(s);
                 }catch (Exception e){
                     e.printStackTrace();
@@ -81,7 +78,7 @@ public class SourceIO {
         if(!path.exists()) {
             try {
                 FileWriter myWriter = new FileWriter(path);
-                myWriter.write("// @name\ttest\n// @author\tme\n// @homepage\tgoogle.com\n// @version\t1.0\n");
+                myWriter.write("// @name::test\n// @author::me\n// @homepage::google.com\n// @version::1.0\n");
                 myWriter.close();
             } catch (Exception e) {
                 e.printStackTrace();

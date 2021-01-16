@@ -19,8 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout;
-import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +28,12 @@ import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
-import io.github.junheah.jsp.interfaces.V8Callback;
+import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
-
-import static io.github.junheah.jsp.model.source.Source.USER_DATA_REQUEST;
 
 public class SearchFragment extends CallbackFragment{
 
@@ -77,7 +73,6 @@ public class SearchFragment extends CallbackFragment{
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         EditText input = view.findViewById(R.id.search_input);
         Button prevResBtn = view.findViewById(R.id.prev_result_btn);
-        SwipyRefreshLayout result_layout = view.findViewById(R.id.search_result_layout);
 
         List<Runnable> swipehistory = new ArrayList<>();
 
@@ -91,14 +86,6 @@ public class SearchFragment extends CallbackFragment{
                 }
                 if(swipehistory.size()>0){
                     swipehistory.remove(swipehistory.size()-1);
-                }
-            }
-        });
-        result_layout.setOnRefreshListener(new SwipyRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh(SwipyRefreshLayoutDirection direction) {
-                if(swipehistory.size()>0){
-                    swipehistory.get(swipehistory.size()-1).run();
                 }
             }
         });
@@ -190,21 +177,14 @@ public class SearchFragment extends CallbackFragment{
 
         //initialize source
         lockui(true);
-        if(source.init(this)){
-            source.initThread(new V8Callback() {
-                @Override
-                public void callback(String res) {
-                    // script loaded
-                    lockui(false);
-                }
+        source.initThread(new ScriptCallback() {
+            @Override
+            public void callback(Object res) {
+                // script loaded
+                lockui(false);
+            }
 
-                @Override
-                public void error(Exception e) {
-                    // failed
-                    lockui(false);
-                }
-            },this.getContext(),null);
-        }
+        },this.getContext());
 
         //playlist callback
         callback = ((MainActivity) getActivity()).getPlayListCallback();
@@ -231,30 +211,8 @@ public class SearchFragment extends CallbackFragment{
                 if(v instanceof RecyclerView){
                     ((RecyclerView)v).suppressLayout(lock);
                 }
-                if(v instanceof SwipyRefreshLayout){
-                    ((SwipyRefreshLayout)v).setRefreshing(lock);
-                }
+
             }
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == USER_DATA_REQUEST){
-            source.initThread(new V8Callback() {
-                @Override
-                public void callback(String res) {
-                    // script loaded
-                    lockui(false);
-                }
-
-                @Override
-                public void error(Exception e) {
-                    // failed
-                    lockui(false);
-                }
-            },getActivity(), data.getStringExtra("data"));
         }
     }
 }

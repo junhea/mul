@@ -41,17 +41,9 @@
         android:text="prev"
         android:visibility="gone"
         android:id="@+id/prev_result_btn"/>
-    <com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:srl_direction="bottom"
-        android:id="@+id/search_result_layout">
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/search_result"/>
-    </com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout>
-
-
+        android:id="@+id/search_result"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
