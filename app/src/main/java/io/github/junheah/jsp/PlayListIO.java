@@ -30,6 +30,9 @@ public class PlayListIO {
     Gson s, d;
     Type t;
 
+    //original object
+    List<PlayList> playLists;
+
     public PlayListIO(Context context){
         this.context = context;
         //initialize variables
@@ -40,8 +43,8 @@ public class PlayListIO {
         d = playListDeserializer();
     }
 
-    public List<PlayList> get(){
-        List<PlayList> playLists = new ArrayList<>();
+    public List<PlayList> fetch(){
+        playLists = new ArrayList<>();
         //read playlists
         Map<String,?> data = reader.getAll();
 
@@ -58,6 +61,14 @@ public class PlayListIO {
         }
 
         return playLists;
+    }
+
+    public PlayList getPlayList(String key){
+        for(PlayList pl : playLists){
+            if(pl.getName().equals(key))
+                return pl;
+        }
+        return null;
     }
 
     public String getRaw(){
@@ -90,7 +101,15 @@ public class PlayListIO {
         }
     }
 
+    public PlayList create(String name){
+        PlayList playList = new PlayList(name);
+        this.playLists.add(playList);
+        write(playList);
+        return playList;
+    }
+
     public void write(PlayList playList){
+        System.out.println(s.toJson(playList, t));
         editor.putString(playList.getName(), s.toJson(playList, t));
         editor.commit();
     }

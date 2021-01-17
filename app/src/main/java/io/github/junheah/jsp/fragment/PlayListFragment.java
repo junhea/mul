@@ -32,6 +32,7 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static android.app.Activity.RESULT_OK;
+import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
 import static io.github.junheah.jsp.Utils.playListDeserializer;
 import static io.github.junheah.jsp.Utils.playListSerializer;
@@ -88,10 +89,9 @@ public class PlayListFragment extends CallbackFragment {
                 }.getType());
             }
         }
-
-        //playlist callback
         callback = ((MainActivity) getActivity()).getPlayListCallback();
     }
+
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -121,14 +121,13 @@ public class PlayListFragment extends CallbackFragment {
                         @Override
                         public void callback(String data) {
                             //playlist io
-                            PlayListIO io =  new PlayListIO(getContext());
 
-                            if(io.getNames().contains(data)){
+                            if(playListIO.getNames().contains(data)){
                                 //duplicate
                                 showPopup(getContext(),data,"이 플레이리스트는 이미 존재합니다");
                             }else {
                                 //create playlist instance
-                                PlayList pl = new PlayList(data);
+                                PlayList pl = playListIO.create(data);
 
                                 //create playlist fragment and set callbacks
                                 PlayListFragment fragment = PlayListFragment.newInstance(pl);
@@ -136,9 +135,6 @@ public class PlayListFragment extends CallbackFragment {
 
                                 //add to adapter
                                 fragmentAdapterCallback.addItem(fragment);
-
-                                //save
-                                io.write(pl);
                             }
                         }
                     });
@@ -157,7 +153,7 @@ public class PlayListFragment extends CallbackFragment {
                                     playList.playListRemoved();
 
                                     //save
-                                    new PlayListIO(getContext()).delete(playList);
+                                    playListIO.delete(playList);
                                 }
                             });
                 }
@@ -229,8 +225,6 @@ public class PlayListFragment extends CallbackFragment {
 
             //add to current visible playlist
             playList.add(song);
-            //save
-            new PlayListIO(getContext()).write(playList);
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
             Uri uri = data.getData();
         }

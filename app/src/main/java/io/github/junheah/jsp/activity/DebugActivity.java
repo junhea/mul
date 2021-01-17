@@ -16,11 +16,12 @@ import android.widget.TextView;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 
+import static io.github.junheah.jsp.MainApplication.playListIO;
+
 public class DebugActivity extends AppCompatActivity {
     TextView output;
     Context context;
     ScrollView scroll;
-    PlayListIO io;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,13 +33,12 @@ public class DebugActivity extends AppCompatActivity {
         Button pref = this.findViewById(R.id.debug_pref);
         output = this.findViewById(R.id.debug_out);
         context = this;
-        io = new PlayListIO(context);
 
         scroll = this.findViewById(R.id.debug_scroll);
         pref.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                output.setText(io.getRaw());
+                output.setText(playListIO.getRaw());
             }
         });
 
@@ -59,7 +59,7 @@ public class DebugActivity extends AppCompatActivity {
                 editor.setVisibility(View.VISIBLE);
                 save.setVisibility(View.VISIBLE);
                 cancel.setVisibility(View.VISIBLE);
-                editor.setText(io.getRaw());
+                editor.setText(playListIO.getRaw());
                 save.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -86,7 +86,7 @@ public class DebugActivity extends AppCompatActivity {
     }
 
     void writeToPref(Editable edit){
-        io.writeRaw(edit.toString());
+        playListIO.writeRaw(edit.toString());
     }
 
 

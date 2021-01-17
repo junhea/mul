@@ -11,6 +11,8 @@ import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.song.Song;
 
+import static io.github.junheah.jsp.MainApplication.playListIO;
+
 public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     //doubly linked list
 
@@ -50,6 +52,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     @Override
     public boolean add(Song song) {
+        System.out.println(song.getName());
         boolean res = super.add(song);
         song.setParent(this);
         int size = size();
@@ -61,7 +64,8 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
         //notify player (if attached)
         if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
-
+        //playlist io
+        playListIO.write(PlayList.this);
         return res;
     }
 
@@ -77,6 +81,9 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
         //notify player (if attached)
         if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
+
+        //playlist io
+        playListIO.write(PlayList.this);
     }
 
     @Override

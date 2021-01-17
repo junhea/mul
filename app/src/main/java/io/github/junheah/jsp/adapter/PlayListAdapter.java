@@ -1,5 +1,6 @@
 package io.github.junheah.jsp.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
@@ -10,6 +11,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -35,20 +38,42 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     AdapterNotifier notifier = new AdapterNotifier() {
         @Override
         public void itemRemoved(int index) {
-            notifyItemRemoved(index);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRemoved(index);
+                }
+            });
+
         }
 
         @Override
         public void itemAdded(int index) {
-            notifyItemInserted(index);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemInserted(index);
+                }
+            });
+
         }
 
         @Override
         public void itemUpdated(int index) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemChanged(index);
+                }
+            });
             System.out.println("updated : index");
-            notifyItemChanged(index);
+
         }
     };
+
+    public void runOnUiThread(Runnable r){
+        ((Activity)context).runOnUiThread(r);
+    }
 
     public PlayListAdapter(Context context, PlayList playList){
         this.playList = playList;

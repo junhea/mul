@@ -6,4 +6,6 @@ import io.github.junheah.jsp.model.song.ExternalSongContainer;
 public interface SearchResultInterface {
     void clickedSong(ExternalSong song);
     void clickedSongContainer(ExternalSongContainer container);
+    void clickedLoadMore();
+    void longClickedSong(ExternalSong song);
 }

@@ -1,5 +1,7 @@
 package io.github.junheah.jsp.model.source;
 
+import android.content.Context;
+
 import com.google.gson.reflect.TypeToken;
 
 import org.mozilla.javascript.JavaAdapter;
@@ -25,16 +27,25 @@ public class Search {
         page = 0;
     }
 
-    public void fetch(Runnable cb){
+    public void fetch(ScriptCallback cb){
+        fetch(null, cb);
+    }
+
+    public void fetch(Context context, ScriptCallback cb){
         int currentPage = page++;
-        ScriptRequest request = new ScriptRequest("search", new Object[]{query, currentPage}, new ScriptCallback() {
+        ScriptRequest request = new ScriptRequest(context, "search", new Object[]{query, currentPage}, new ScriptCallback() {
             @Override
             public void callback(Object res) {
                 result = (List<ExternalSong>) JavaAdapter.convertResult(res, List.class);
                 for (ExternalSong s : result) {
                     s.setSource(source);
                 }
-                cb.run();   // ui updates are done in runnable cb
+                cb.callback(res);   // ui updates are done in runnable cb
+            }
+
+            @Override
+            public void onError(Exception e) {
+                cb.onError(e);
             }
         });
         source.runScript(request);

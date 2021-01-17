@@ -16,6 +16,8 @@ import java.util.List;
 
 import io.github.junheah.jsp.model.source.Source;
 
+import static io.github.junheah.jsp.Utils.getBaseScript;
+
 public class SourceIO {
     File root;
     List<Source> sources;
@@ -44,7 +46,7 @@ public class SourceIO {
 
             for(File f : root.listFiles(scriptFilter)){
                 try {
-                    Source s = new Source(f, context);
+                    Source s = new Source(f);
                     sources.add(s);
                 }catch (Exception e){
                     e.printStackTrace();

@@ -10,6 +10,8 @@ import org.acra.ACRA;
 import org.acra.annotation.AcraCore;
 import org.acra.annotation.AcraDialog;
 import org.acra.annotation.AcraMailSender;
+
+import static io.github.junheah.jsp.Utils.getBaseScript;
 import static org.acra.ReportField.ANDROID_VERSION;
 import static org.acra.ReportField.APP_VERSION_NAME;
 import static org.acra.ReportField.PHONE_MODEL;
@@ -23,6 +25,9 @@ import static org.acra.ReportField.STACK_TRACE;
 public class MainApplication extends Application {
     public static Bitmap defaultCover;
     public static HttpClient client;
+    public static PlayListIO playListIO;
+
+    public static String baseScript;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -37,6 +42,9 @@ public class MainApplication extends Application {
         System.out.println("main app oncreate");
         defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
         this.client = new HttpClient();
+        playListIO = new PlayListIO(this);
+        //load basescript
+        this.baseScript = getBaseScript(this);
     }
 
 

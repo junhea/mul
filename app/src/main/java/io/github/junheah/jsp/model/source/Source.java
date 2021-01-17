@@ -23,6 +23,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.InputActivity;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
 
+import static io.github.junheah.jsp.MainApplication.baseScript;
 import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.Utils.getBaseScript;
 import static io.github.junheah.jsp.Utils.readFile;
@@ -33,13 +34,11 @@ public class Source {
     String author;
     String version;
     File script;
+    transient String script_str;
     transient V8Thread thread;
-    String udata;
-    Context context;
 
 
-    public Source(File file, Context context) throws Exception{
-        this.context = context;
+    public Source(File file) throws Exception{
         this.script = file;
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -72,9 +71,6 @@ public class Source {
         return name;
     }
 
-    public void initThread(ScriptCallback callback, Context context){
-
-    }
 
     public Search getSearch(String query){
         return new Search(this, query);
@@ -89,7 +85,7 @@ public class Source {
         }
     }
 
-    void runOnUiThread(Runnable r){
+    void runOnUiThread(Context context, Runnable r){
         if(context instanceof Activity)
             ((Activity)context).runOnUiThread(r);
         else if(context instanceof FragmentActivity){
@@ -98,8 +94,10 @@ public class Source {
     }
 
     public void close(){
-        if(thread != null)
+        if(thread != null) {
             thread.forceStop();
+            thread = null;
+        }
     }
 
     public class V8Thread extends Thread{
@@ -112,39 +110,50 @@ public class Source {
 
         @Override
         public void run() {
-            while(running){
-                if(queue.size()>0){
-                    if(rhino == null) {
-                        init();
-                    }
-                    ScriptRequest r = queue.get(0);
-                    if(r!= null) {
-                        try {
-                            //run script and get result
-                            Function fct = (Function)scope.get(r.getFunction(), scope);
-                            Object obj = fct.call(rhino, scope, scope, r.getArgs());
+            while(queue.size()>0){
+                if(rhino == null) {
+                    init();
+                }
+                ScriptRequest r = queue.get(0);
+                if(r!= null) {
+                    try {
+                        //run script and get result
+                        Function fct = (Function)scope.get(r.getFunction(), scope);
+                        Object obj = fct.call(rhino, scope, scope, r.getArgs());
 
-                            //callback
-                            if (r.getCallback() != null)
-                                runOnUiThread(new Runnable() {
+                        //callback
+                        if (r.getCallback() != null) {
+                            if(r.getContext() != null)
+                                runOnUiThread(r.getContext(), new Runnable() {
                                     @Override
                                     public void run() {
                                         r.getCallback().callback(obj);
                                     }
                                 });
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            else
+                                r.getCallback().callback(obj);
                         }
-                    }
-                    queue.remove(0);
-                }else{
-                    //queue empty
-                    if(rhino != null) {
-                        System.out.println("rhino exit!");
-                        rhino = null;
-                        org.mozilla.javascript.Context.exit();
+                    } catch (Exception e) {
+                        if(r.getContext() != null)
+                            runOnUiThread(r.getContext(), new Runnable() {
+                                @Override
+                                public void run() {
+                                    r.getCallback().onError(e);
+                                }
+                            });
+                        else
+                            r.getCallback().onError(e);
+                        e.printStackTrace();
                     }
                 }
+                queue.remove(0);
+            }
+            //queue empty : stop thread
+            if(rhino != null) {
+                System.out.println("rhino exit! ");
+                rhino = null;
+                org.mozilla.javascript.Context.exit();
+                running = false;
             }
         }
 
@@ -175,7 +184,7 @@ public class Source {
                 Object wrappedOut = org.mozilla.javascript.Context.javaToJS(System.out, scope);
                 ScriptableObject.putProperty(scope, "out", wrappedOut);
                 //base script
-                rhino.evaluateString(scope, getBaseScript(context), "base", 1, null);
+                rhino.evaluateString(scope, baseScript, "base", 1, null);
                 //script
                 rhino.evaluateString(scope, readFile(script), "JavaScript", 1, null);
             }catch (Exception e){

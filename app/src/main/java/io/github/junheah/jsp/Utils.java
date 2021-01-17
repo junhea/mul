@@ -1,16 +1,24 @@
 package io.github.junheah.jsp;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,7 +44,15 @@ import io.github.junheah.jsp.model.song.Song;
 
 public class Utils {
     // static functions
-
+    public static void lockuiRecursive(View view, boolean lock){
+        view.setEnabled(!lock);
+        if(view instanceof ViewGroup && !(view instanceof RecyclerView)) {
+            for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) {
+                View v = ((ViewGroup)view).getChildAt(i);
+                lockuiRecursive(v, lock);
+            }
+        }
+    }
 
     public static String getBaseScript(Context context){
         StringBuilder builder = new StringBuilder();
@@ -95,6 +111,31 @@ public class Utils {
         return new GsonBuilder()
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
                 .create();
+    }
+
+    public static void pickerPopup(Fragment fragment, String title, String[] options, StringCallback callback){
+        System.out.println(options);
+        View layout = fragment.getLayoutInflater().inflate(R.layout.content_picker_popup, null);
+        ListView list = layout.findViewById(R.id.picker_content);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(fragment.getContext(), android.R.layout.simple_list_item_1, options);
+        list.setAdapter(adapter);
+
+
+        Dialog dialog = new AlertDialog.Builder(fragment.getContext(), R.style.AlertDialogTheme)
+                .setView(layout)
+                .setTitle(title)
+                .create();
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                callback.callback(options[i]);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     public static void songAdderPopup(Context context, SongCallback callback){

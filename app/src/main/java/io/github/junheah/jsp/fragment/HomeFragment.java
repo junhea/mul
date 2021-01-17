@@ -28,6 +28,7 @@ import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.source.Source;
 
+import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
@@ -68,20 +69,19 @@ public class HomeFragment extends CallbackFragment {
                         @Override
                         public void callback(String data) {
                             //playlist io
-                            PlayListIO io =  new PlayListIO(getContext());
 
-                            if(io.getNames().contains(data)){
+                            if(playListIO.getNames().contains(data)){
                                 //duplicate
                                 showPopup(getContext(),data,"이 플레이리스트는 이미 존재합니다");
                             } else {
                                 //create playlist instance
-                                PlayList pl = new PlayList(data);
+                                PlayList pl = playListIO.create(data);
 
                                 //create fragment and add to adapter
                                 fragmentAdapterCallback.addItem(PlayListFragment.newInstance(pl));
 
                                 //save
-                                io.write(pl);
+                                playListIO.write(pl);
                             }
                         }
                     });

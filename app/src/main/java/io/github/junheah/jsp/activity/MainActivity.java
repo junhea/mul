@@ -53,6 +53,7 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static io.github.junheah.jsp.MainApplication.defaultCover;
+import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     PlayList playListQueue;
     Song songQueue;
     Thread timeStampThread;
-    PlayListIO playListIO;
     Toolbar toolbar;
     Runnable onPlayerConnected;
     SlidingUpPanelLayout.PanelSlideListener portraitPanelListener, landscapePanelListener;
@@ -477,12 +477,11 @@ public class MainActivity extends AppCompatActivity {
         adapter.append(HomeFragment.newInstance());
 
         //load playlists
-        playListIO = new PlayListIO(context);
         onPlayerConnected = new Runnable() {
             @Override
             public void run() {
                 PlayListFragment tmpfrag;
-                for(PlayList pl : playListIO.get()){
+                for(PlayList pl : playListIO.fetch()){
                     if(bound && player.getPlayList().getName().equals(pl.getName())){
                         System.out.println("restore from player");
                         tmpfrag = PlayListFragment.newInstance(player.getPlayList());

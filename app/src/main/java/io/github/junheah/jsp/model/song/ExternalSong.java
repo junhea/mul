@@ -84,39 +84,18 @@ public class ExternalSong extends Song{
     }
 
 
-    public void fetch(Context context, Runnable cb){
+    public void fetch(ScriptCallback callback){
+        fetch(null, callback);
+    }
+
+    public void fetch(Context context, ScriptCallback callback){
         if(source == null){
             SourceIO io = new SourceIO(context);
             io.load();
             source = io.getSource(this.sourceID);
-        }else{
-            source.runScript(new ScriptRequest("fetchSongInfo", new Object[]{ExternalSong.this}, new ScriptCallback() {
-                @Override
-                public void callback(Object res) {
-                    //song loaded
-                    cb.run();
-                }
-            }));
         }
-
-        // one-time use of source
-        if(source != null){
-            //init source
-            source.initThread(new ScriptCallback() {
-                @Override
-                public void callback(Object res) {
-                    //fetch song info
-                    source.runScript(new ScriptRequest("fetchSongInfo",new Object[]{ExternalSong.this}, new ScriptCallback() {
-                        @Override
-                        public void callback(Object res) {
-                            //song loaded
-                            source.close();
-                            cb.run();
-                        }
-                    }));
-                }
-            }, context);
-        }
+        //fetch song info
+        source.runScript(new ScriptRequest("fetchSongInfo",new Object[]{ExternalSong.this}, callback));
     }
 
     public void update(ExternalSong song){

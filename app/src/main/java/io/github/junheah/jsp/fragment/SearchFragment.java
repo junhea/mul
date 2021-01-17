@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -29,11 +30,16 @@ import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
+import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
+
+import static io.github.junheah.jsp.MainApplication.playListIO;
+import static io.github.junheah.jsp.Utils.lockuiRecursive;
+import static io.github.junheah.jsp.Utils.pickerPopup;
 
 public class SearchFragment extends CallbackFragment{
 
@@ -96,13 +102,18 @@ public class SearchFragment extends CallbackFragment{
             @Override
             public void clickedSong(ExternalSong song) {
                 //fetch data
-                song.fetch(getContext(), new Runnable() {
+                song.fetch(getContext(), new ScriptCallback() {
                     @Override
-                    public void run() {
+                    public void callback(Object res) {
                         //play in player
                         PlayList pl = new PlayList("");
                         pl.add(song);
                         callback.SongClicked(song, pl);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
                     }
                 });
             }
@@ -110,26 +121,67 @@ public class SearchFragment extends CallbackFragment{
             @Override
             public void clickedSongContainer(ExternalSongContainer container) {
                 lockui(true);
-                Runnable onContainer = new Runnable() {
+                adapter.saveInHistory();
+                container.resetPage();
+                container.fetch(getContext(), new ScriptCallback() {
                     @Override
-                    public void run() {
-                        adapter.appendAndChangeData(container.getSongs());
+                    public void callback(Object res) {
+                        adapter.addAll(container.getSongs());
                         prevResBtn.setVisibility(adapter.hasHistory() ? View.VISIBLE : View.GONE);
                         lockui(false);
                     }
-                };
-                container.fetch(getContext(), onContainer);
+
+                    @Override
+                    public void onError(Exception e) {
+                        lockui(false);
+                    }
+                });
                 swipehistory.add(new Runnable() {
                     @Override
                     public void run() {
-                        container.fetch(getContext(), new Runnable() {
+                        container.fetch(getContext(), new ScriptCallback() {
                             @Override
-                            public void run() {
+                            public void callback(Object res) {
                                 adapter.addAll(container.getSongs());
                                 prevResBtn.setVisibility(adapter.hasHistory() ? View.VISIBLE : View.GONE);
                                 lockui(false);
                             }
+
+                            @Override
+                            public void onError(Exception e) {
+                                lockui(false);
+                            }
                         });
+                    }
+                });
+            }
+
+            @Override
+            public void clickedLoadMore() {
+                lockui(true);
+                if(swipehistory.size()>0){
+                    swipehistory.get(swipehistory.size()-1).run();
+                }
+            }
+
+            @Override
+            public void longClickedSong(ExternalSong song) {
+                pickerPopup(SearchFragment.this, "add to playlist", playListIO.getNames().toArray(new String[playListIO.getNames().size()]), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        //add song to playlist
+                        song.fetch(new ScriptCallback() {
+                            @Override
+                            public void callback(Object res) {
+                                playListIO.getPlayList(data).add(song);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+
+                            }
+                        });
+
                     }
                 });
             }
@@ -143,26 +195,29 @@ public class SearchFragment extends CallbackFragment{
                 adapter.reset();
                 prevResBtn.setVisibility(View.GONE);
                 Search search = source.getSearch(input.getText().toString());
-                Runnable onSearch = new Runnable() {
+                ScriptCallback onSearch = new ScriptCallback() {
                     @Override
-                    public void run() {
+                    public void callback(Object res) {
                         //update ui
                         adapter.addAll(search.getResult());
                         lockui(false);
                     }
+
+                    @Override
+                    public void onError(Exception e) {
+                        lockui(false);
+                    }
                 };
-                search.fetch(onSearch);
+                search.fetch(getContext(), onSearch);
                 swipehistory.add(new Runnable() {
                     @Override
                     public void run() {
-                        search.fetch(onSearch);
+                        search.fetch(getContext(), onSearch);
                     }
                 });
             }
         });
     }
-
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -177,14 +232,6 @@ public class SearchFragment extends CallbackFragment{
 
         //initialize source
         lockui(true);
-        source.initThread(new ScriptCallback() {
-            @Override
-            public void callback(Object res) {
-                // script loaded
-                lockui(false);
-            }
-
-        },this.getContext());
 
         //playlist callback
         callback = ((MainActivity) getActivity()).getPlayListCallback();
@@ -203,16 +250,23 @@ public class SearchFragment extends CallbackFragment{
         inflater.inflate(R.menu.search_menu, menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.search_close:
+                fragmentAdapterCallback.removeItem(SearchFragment.this);
+                source.close();
+                break;
+        }
+        return true;
+    }
+
     public void lockui(boolean lock){
         if(container != null){
-            for(int i =0 ; i<container.getChildCount(); i++){
-                View v = container.getChildAt(i);
-                v.setEnabled(!lock);
-                if(v instanceof RecyclerView){
-                    ((RecyclerView)v).suppressLayout(lock);
-                }
-
-            }
+            lockuiRecursive(container, lock);
+        }
+        if(adapter != null){
+            adapter.lockui(lock);
         }
     }
 }

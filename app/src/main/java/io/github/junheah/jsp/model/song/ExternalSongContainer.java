@@ -39,11 +39,15 @@ public class ExternalSongContainer extends ExternalSong{
         return etype;
     }
 
+    public void resetPage(){
+        this.page=0;
+    }
+
     @Override
-    public void fetch(Context context, Runnable cb){
+    public void fetch(Context context, ScriptCallback cb){
         int current = page++;
         //should only be called from search res
-        ScriptRequest request = new ScriptRequest("fetchContainerInfo", new Object[]{ExternalSongContainer.this, current}, new ScriptCallback() {
+        ScriptRequest request = new ScriptRequest(context, "fetchContainerInfo", new Object[]{ExternalSongContainer.this, current}, new ScriptCallback() {
             @Override
             public void callback(Object res) {
                 System.out.println(res);
@@ -51,7 +55,12 @@ public class ExternalSongContainer extends ExternalSong{
                 for(ExternalSong s : songs){
                     s.setSource(source);
                 }
-                cb.run();   // ui updates are done in runnable cb
+                cb.callback(res);   // ui updates are done in runnable cb
+            }
+
+            @Override
+            public void onError(Exception e) {
+                cb.onError(e);
             }
         });
         source.runScript(request);
