@@ -22,14 +22,14 @@ public class ExternalSongContainer extends ExternalSong{
     String etype;
     int page = 0;
 
-    public ExternalSongContainer(String name, String artist, String url, String cover, Map<String, String> headers, String etype) {
-        super(name, artist, url, cover, headers);
+    public ExternalSongContainer(String id, String name, String artist, String url, String cover, Map<String, String> headers, String etype) {
+        super(id, name, artist, url, cover, headers);
         this.type="EXTERNAL.CONTAINER";
         this.etype = etype;
     }
 
-    public ExternalSongContainer(String name, String artist, String url, String cover, Map<String, String> headers, String etype, List<ExternalSong> songs) {
-        super(name, artist, url, cover, headers);
+    public ExternalSongContainer(String id, String name, String artist, String url, String cover, Map<String, String> headers, String etype, List<ExternalSong> songs) {
+        super(id, name, artist, url, cover, headers);
         this.songs = songs;
         this.etype = etype;
         this.type="EXTERNAL.CONTAINER";

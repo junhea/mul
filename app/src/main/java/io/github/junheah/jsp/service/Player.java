@@ -40,6 +40,7 @@ import com.google.gson.Gson;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
+import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
@@ -48,6 +49,7 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_CONNECTING;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
@@ -188,12 +190,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         session.setActive(true);
 
 
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnPreparedListener(this);
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mediaPlayerInit();
         wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
         wifiLock.acquire();
@@ -222,7 +219,14 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         };
         showNotification();
     }
-
+    void mediaPlayerInit(){
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+    }
     void showNotification() {
         Intent notificationIntent = new Intent(getApplicationContext(), io.github.junheah.jsp.activity.MainActivity.class);
 
@@ -367,7 +371,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public boolean prev(){
-        if(mediaPlayer.getCurrentPosition() > 3000) {
+        if(mediaPlayer != null && mediaPlayer.getCurrentPosition() > 3000) {
             seekTo(0);
             broadcast();
             return true;
@@ -409,14 +413,43 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void play(){
         status.loaded = false;
         try {
+            if(mediaPlayer == null){
+                mediaPlayerInit();
+            }
             mediaPlayer.reset();
-            if(current instanceof ExternalSong)
-                mediaPlayer.setDataSource(((ExternalSong)current).getPath());
-            else
+            if(current instanceof ExternalSong) {
+                //stop media player
+                mediaPlayer.release();
+                mediaPlayer = null;
+                setState(STATE_CONNECTING);
+                ((ExternalSong)current).fetch(getApplicationContext(), new ScriptCallback() {
+                    @Override
+                    public void callback(Object res) {
+                        try {
+                            if(mediaPlayer == null) {
+                                mediaPlayerInit();
+                                mediaPlayer.setDataSource(((ExternalSong) current).getPath());
+                                mediaPlayer.prepareAsync();
+                                setState(STATE_BUFFERING);
+                                setMetaData(current);
+                                broadcast();
+                            }
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }else {
                 mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
-            mediaPlayer.prepareAsync();
-            setState(STATE_BUFFERING);
-            setMetaData(current);
+                mediaPlayer.prepareAsync();
+                setState(STATE_BUFFERING);
+                setMetaData(current);
+            }
         } catch (Exception e) {
             mediaPlayer.reset();
             e.printStackTrace();

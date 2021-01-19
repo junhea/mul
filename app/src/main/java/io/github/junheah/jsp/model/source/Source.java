@@ -36,7 +36,9 @@ public class Source {
     File script;
     transient String script_str;
     transient V8Thread thread;
-
+    public File getScript(){
+        return this.script;
+    }
 
     public Source(File file) throws Exception{
         this.script = file;
@@ -90,6 +92,8 @@ public class Source {
             ((Activity)context).runOnUiThread(r);
         else if(context instanceof FragmentActivity){
             ((FragmentActivity)context).runOnUiThread(r);
+        }else{
+            r.run();
         }
     }
 

@@ -10,12 +10,12 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import org.mozilla.javascript.JavaAdapter;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.ImporterTopLevel;
+import org.mozilla.javascript.ScriptableObject;
 
-import java.util.List;
+import java.io.File;
 import java.util.Map;
 
 import io.github.junheah.jsp.SourceIO;
@@ -24,20 +24,25 @@ import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.model.source.ScriptRequest;
 
+import static io.github.junheah.jsp.MainApplication.baseScript;
+import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.MainApplication.defaultCover;
+import static io.github.junheah.jsp.Utils.readFile;
 
 public class ExternalSong extends Song{
 
     String sourceID;
+    String id;
     String coverUrl;
     Map<String, String> headers;
     transient Source source;
 
-    public ExternalSong(String name, String artist, String url, String cover, Map<String, String> headers) {
+    public ExternalSong(String songID, String name, String artist, String url, String cover, Map<String, String> headers) {
         super(name, artist, url);
         this.coverUrl = cover;
         this.type="EXTERNAL";   //gson
         this.headers = headers;
+        this.id = songID;
     }
     public void setSource(Source source){
         this.source = source;
@@ -90,20 +95,43 @@ public class ExternalSong extends Song{
 
     public void fetch(Context context, ScriptCallback callback){
         if(source == null){
-            SourceIO io = new SourceIO(context);
-            io.load();
-            source = io.getSource(this.sourceID);
+            if(context == null){
+                callback.onError(new Exception("need context"));
+            }else {
+                SourceIO io = new SourceIO(context);
+                io.load();
+                source = io.getSource(this.sourceID);
+            }
         }
         //fetch song info
         source.runScript(new ScriptRequest("fetchSongInfo",new Object[]{ExternalSong.this}, callback));
     }
 
-    public void update(ExternalSong song){
-        this.name = song.getName();
-        this.path = song.getPath();
-        this.coverUrl = song.getCoverUrl();
-        this.headers = song.getHeaders();
-        this.artist = song.getArtist();
+    public void fetchFromCurrentThread(Context context){
+        try {
+            org.mozilla.javascript.Context rhino = org.mozilla.javascript.Context.enter();
+            rhino.setOptimizationLevel(-1);
+            ScriptableObject scope = new ImporterTopLevel(rhino);
+            //pass client
+            Object wrappedClient = org.mozilla.javascript.Context.javaToJS(client, scope);
+            ScriptableObject.putProperty(scope, "httpClient", wrappedClient);
+            //for debugging
+            Object wrappedOut = org.mozilla.javascript.Context.javaToJS(System.out, scope);
+            ScriptableObject.putProperty(scope, "out", wrappedOut);
+            //base script
+            rhino.evaluateString(scope, baseScript, "base", 1, null);
+            //script
+            SourceIO sourceIO = new SourceIO(context);
+            sourceIO.load();
+            File script = sourceIO.getSource(this.sourceID).getScript();
+            rhino.evaluateString(scope, readFile(script), "JavaScript", 1, null);
+
+            //run script
+            Function fct = (Function)scope.get("fetchSongInfo", scope);
+            fct.call(rhino, scope, scope, new Object[]{ExternalSong.this});
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void setCoverUrl(String coverUrl) {
@@ -112,5 +140,13 @@ public class ExternalSong extends Song{
 
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String ID) {
+        this.id = ID;
     }
 }

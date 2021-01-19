@@ -106,7 +106,7 @@ public class SearchFragment extends CallbackFragment{
                     @Override
                     public void callback(Object res) {
                         //play in player
-                        PlayList pl = new PlayList("");
+                        PlayList pl = new PlayList("", true);
                         pl.add(song);
                         callback.SongClicked(song, pl);
                     }

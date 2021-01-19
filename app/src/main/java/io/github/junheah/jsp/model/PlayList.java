@@ -19,6 +19,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     String name;
     transient AdapterNotifier notifier;
     transient PlayListChangeCallback playListChangeCallback;
+    transient boolean tmp = false;
 
     public String getName(){
         return name == null ? "" : name;
@@ -31,6 +32,13 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     public PlayList(String name) {
         super();
         this.name = name;
+        this.tmp = false;
+    }
+
+    public PlayList(String name, boolean tmp) {
+        super();
+        this.name = name;
+        this.tmp = tmp;
     }
 
     public void playListRemoved(){
@@ -65,7 +73,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         //notify player (if attached)
         if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
         //playlist io
-        playListIO.write(PlayList.this);
+        if(!tmp) playListIO.write(PlayList.this);
         return res;
     }
 
@@ -83,7 +91,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
 
         //playlist io
-        playListIO.write(PlayList.this);
+        if(!tmp) playListIO.write(PlayList.this);
     }
 
     @Override

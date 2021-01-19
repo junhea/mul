@@ -174,6 +174,7 @@ public class Utils {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
                             Song song = new ExternalSong(nameInput.getText().toString(),
+                                    nameInput.getText().toString(),
                                     artistInput.getText().toString(),
                                     urlInput.getText().toString(),
                                     coverInput.getText().toString(),
