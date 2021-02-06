@@ -57,6 +57,14 @@ public class SourceIO {
         }
     }
 
+    public String[] getNames(){
+        String[] names = new String[sources.size()];
+        for(int i=0; i<sources.size(); i++){
+            names[i] = sources.get(i).getName();
+        }
+        return names;
+    }
+
     public void write(String key, String data){
         editor.putString(key, data);
         editor.commit();

@@ -36,6 +36,7 @@ public class ExternalSong extends Song{
     String coverUrl;
     Map<String, String> headers;
     transient Source source;
+    transient boolean checked = false;
 
     public ExternalSong(String songID, String name, String artist, String url, String cover, Map<String, String> headers) {
         super(name, artist, url);
@@ -44,6 +45,17 @@ public class ExternalSong extends Song{
         this.headers = headers;
         this.id = songID;
     }
+
+    public boolean getChecked(){
+        return checked;
+    }
+    public void toggleCheck(){
+        checked = !checked;
+    }
+    public void resetCheck(){
+        checked = false;
+    }
+
     public void setSource(Source source){
         this.source = source;
         this.sourceID = source.getName();
@@ -144,6 +156,17 @@ public class ExternalSong extends Song{
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj == null) return false;
+        return this.hashCode() == obj.hashCode();
     }
 
     public void setId(String ID) {

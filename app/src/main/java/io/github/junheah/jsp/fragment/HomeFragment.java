@@ -11,12 +11,14 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.util.List;
 
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
@@ -29,6 +31,7 @@ import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.source.Source;
 
 import static io.github.junheah.jsp.MainApplication.playListIO;
+import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
@@ -97,9 +100,15 @@ public class HomeFragment extends CallbackFragment {
         view.findViewById(R.id.home_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SearchFragment fragment = SearchFragment.newInstance(sourceIO.getSources().get(0));
-                fragment.setAdapterCallback(fragmentAdapterCallback);
-                fragmentAdapterCallback.insertItem(0, fragment);
+                pickerPopup(HomeFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        SearchFragment fragment = SearchFragment.newInstance(sourceIO.getSource(data));
+                        fragment.setAdapterCallback(fragmentAdapterCallback);
+                        fragmentAdapterCallback.insertItem(0, fragment);
+                    }
+                });
+
             }
         });
     }

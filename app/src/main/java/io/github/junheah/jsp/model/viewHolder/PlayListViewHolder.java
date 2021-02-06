@@ -1,6 +1,7 @@
 package io.github.junheah.jsp.model.viewHolder;
 
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -14,9 +15,11 @@ public class PlayListViewHolder extends RecyclerView.ViewHolder{
     public ConstraintLayout layout;
     public TextView name, artist;
     public ImageView cover;
+    public CheckBox checkBox;
 
     public PlayListViewHolder(@NonNull View itemView) {
         super(itemView);
+        checkBox = itemView.findViewById(R.id.item_check);
         layout = itemView.findViewById(R.id.item_layout);
         name = itemView.findViewById(R.id.item_name);
         artist = itemView.findViewById(R.id.item_artist);

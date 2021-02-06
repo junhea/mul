@@ -3,7 +3,9 @@ package io.github.junheah.jsp.fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,14 +13,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.reflect.TypeToken;
+
+import java.io.File;
 
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
@@ -221,12 +227,26 @@ public class PlayListFragment extends CallbackFragment {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
             Uri uri = data.getData();
-            Song song = new LocalSong(uri.toString(), "", uri.toString());
+            //Song song = new LocalSong(uri.toString(), "", uri.toString());
+            for(int i=0; i<100; i++){
+                playList.add(new LocalSong(uri.toString(), "", uri.toString()));
+            }
 
             //add to current visible playlist
-            playList.add(song);
+            //playList.add(song);
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
-            Uri uri = data.getData();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Uri uri = data.getData();
+                for(DocumentFile f : DocumentFile.fromTreeUri(getContext(), uri).listFiles()){
+                    if(!f.isDirectory()){
+                        if(f.getName().toLowerCase().endsWith(".mp3")){
+                            Song song = new LocalSong(f.getUri().toString(), "", f.getUri().toString());
+                            playList.add(song);
+                        }
+
+                    }
+                }
+            }
         }
     }
 }

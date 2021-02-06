@@ -40,6 +40,8 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     final static int SONG = 0;
     final static int BUTTON = 1;
     boolean lock = false;
+    boolean selectMode = false;
+    boolean[] checked;
 
     public SearchResultAdapter(Context context, List data) {
         this.data = new ArrayList<>();
@@ -47,10 +49,30 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.inflater = LayoutInflater.from(context);
         this.data.addAll(data);
         history = new ArrayList<>();
+        setHasStableIds(true);
     }
 
-    public void lockui(boolean lock){
+    public void lockui(boolean lock) {
         this.lock = lock;
+    }
+
+    public void setSelectMode(boolean mode, ExternalSong song){
+        this.selectMode = mode;
+        for(Object o : data){
+            if(o instanceof ExternalSong) {
+                ((ExternalSong) o).resetCheck();
+                if(song != null && o == song) ((ExternalSong)o).toggleCheck();
+            }
+        }
+        for(int i=0; i<data.size(); i++){
+            if(data.get(i) instanceof ExternalSong && !(data.get(i) instanceof ExternalSongContainer)){
+                notifyItemChanged(i);
+            }
+        }
+    }
+
+    public boolean getSelectMode(){
+        return this.selectMode;
     }
 
     public void setListener(SearchResultInterface listener){this.listener = listener;}
@@ -73,28 +95,41 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 v.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!lock)listener.clickedSongContainer((ExternalSongContainer) song);
+                        if(!lock && !selectMode){
+                            listener.clickedSongContainer((ExternalSongContainer) song);
+                        }
                     }
                 });
+                v.layout.setOnLongClickListener(null);
+                v.checkBox.setVisibility(View.GONE);
             } else {
                 v.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!lock)listener.clickedSong(song);
+                        if(!lock) {
+                            if(selectMode){
+                                song.toggleCheck();
+                                notifyItemChanged(position);
+                            }else listener.clickedSong(song);
+                        }
                     }
                 });
                 v.layout.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
-                        if(!lock)listener.longClickedSong(song);
-                        return false;
+                        if(!lock){
+                            listener.longClickedSong(song);
+                        }
+                        return true;
                     }
                 });
+                v.checkBox.setVisibility(selectMode ? View.VISIBLE : View.GONE);
             }
 
             // ui
             v.name.setText(song.getName());
             v.artist.setText(song.getArtist());
+            v.checkBox.setChecked(song.getChecked());
 
             //dont load images from onbind : infinite loop
             Bitmap bitmap = song.getCover();
@@ -177,6 +212,18 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     }
 
+    public List<ExternalSong> getSelected(){
+        List<ExternalSong> res = new ArrayList<>();
+        for(Object o : data){
+            if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)){
+                if(((ExternalSong) o).getChecked()){
+                    res.add((ExternalSong) o);
+                }
+            }
+        }
+        return res;
+    }
+
     @Override
     public int getItemViewType(int position) {
         if(data.get(position) instanceof Song){
@@ -196,10 +243,15 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public long getItemId(int position) {
-        return super.getItemId(position);
+        return data.get(position).hashCode();
     }
 
     public class ButtonItem{
         public boolean loading = false;
+
+        @Override
+        public int hashCode() {
+            return loading? -1: -2;
+        }
     }
 }

@@ -48,6 +48,7 @@ public class SearchFragment extends CallbackFragment{
     List<ExternalSong> result = new ArrayList<>();
     PlayListItemClickCallback callback;
     SearchResultAdapter adapter;
+    Button prevResBtn;
 
     public SearchFragment(){
         // do nothing
@@ -78,7 +79,7 @@ public class SearchFragment extends CallbackFragment{
         RecyclerView recyclerView = view.findViewById(R.id.search_result);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         EditText input = view.findViewById(R.id.search_input);
-        Button prevResBtn = view.findViewById(R.id.prev_result_btn);
+        prevResBtn = view.findViewById(R.id.prev_result_btn);
 
         List<Runnable> swipehistory = new ArrayList<>();
 
@@ -166,24 +167,7 @@ public class SearchFragment extends CallbackFragment{
 
             @Override
             public void longClickedSong(ExternalSong song) {
-                pickerPopup(SearchFragment.this, "add to playlist", playListIO.getNames().toArray(new String[playListIO.getNames().size()]), new StringCallback() {
-                    @Override
-                    public void callback(String data) {
-                        //add song to playlist
-                        song.fetch(new ScriptCallback() {
-                            @Override
-                            public void callback(Object res) {
-                                playListIO.getPlayList(data).add(song);
-                            }
-
-                            @Override
-                            public void onError(Exception e) {
-
-                            }
-                        });
-
-                    }
-                });
+                toggleSelectMode(song);
             }
         });
         recyclerView.setAdapter(adapter);
@@ -192,6 +176,8 @@ public class SearchFragment extends CallbackFragment{
             @Override
             public void onClick(View view) {
                 lockui(true);
+                if(adapter.getSelectMode())
+                    toggleSelectMode(null);
                 adapter.reset();
                 prevResBtn.setVisibility(View.GONE);
                 Search search = source.getSearch(input.getText().toString());
@@ -217,6 +203,13 @@ public class SearchFragment extends CallbackFragment{
                 });
             }
         });
+    }
+
+
+    public void toggleSelectMode(ExternalSong song){
+        adapter.setSelectMode(!adapter.getSelectMode(), song);
+        prevResBtn.setEnabled(!adapter.getSelectMode());
+        getActivity().invalidateOptionsMenu();
     }
 
     @Override
@@ -245,6 +238,12 @@ public class SearchFragment extends CallbackFragment{
     }
 
     @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.search_add).setVisible(adapter == null ? false : adapter.getSelectMode());
+    }
+
+    @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         menu.clear();
         inflater.inflate(R.menu.search_menu, menu);
@@ -256,6 +255,17 @@ public class SearchFragment extends CallbackFragment{
             case R.id.search_close:
                 fragmentAdapterCallback.removeItem(SearchFragment.this);
                 source.close();
+                break;
+            case R.id.search_add:
+                List<ExternalSong> res = adapter.getSelected();
+                pickerPopup(SearchFragment.this, "add to playlist", playListIO.getNames().toArray(new String[playListIO.getNames().size()]), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        //add song to playlist
+                        playListIO.getPlayList(data).addAll(res);
+                        toggleSelectMode(null);
+                    }
+                });
                 break;
         }
         return true;

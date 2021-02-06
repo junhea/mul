@@ -410,6 +410,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         stopSelf();
     }
 
+    static int tmpidx = 0;
+
     public void play(){
         status.loaded = false;
         try {
@@ -422,7 +424,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 mediaPlayer.release();
                 mediaPlayer = null;
                 setState(STATE_CONNECTING);
-                ((ExternalSong)current).fetch(getApplicationContext(), new ScriptCallback() {
+                ((ExternalSong)current).fetch(getBaseContext(), new ScriptCallback() {
                     @Override
                     public void callback(Object res) {
                         try {
@@ -445,9 +447,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                     }
                 });
             }else {
-                mediaPlayer.setDataSource(getApplicationContext(), current.getUri());
+                System.out.println("pppppppppidx= "+ tmpidx++ + " src="+current.getUri());
+                mediaPlayer.setDataSource(getBaseContext(), current.getUri());
                 mediaPlayer.prepareAsync();
-                setState(STATE_BUFFERING);
+                setState(STATE_NONE);
                 setMetaData(current);
             }
         } catch (Exception e) {
@@ -459,6 +462,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
+        System.out.println("pppp onprepare " + tmpidx);
         if(running) {
             status.loaded = true;
             requestFocusAndPlay();
@@ -486,6 +490,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
+        System.out.println("pppp oncomplete");
         if(running) {
             mediaPlayer.pause();
             mediaPlayer.seekTo(0);
