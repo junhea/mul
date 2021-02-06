@@ -259,7 +259,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             currentCover = current.getCover();
             if(currentCover == null) {
                 notification.setLargeIcon(defaultCover);
-                current.loadCover(this, new BitmapCallback() {
+                current.loadCover(getApplicationContext(), new BitmapCallback() {
                     @Override
                     public void resourceLoaded(Bitmap bitmap) {
                         currentCover = bitmap;
@@ -447,10 +447,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                     }
                 });
             }else {
-                System.out.println("pppppppppidx= "+ tmpidx++ + " src="+current.getUri());
+                mediaPlayer.release();
+                mediaPlayer = null;
+                mediaPlayerInit();
+                setState(STATE_NONE);
                 mediaPlayer.setDataSource(getBaseContext(), current.getUri());
                 mediaPlayer.prepareAsync();
-                setState(STATE_NONE);
+                setState(STATE_BUFFERING);
                 setMetaData(current);
             }
         } catch (Exception e) {
@@ -462,7 +465,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        System.out.println("pppp onprepare " + tmpidx);
         if(running) {
             status.loaded = true;
             requestFocusAndPlay();
@@ -490,7 +492,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        System.out.println("pppp oncomplete");
         if(running) {
             mediaPlayer.pause();
             mediaPlayer.seekTo(0);
