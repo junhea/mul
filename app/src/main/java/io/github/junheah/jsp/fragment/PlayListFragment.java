@@ -26,8 +26,12 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 
+import io.github.junheah.jsp.activity.FileChooser;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
+import io.github.junheah.jsp.interfaces.RequestDataUpdate;
+import io.github.junheah.jsp.model.song.SongDataParser;
+import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
@@ -40,19 +44,21 @@ import io.github.junheah.jsp.model.song.Song;
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
+import static io.github.junheah.jsp.Utils.getPathFromUri;
 import static io.github.junheah.jsp.Utils.playListDeserializer;
 import static io.github.junheah.jsp.Utils.playListSerializer;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
-public class PlayListFragment extends CallbackFragment {
-    final static int REQUEST_SELECT_SONG = 11;
-    final static int REQUEST_SELECT_FOLDER = 12;
-    final static int REQUEST_SELECT_EXTERNAL = 13;
+public class PlayListFragment extends CallbackFragment implements RequestDataUpdate {
+    public final static int REQUEST_SELECT_SONG = 11;
+    public final static int REQUEST_SELECT_FOLDER = 12;
+    public final static int REQUEST_SELECT_EXTERNAL = 13;
 
     PlayList playList;
     PlayListAdapter adapter;
     PlayListItemClickCallback callback;
+    SongDataParser parserWorker;
 
     public PlayListFragment() {
         // don't do anything
@@ -68,6 +74,32 @@ public class PlayListFragment extends CallbackFragment {
         this.playList = playList;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(parserWorker == null){
+            parserWorker = new SongDataParser(getContext());
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(parserWorker != null){
+            parserWorker.forceStop();
+            parserWorker = null;
+        }
+    }
+
+    @Override
+    public void requestDataUpdate(Song song) {
+        if(parserWorker == null || !parserWorker.running){
+            parserWorker = new SongDataParser(getContext());
+            parserWorker.execute(song);
+        }else{
+            parserWorker.add(song);
+        }
+    }
 
     @Nullable
     @Override
@@ -114,6 +146,7 @@ public class PlayListFragment extends CallbackFragment {
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new PlayListAdapter(getContext(), playList);
         adapter.setCallback(callback);
+        adapter.setDataCallback(this);
         recycler.setAdapter(adapter);
         ((TextView) view.findViewById(R.id.playlist_name)).setText(playList.getName());
     }
@@ -185,10 +218,10 @@ public class PlayListFragment extends CallbackFragment {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_addLocalSong:
-                        openFile(REQUEST_SELECT_SONG);
+                        openFile();
                         break;
                     case R.id.menu_addLocalFolder:
-                        openDirectory(REQUEST_SELECT_FOLDER);
+                        openDirectory();
                         break;
                     case R.id.menu_addExternal:
                         break;
@@ -199,51 +232,42 @@ public class PlayListFragment extends CallbackFragment {
         popupMenu.show();
     }
 
-    private void openFile(int requestCode) {
-        Intent intent = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("*/*");
-        }else{
-            //internal file browser
-        }
-        startActivityForResult(intent, requestCode);
+    private void openFile() {
+        Intent intent = new Intent(getContext(), FileChooser.class);
+        intent.putExtra("mode", REQUEST_SELECT_SONG);
+        startActivityForResult(intent, REQUEST_SELECT_SONG);
     }
 
-    public void openDirectory(int requestCode) {
-        Intent intent = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }else{
-            //internal file browser
-        }
-        startActivityForResult(intent, requestCode);
+    public void openDirectory() {
+        Intent intent = new Intent(getContext(), FileChooser.class);
+        intent.putExtra("mode", REQUEST_SELECT_FOLDER);
+        startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
 
+    final static String[] extensions = {"3gp","mp4","m4a","aac","ts","3gp","flac","gsm","mid","xmf","mxmf","rtttl","rtx","ota","imy","mp3","mkv","wav","ogg"};
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
-            Uri uri = data.getData();
-            //Song song = new LocalSong(uri.toString(), "", uri.toString());
-            for(int i=0; i<100; i++){
-                playList.add(new LocalSong(uri.toString(), "", uri.toString()));
-            }
-
+            String path = data.getStringExtra("path");
+            Song song = new LocalSong(path, "", path);
             //add to current visible playlist
-            //playList.add(song);
+            playList.add(song);
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Uri uri = data.getData();
-                for(DocumentFile f : DocumentFile.fromTreeUri(getContext(), uri).listFiles()){
-                    if(!f.isDirectory()){
-                        if(f.getName().toLowerCase().endsWith(".mp3")){
-                            Song song = new LocalSong(f.getUri().toString(), "", f.getUri().toString());
-                            playList.add(song);
+            String path = data.getStringExtra("path");
+            for(File f : new File(path).listFiles()){
+                if(!f.isDirectory()){
+                    boolean supported = false;
+                    for(String ext : extensions){
+                        System.out.println(f.getName());
+                        if(f.getName().toLowerCase().endsWith("."+ ext)){
+                            supported = true;
+                            break;
                         }
-
+                    }
+                    if(supported){
+                        Song song = new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath());
+                        playList.add(song);
                     }
                 }
             }

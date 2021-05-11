@@ -21,10 +21,12 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
+import io.github.junheah.jsp.interfaces.RequestDataUpdate;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongDataParser;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 import static io.github.junheah.jsp.MainApplication.defaultCover;
@@ -34,6 +36,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     Context context;
     LayoutInflater inflater;
     PlayListItemClickCallback callback;
+    RequestDataUpdate dataCallback;
 
     AdapterNotifier notifier = new AdapterNotifier() {
         @Override
@@ -75,6 +78,11 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ((Activity)context).runOnUiThread(r);
     }
 
+    public void setDataCallback(RequestDataUpdate dataCallback){
+        this.dataCallback = dataCallback;
+        System.out.println("data callback set!");
+    }
+
     public PlayListAdapter(Context context, PlayList playList){
         this.playList = playList;
         this.context = context;
@@ -94,6 +102,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Song item = playList.get(position);
         ((PlayListViewHolder)holder).name.setText(item.getName());
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
+        System.out.println("onbind " + item.getName());
 
         //dont load images from onbind : infinite loop
         Bitmap bitmap = item.getCover();
@@ -106,6 +115,11 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             .into(((PlayListViewHolder)holder).cover);
             } else {
                 ((PlayListViewHolder) holder).cover.setImageResource(R.drawable.music_dark);
+                //pass song to data parser
+                if(dataCallback != null){
+                    dataCallback.requestDataUpdate(item);
+                }
+
             }
         }else {
             if (bitmap == defaultCover)

@@ -50,7 +50,6 @@ public class ExternalSongContainer extends ExternalSong{
         ScriptRequest request = new ScriptRequest(context, "fetchContainerInfo", new Object[]{ExternalSongContainer.this, current}, new ScriptCallback() {
             @Override
             public void callback(Object res) {
-                System.out.println(res);
                 songs = (List<ExternalSong>) JavaAdapter.convertResult(res, List.class);
                 for(ExternalSong s : songs){
                     s.setSource(source);

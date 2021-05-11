@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +47,15 @@ import io.github.junheah.jsp.model.song.Song;
 
 public class Utils {
     // static functions
+
+    public static String getPathFromUri(Context context, Uri uri){
+        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null );
+        cursor.moveToNext();
+        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
+        cursor.close();
+        return path;
+    }
+
     public static void lockuiRecursive(View view, boolean lock){
         view.setEnabled(!lock);
         if(view instanceof ViewGroup && !(view instanceof RecyclerView)) {
@@ -115,7 +126,6 @@ public class Utils {
     }
 
     public static void pickerPopup(Fragment fragment, String title, String[] options, StringCallback callback){
-        System.out.println(options);
         View layout = fragment.getLayoutInflater().inflate(R.layout.content_picker_popup, null);
         ListView list = layout.findViewById(R.id.picker_content);
 

@@ -70,6 +70,8 @@ public class Song{
         return Uri.parse(path);
     }
 
+    public String getPath() {return path;}
+
     public String getArtist(){
         return this.artist;
     }

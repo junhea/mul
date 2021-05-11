@@ -109,7 +109,6 @@ public class PlayListIO {
     }
 
     public void write(PlayList playList){
-        System.out.println(s.toJson(playList, t));
         editor.putString(playList.getName(), s.toJson(playList, t));
         editor.commit();
     }

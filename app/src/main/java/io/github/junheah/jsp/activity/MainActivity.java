@@ -4,9 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +17,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -52,6 +56,8 @@ import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static io.github.junheah.jsp.MainApplication.defaultCover;
 import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
@@ -82,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     SlidingUpPanelLayout panel;
     View playerControl;
     ImageView miniPlayerCover;
+    public final static int PERMISSION_CODE = 14245;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -246,6 +253,16 @@ public class MainActivity extends AppCompatActivity {
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
+
+
+
+        //check for permission
+        int permissionCheck = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE);
+        if(permissionCheck== PackageManager.PERMISSION_DENIED){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
+            }
+        }
 
         //action bar
         toolbar = (Toolbar) findViewById(R.id.toolbar);

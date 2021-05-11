@@ -37,6 +37,8 @@ import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
 
+import java.io.File;
+
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
@@ -116,7 +118,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
         @Override
         public void onCustomAction(String action, Bundle extras) {
-            System.out.println(action);
+            //System.out.println(action);
         }
     };
 
@@ -451,7 +453,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 mediaPlayer = null;
                 mediaPlayerInit();
                 setState(STATE_NONE);
-                mediaPlayer.setDataSource(getBaseContext(), current.getUri());
+                mediaPlayer.setDataSource(current.getPath());
                 mediaPlayer.prepareAsync();
                 setState(STATE_BUFFERING);
                 setMetaData(current);

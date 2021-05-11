@@ -60,7 +60,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     @Override
     public boolean add(Song song) {
-        System.out.println(song.getName());
         boolean res = super.add(song);
         song.setParent(this);
         int size = size();
@@ -178,5 +177,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     public void itemUpdated(Song song) {
         if(notifier != null)
             notifier.itemUpdated(indexOf(song));
+        // update metadata in db
+        playListIO.write(this);
     }
 }

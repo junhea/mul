@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 
+import java.io.File;
 import java.util.HashMap;
 
 import io.github.junheah.jsp.interfaces.BitmapCallback;
