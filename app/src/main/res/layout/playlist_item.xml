@@ -4,6 +4,9 @@
     android:layout_height="wrap_content"
     android:id="@+id/item_layout"
     android:background="?attr/selectableItemBackground"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="5dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <CheckBox
         android:id="@+id/item_check"
@@ -15,9 +18,10 @@
         android:layout_height="match_parent"/>
 
     <ImageView
+        android:background="#EFEFEF"
         android:id="@+id/item_cover"
-        android:layout_height="70dp"
-        android:layout_width="70dp"
+        android:layout_height="60dp"
+        android:layout_width="60dp"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/music_dark"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -27,19 +31,31 @@
         android:layout_marginTop="5dp"
         android:id="@+id/item_name"
         android:layout_width="0dp"
+        android:layout_marginLeft="10dp"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
+        android:textSize="18dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/item_cover"
         app:layout_constraintTop_toTopOf="parent" />
     <TextView
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="10dp"
         android:id="@+id/item_artist"
         android:layout_width="0dp"
+        android:textSize="14dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/item_cover"
         app:layout_constraintTop_toBottomOf="@id/item_name" />
+    <View android:background="#EEEEEE"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_width = "match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/item_cover"
+        android:layout_height="1dp"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

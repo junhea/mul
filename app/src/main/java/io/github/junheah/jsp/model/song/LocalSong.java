@@ -21,13 +21,15 @@ public class LocalSong extends Song {
     }
 
     @Override
-    public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
+    public boolean loadCover(Context context, BitmapCallback bitmapCallback){
         if (super.loadCover(context, bitmapCallback))
             return true;
-
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(context, getUri());
+        retriever.setDataSource(getPath());
         name = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        if(name == null){
+            name = getPath().substring(getPath().lastIndexOf('/')+1);
+        }
         artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
         byte[] artBytes = retriever.getEmbeddedPicture();
         if (artBytes != null) {

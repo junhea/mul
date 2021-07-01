@@ -21,6 +21,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -143,6 +144,7 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recycler = view.findViewById(R.id.recycler);
+        ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new PlayListAdapter(getContext(), playList);
         adapter.setCallback(callback);

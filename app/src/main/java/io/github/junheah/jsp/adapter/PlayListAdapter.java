@@ -69,8 +69,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     notifyItemChanged(index);
                 }
             });
-            System.out.println("updated : index");
-
         }
     };
 
@@ -102,7 +100,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Song item = playList.get(position);
         ((PlayListViewHolder)holder).name.setText(item.getName());
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
-        System.out.println("onbind " + item.getName());
 
         //dont load images from onbind : infinite loop
         Bitmap bitmap = item.getCover();
