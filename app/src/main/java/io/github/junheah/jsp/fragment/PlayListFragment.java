@@ -2,10 +2,7 @@ package io.github.junheah.jsp.fragment;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,26 +10,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.documentfile.provider.DocumentFile;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
-import com.google.gson.reflect.TypeToken;
+import org.mozilla.javascript.tools.jsc.Main;
 
 import java.io.File;
 
-import io.github.junheah.jsp.activity.FileChooser;
+import io.github.junheah.jsp.activity.FileChooserActivity;
 import io.github.junheah.jsp.activity.MainActivity;
-import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.interfaces.RequestDataUpdate;
+import io.github.junheah.jsp.interfaces.SongCallback;
+import io.github.junheah.jsp.model.ItemMoveCallback;
 import io.github.junheah.jsp.model.song.SongDataParser;
-import io.github.junheah.jsp.model.source.Source;
+import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
@@ -45,21 +42,18 @@ import io.github.junheah.jsp.model.song.Song;
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
-import static io.github.junheah.jsp.Utils.getPathFromUri;
-import static io.github.junheah.jsp.Utils.playListDeserializer;
-import static io.github.junheah.jsp.Utils.playListSerializer;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
-public class PlayListFragment extends CallbackFragment implements RequestDataUpdate {
+public class PlayListFragment extends CallbackFragment implements SongCallback{
     public final static int REQUEST_SELECT_SONG = 11;
     public final static int REQUEST_SELECT_FOLDER = 12;
     public final static int REQUEST_SELECT_EXTERNAL = 13;
 
+    String name;
     PlayList playList;
     PlayListAdapter adapter;
     PlayListItemClickCallback callback;
-    SongDataParser parserWorker;
 
     public PlayListFragment() {
         // don't do anything
@@ -71,35 +65,24 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
         return f;
     }
 
+    public static final PlayListFragment newInstance(String key) {
+        PlayListFragment f = new PlayListFragment();
+        f.setPlayList(key);
+        return f;
+    }
+
     public void setPlayList(PlayList playList) {
         this.playList = playList;
+        this.name = playList.getName();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if(parserWorker == null){
-            parserWorker = new SongDataParser(getContext());
-        }
+    public void setPlayList(String name) {
+        this.name = name;
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if(parserWorker != null){
-            parserWorker.forceStop();
-            parserWorker = null;
-        }
-    }
 
-    @Override
-    public void requestDataUpdate(Song song) {
-        if(parserWorker == null || !parserWorker.running){
-            parserWorker = new SongDataParser(getContext());
-            parserWorker.execute(song);
-        }else{
-            parserWorker.add(song);
-        }
+    public void addSong(SongPlayListParcel parcel) {
+        ((MainActivity)getActivity()).addSong(parcel);
     }
 
     @Nullable
@@ -113,21 +96,6 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            String name = savedInstanceState.getString("name");
-            Player player = ((MainActivity) getActivity()).getPlayer();
-
-            if (player != null && player.getPlayList().getName().equals(name)) {
-                //restore using player
-                playList = player.getPlayList();
-            } else {
-                //restore using bundle
-                String playListGson = savedInstanceState.getString("playlist");
-                playList = playListDeserializer().fromJson(playListGson, new TypeToken<PlayList>() {
-                }.getType());
-            }
-        }
         callback = ((MainActivity) getActivity()).getPlayListCallback();
     }
 
@@ -135,22 +103,66 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        outState.putString("name", playList.getName());
-        outState.putString("playlist", playListSerializer().toJson(playList));
+        outState.putString("name", name);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         RecyclerView recycler = view.findViewById(R.id.recycler);
-        ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new PlayListAdapter(getContext(), playList);
-        adapter.setCallback(callback);
-        adapter.setDataCallback(this);
-        recycler.setAdapter(adapter);
-        ((TextView) view.findViewById(R.id.playlist_name)).setText(playList.getName());
+        ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
+        ((TextView) view.findViewById(R.id.playlist_name)).setText(name);
+
+        new Thread(){
+            @Override
+            public void run() {
+                if (savedInstanceState != null) {
+                    name = savedInstanceState.getString("name");
+                }
+                Player player = ((MainActivity) getActivity()).getPlayer();
+                if (player != null && player.getPlayList().getName().equals(name)) {
+                    //restore using player
+                    playList = player.getPlayList();
+                } else {
+                    //restore using playlistio
+                    playList = playListIO.get(name);
+                }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter = new PlayListAdapter(getContext(), playList);
+                        adapter.setCallback(callback);
+                        ItemTouchHelper.Callback callback = new ItemMoveCallback(adapter);
+                        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+                        touchHelper.attachToRecyclerView(recycler);
+
+                        adapter.setDragListener(new ItemMoveCallback.StartDragListener(){
+                            @Override
+                            public void requestDrag(RecyclerView.ViewHolder viewHolder) {
+                                touchHelper.startDrag(viewHolder);
+                            }
+                        });
+
+                        callback(((MainActivity)getActivity()).getCurrent());
+
+                        recycler.setAdapter(adapter);
+                    }
+                });
+            }
+        }.start();
+    }
+
+    @Override
+    public void callback(Song song) {
+        //now playing changed
+        if(adapter != null) {
+            if (playList.indexOf(song) > -1)
+                adapter.currentChanged(song);
+            else
+                adapter.currentChanged(null);
+        }
     }
 
     @Override
@@ -202,6 +214,10 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
             case R.id.menu_addSong:
                 showAddMenu();
                 break;
+            case R.id.menu_edit:
+                //edit mode
+                adapter.toggleEditMode();
+                break;
         }
         return true;
     }
@@ -235,13 +251,13 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
     }
 
     private void openFile() {
-        Intent intent = new Intent(getContext(), FileChooser.class);
+        Intent intent = new Intent(getContext(), FileChooserActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_SONG);
         startActivityForResult(intent, REQUEST_SELECT_SONG);
     }
 
     public void openDirectory() {
-        Intent intent = new Intent(getContext(), FileChooser.class);
+        Intent intent = new Intent(getContext(), FileChooserActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_FOLDER);
         startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
@@ -254,7 +270,7 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
             String path = data.getStringExtra("path");
             Song song = new LocalSong(path, "", path);
             //add to current visible playlist
-            playList.add(song);
+            addSong(new SongPlayListParcel(playList, song));
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
             String path = data.getStringExtra("path");
             for(File f : new File(path).listFiles()){
@@ -269,10 +285,17 @@ public class PlayListFragment extends CallbackFragment implements RequestDataUpd
                     }
                     if(supported){
                         Song song = new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath());
-                        playList.add(song);
+                        addSong(new SongPlayListParcel(playList, song));
                     }
                 }
             }
         }
     }
+
+    public class PlayListLoader extends Thread{
+        @Override
+        public void run() {
+
+        }
+    };
 }

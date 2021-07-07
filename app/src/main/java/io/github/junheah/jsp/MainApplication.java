@@ -11,7 +11,11 @@ import org.acra.annotation.AcraCore;
 import org.acra.annotation.AcraDialog;
 import org.acra.annotation.AcraMailSender;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import static io.github.junheah.jsp.Utils.getBaseScript;
+import static io.github.junheah.jsp.Utils.getBitmapFromVectorDrawable;
 import static org.acra.ReportField.ANDROID_VERSION;
 import static org.acra.ReportField.APP_VERSION_NAME;
 import static org.acra.ReportField.PHONE_MODEL;
@@ -23,9 +27,9 @@ import static org.acra.ReportField.STACK_TRACE;
 @AcraDialog(resText=R.string.acra_dialog_text)
 
 public class MainApplication extends Application {
-    public static Bitmap defaultCover;
     public static HttpClient client;
     public static PlayListIO playListIO;
+    public static Bitmap defaultCover;
 
     public static String baseScript;
 
@@ -33,14 +37,15 @@ public class MainApplication extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         System.out.println("main app start");
-        //ACRA.init(this);
+       // ACRA.init(this);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         System.out.println("main app oncreate");
-        defaultCover = ((BitmapDrawable) getResources().getDrawable(R.drawable.default_cover)).getBitmap();
+        defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
+
         this.client = new HttpClient();
         playListIO = new PlayListIO(this);
         //load basescript

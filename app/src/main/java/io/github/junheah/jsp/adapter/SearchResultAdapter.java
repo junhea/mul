@@ -2,6 +2,7 @@ package io.github.junheah.jsp.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,14 +19,13 @@ import java.util.List;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
+import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.viewHolder.ButtonViewHolder;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
-
-import static io.github.junheah.jsp.MainApplication.defaultCover;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 
 public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -132,18 +132,21 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             v.checkBox.setChecked(song.getChecked());
 
             //dont load images from onbind : infinite loop
-            Bitmap bitmap = song.getCover();
-            if (bitmap == null) {
+            if (song instanceof ExternalSong) {
                 String url = song.getCoverUrl();
                 if (url != null && url.length() > 0)
                     Glide.with(context)
                             .load(url)
+                            .placeholder(R.drawable.music_dark)
+                            .fallback(R.drawable.music_dark)
                             .into(((PlayListViewHolder) holder).cover);
             } else {
-                if (bitmap == defaultCover)
-                    ((PlayListViewHolder) holder).cover.setImageResource(R.drawable.music_dark);
-                else
-                    ((PlayListViewHolder) holder).cover.setImageBitmap(bitmap);
+                Glide.with(context)
+                        .load(new AudioCoverModel(song.getPath()))
+                        .dontTransform()
+                        .placeholder(R.drawable.music_dark)
+                        .fallback(R.drawable.music_dark)
+                        .into(((PlayListViewHolder)holder).cover);
             }
 
         }else if(holder instanceof ButtonViewHolder){

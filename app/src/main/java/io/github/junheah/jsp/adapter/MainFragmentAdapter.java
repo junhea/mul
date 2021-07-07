@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.junheah.jsp.fragment.CallbackFragment;
+import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.interfaces.FragmentAdapterCallback;
+import io.github.junheah.jsp.interfaces.SongCallback;
+import io.github.junheah.jsp.model.song.Song;
 
-public class MainFragmentAdapter extends FragmentStateAdapter {
+public class MainFragmentAdapter extends FragmentStateAdapter implements SongCallback {
 
     List<Fragment> fragments;
     FragmentAdapterCallback callback;
@@ -84,5 +87,15 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
     @Override
     public int getItemCount() {
         return fragments.size();
+    }
+
+    @Override
+    public void callback(Song song) {
+        //set now playing
+        for(Fragment f : fragments){
+            if(f instanceof PlayListFragment){
+                ((PlayListFragment)f).callback(song);
+            }
+        }
     }
 }

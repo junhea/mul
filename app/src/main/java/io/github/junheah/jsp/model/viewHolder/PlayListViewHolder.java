@@ -16,6 +16,8 @@ public class PlayListViewHolder extends RecyclerView.ViewHolder{
     public TextView name, artist;
     public ImageView cover;
     public CheckBox checkBox;
+    public ImageView handle;
+    public ImageView playing;
 
     public PlayListViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -24,5 +26,7 @@ public class PlayListViewHolder extends RecyclerView.ViewHolder{
         name = itemView.findViewById(R.id.item_name);
         artist = itemView.findViewById(R.id.item_artist);
         cover = itemView.findViewById(R.id.item_cover);
+        handle = itemView.findViewById(R.id.item_handle);
+        playing = itemView.findViewById(R.id.item_playing);
     }
 }

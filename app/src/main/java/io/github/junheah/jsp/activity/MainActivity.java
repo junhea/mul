@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -37,6 +38,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -45,6 +47,11 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
+import io.github.junheah.jsp.model.glide.AudioCoverModel;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.SongDataParser;
+import io.github.junheah.jsp.model.song.SongPlayListParcel;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
@@ -58,7 +65,6 @@ import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static io.github.junheah.jsp.MainApplication.defaultCover;
 import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
@@ -88,7 +94,9 @@ public class MainActivity extends AppCompatActivity {
     SlidingUpPanelLayout panel;
     View playerControl;
     ImageView miniPlayerCover;
+    SongDataParser parser;
     public final static int PERMISSION_CODE = 14245;
+    Song current;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -126,6 +134,24 @@ public class MainActivity extends AppCompatActivity {
             timeStampThread = null;
         }
     };
+
+    public void addSong(SongPlayListParcel parcel) {
+        if(parcel.song instanceof ExternalSong){
+            parcel.playList.add(parcel.song);
+        }else {
+            if (parser == null || !parser.running) {
+                parser = new SongDataParser(this);
+                parser.execute(parcel);
+            } else {
+                parser.add(parcel);
+            }
+        }
+    }
+
+    public void addSong(String name, Song song){
+        //external song adder
+        //check if playlist is currently loaded, if true, add via playlist.add if not, add through playlist io,
+    }
 
     public void calculateDimensions(boolean portrait){
         playerOriginalHeight = Math.round(68 * getResources().getDisplayMetrics().density);
@@ -253,8 +279,6 @@ public class MainActivity extends AppCompatActivity {
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
-
-
 
         //check for permission
         int permissionCheck = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE);
@@ -437,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (bound) {
-                        Song current = player.getCurrent();
+                        current = player.getCurrent();
                         if (current == null) {
                             //no song loaded
                             nextbtn.setEnabled(false);
@@ -445,6 +469,10 @@ public class MainActivity extends AppCompatActivity {
                             pausebtn.setEnabled(false);
                             miniPlayerCover.setImageResource(R.drawable.music);
                         } else {
+                            //notify current to fragments
+                            if(adapter != null)
+                                adapter.callback(current);
+
                             if (current.getNext() == null) nextbtn.setEnabled(false);
                             else nextbtn.setEnabled(true);
                             if (current.getPrev() == null) prevbtn.setEnabled(false);
@@ -455,16 +483,30 @@ public class MainActivity extends AppCompatActivity {
                             artist.setText(current.getArtist());
                             mini_artist.setText(current.getArtist());
 
-                            miniPlayerCover.setImageResource(R.drawable.music);
-                            current.loadCover(context, new BitmapCallback() {
-                                @Override
-                                public void resourceLoaded(Bitmap bitmap) {
-                                    if(bitmap == defaultCover)
-                                        miniPlayerCover.setImageResource(R.drawable.music);
-                                    else
-                                        miniPlayerCover.setImageBitmap(bitmap);
+                            try {
+                                if (current instanceof ExternalSong) {
+                                    String url = ((ExternalSong) current).getCoverUrl();
+                                    if (url != null && url.length() > 0)
+                                        System.out.println(url);
+                                    Glide.with(getApplicationContext())
+                                            .load(url)
+                                            .dontTransform()
+                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                            .placeholder(R.drawable.music)
+                                            .into(miniPlayerCover);
+                                } else {
+                                    Glide.with(getApplicationContext())
+                                            .load(new AudioCoverModel(current.getPath()))
+                                            .dontTransform()
+                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                            .placeholder(R.drawable.music)
+                                            .fallback(R.drawable.music)
+                                            .into(miniPlayerCover);
                                 }
-                            });
+                            }catch (Exception e){
+
+                            }
+
                         }
                     }
                 }
@@ -477,7 +519,7 @@ public class MainActivity extends AppCompatActivity {
         //viewPager
         viewPager = this.findViewById(R.id.viewPager);
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        viewPager.setOffscreenPageLimit(3);
+        viewPager.setOffscreenPageLimit(1);
         adapter = new MainFragmentAdapter(this);
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -498,12 +540,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 PlayListFragment tmpfrag;
-                for(PlayList pl : playListIO.fetch()){
-                    if(bound && player.getPlayList().getName().equals(pl.getName())){
+                for(String key : playListIO.getNames()){
+                    if(bound && player.getPlayList().getName().equals(key)){
                         System.out.println("restore from player");
                         tmpfrag = PlayListFragment.newInstance(player.getPlayList());
                     }else {
-                        tmpfrag = PlayListFragment.newInstance(pl);
+                        tmpfrag = PlayListFragment.newInstance(key);
                     }
                     adapter.append(tmpfrag);
                 }
@@ -620,5 +662,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public Song getCurrent(){
+        return this.current;
     }
 }

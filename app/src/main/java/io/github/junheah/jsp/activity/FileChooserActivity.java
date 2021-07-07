@@ -40,7 +40,7 @@ import static io.github.junheah.jsp.activity.MainActivity.PERMISSION_CODE;
 import static io.github.junheah.jsp.fragment.PlayListFragment.REQUEST_SELECT_FOLDER;
 import static io.github.junheah.jsp.fragment.PlayListFragment.REQUEST_SELECT_SONG;
 
-public class FileChooser extends AppCompatActivity {
+public class FileChooserActivity extends AppCompatActivity {
     int mode;
     File currentDir;
     Context context;

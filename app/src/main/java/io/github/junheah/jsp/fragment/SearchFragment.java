@@ -262,7 +262,9 @@ public class SearchFragment extends CallbackFragment{
                     @Override
                     public void callback(String data) {
                         //add song to playlist
-                        playListIO.getPlayList(data).addAll(res);
+                        for(ExternalSong s : res){
+                            ((MainActivity)getActivity()).addSong(data, s);
+                        }
                         toggleSelectMode(null);
                     }
                 });

@@ -25,7 +25,7 @@
 
 
         <activity
-            android:name=".activity.FileChooser"
+            android:name=".activity.FileChooserActivity"
             android:configChanges="orientation|screenSize"
             android:label="explorer"/>
 

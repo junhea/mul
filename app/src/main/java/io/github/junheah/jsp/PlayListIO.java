@@ -33,41 +33,27 @@ public class PlayListIO {
     //original object
     List<PlayList> playLists;
 
+    List<String> keys;
+
     public PlayListIO(Context context){
         this.context = context;
         //initialize variables
         reader = context.getSharedPreferences("JSPlayer.playlists", Context.MODE_PRIVATE);
         editor = reader.edit();
+        //only get keys & load on user request (dont save playlist object!!!)
+        keys = new ArrayList<>();
+        keys.addAll(reader.getAll().keySet());
         t = new TypeToken<PlayList>() {}.getType();
         s = playListSerializer();
         d = playListDeserializer();
     }
 
-    public List<PlayList> fetch(){
-        playLists = new ArrayList<>();
-        //read playlists
-        Map<String,?> data = reader.getAll();
-
-        //deserialize playlists and save as object
-        PlayList list;
-        t = new TypeToken<PlayList>() {}.getType();
-        for(Map.Entry<String,?> e : data.entrySet()){
-            try {
-                list = d.fromJson((String) e.getValue(), t);
-                playLists.add(list);
-            }catch (Exception ex){
-                ex.printStackTrace();
-            }
+    public PlayList get(String key){
+        if(keys.indexOf(key) > -1){
+            t = new TypeToken<PlayList>() {}.getType();
+            return d.fromJson((String) reader.getString(key, "[]"), t);
         }
-
-        return playLists;
-    }
-
-    public PlayList getPlayList(String key){
-        for(PlayList pl : playLists){
-            if(pl.getName().equals(key))
-                return pl;
-        }
+        //not found
         return null;
     }
 
@@ -102,8 +88,8 @@ public class PlayListIO {
     }
 
     public PlayList create(String name){
+        keys.add(name);
         PlayList playList = new PlayList(name);
-        this.playLists.add(playList);
         write(playList);
         return playList;
     }
@@ -113,8 +99,8 @@ public class PlayListIO {
         editor.commit();
     }
 
-    public Set<String> getNames(){
-        return reader.getAll().keySet();
+    public List<String> getNames(){
+        return keys;
     }
 
     public void rename(PlayList playList, String newName){

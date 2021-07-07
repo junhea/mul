@@ -46,9 +46,11 @@ import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerIntent;
 import io.github.junheah.jsp.model.PlayerStatus;
+import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_CONNECTING;
@@ -252,27 +254,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                         PlaybackStateCompat.ACTION_STOP));
 
-
-        if(current != null) {
-            notification.setContentTitle(current.getName());
-            notification.setContentText(current.getArtist());
-
-            //set album art
-            currentCover = current.getCover();
-            if(currentCover == null) {
-                notification.setLargeIcon(defaultCover);
-                current.loadCover(getApplicationContext(), new BitmapCallback() {
-                    @Override
-                    public void resourceLoaded(Bitmap bitmap) {
-                        currentCover = bitmap;
-                        showNotification();
-                    }
-                });
-            }else{
-                notification.setLargeIcon(currentCover);
-            }
-        }
-
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
         notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)));
         notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)));
@@ -286,14 +267,69 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                         PlaybackStateCompat.ACTION_STOP)));
 
 
+        if(current != null) {
+            notification.setContentTitle(current.getName());
+            notification.setContentText(current.getArtist());
+
+            //set album art
+            if(currentCover == null) {
+                notification.setLargeIcon(defaultCover);
+                if (current instanceof ExternalSong) {
+                    String url = ((ExternalSong)current).getCoverUrl();
+                    if (url != null && url.length() > 0)
+                        Glide.with(getApplicationContext())
+                                .asBitmap()
+                                .load(url)
+                                .placeholder(R.drawable.music_dark)
+                                .fallback(R.drawable.music_dark)
+                                .into(new CustomTarget<Bitmap>() {
+                                    @Override
+                                    public void onResourceReady(Bitmap res, Transition<? super Bitmap> t) {
+                                        notification.setLargeIcon(res);
+                                        startForeground(nid, notification.build());
+                                    }
+
+                                    @Override
+                                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                                    }
+                                });
+                } else {
+                    if(!((LocalSong)current).nocover) {
+                        Glide.with(getApplicationContext())
+                                .asBitmap()
+                                .load(new AudioCoverModel(current.getPath()))
+                                .dontTransform()
+                                .placeholder(R.drawable.music_dark)
+                                .fallback(R.drawable.music_dark)
+                                .into(new CustomTarget<Bitmap>() {
+                                    @Override
+                                    public void onResourceReady(Bitmap res, Transition<? super Bitmap> t) {
+                                        notification.setLargeIcon(res);
+                                        startForeground(nid, notification.build());
+                                    }
+
+                                    @Override
+                                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                                    }
+                                });
+                    }
+                }
+            }else{
+                notification.setLargeIcon(currentCover);
+            }
+        }
         startForeground(nid, notification.build());
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(intent == null)
+        if(intent == null) {
             stop();
+            return START_STICKY;
+        }
         MediaButtonReceiver.handleIntent(session, intent);
         switch (intent.getAction()) {
             case ACTION_PLAYER_CHECK:
@@ -364,6 +400,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public boolean next(){
         if(current.getNext() != null){
             current = current.getNext();
+            currentCover = null;
             play();
             return true;
         }else {
@@ -379,6 +416,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             return true;
         }else if(current.getPrev() != null){
             current = current.getPrev();
+            currentCover = null;
             play();
             return true;
         }else {

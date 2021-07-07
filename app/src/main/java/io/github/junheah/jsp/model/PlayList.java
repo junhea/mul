@@ -21,6 +21,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     transient PlayListChangeCallback playListChangeCallback;
     transient boolean tmp = false;
 
+
     public String getName(){
         return name == null ? "" : name;
     }
@@ -178,6 +179,26 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         if(notifier != null)
             notifier.itemUpdated(indexOf(song));
         // update metadata in db
+        playListIO.write(this);
+    }
+
+    public void swap(int i, int j){
+        Song tmp = get(i);
+        set(i, get(j));
+        set(j, tmp);
+        updateIndex(i);
+        if(i>0)
+            updateIndex(i-1);
+        if(i<size()-1)
+            updateIndex(i+1);
+        updateIndex(j);
+        if(j>0)
+            updateIndex(j-1);
+        if(j<size()-1)
+            updateIndex(j+1);
+    }
+
+    public void save(){
         playListIO.write(this);
     }
 }

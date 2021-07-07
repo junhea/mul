@@ -26,7 +26,6 @@ import io.github.junheah.jsp.model.source.ScriptRequest;
 
 import static io.github.junheah.jsp.MainApplication.baseScript;
 import static io.github.junheah.jsp.MainApplication.client;
-import static io.github.junheah.jsp.MainApplication.defaultCover;
 import static io.github.junheah.jsp.Utils.readFile;
 
 public class ExternalSong extends Song{
@@ -67,33 +66,6 @@ public class ExternalSong extends Song{
 
     public String getCoverUrl() {
         return this.coverUrl;
-    }
-
-    public synchronized boolean loadCover(Context context, BitmapCallback bitmapCallback){
-        if(super.loadCover(context, bitmapCallback))
-            return true;
-
-        if(coverUrl != null && coverUrl.length()>0) {
-            Glide.with(context)
-                    .asBitmap()
-                    .load(coverUrl)
-                    .into(new CustomTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            cover = resource;
-                            if(bitmapCallback != null) bitmapCallback.resourceLoaded(getCover());
-                            callback.itemUpdated(ExternalSong.this);
-                        }
-
-                        @Override
-                        public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                        }
-                    });
-        }else{
-            if(bitmapCallback != null) bitmapCallback.resourceLoaded(defaultCover);
-        }
-        return true;
     }
 
     public String getPath(){
