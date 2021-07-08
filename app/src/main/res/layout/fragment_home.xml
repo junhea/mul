@@ -21,6 +21,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="search online"/>
+    <Button
+        android:id="@+id/home_source_manager"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="source manager"/>
 
 
 

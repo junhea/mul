@@ -54,4 +54,13 @@ public class HttpClient {
         }
         return null;
     }
+
+    public Response getRaw(Request r){
+        try {
+            return client.newCall(r).execute();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

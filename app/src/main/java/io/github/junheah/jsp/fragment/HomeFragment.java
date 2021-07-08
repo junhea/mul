@@ -25,6 +25,7 @@ import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.activity.SourceManagerActivity;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
@@ -109,6 +110,14 @@ public class HomeFragment extends CallbackFragment {
                     }
                 });
 
+            }
+        });
+
+        //source manager
+        view.findViewById(R.id.home_source_manager).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), SourceManagerActivity.class));
             }
         });
     }

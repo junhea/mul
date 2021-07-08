@@ -1,0 +1,129 @@
+package io.github.junheah.jsp.activity;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
+
+import android.os.Bundle;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.adapter.SourceAdapter;
+import io.github.junheah.jsp.interfaces.SourceOnClickCallback;
+import io.github.junheah.jsp.model.source.Source;
+import io.github.junheah.jsp.model.viewHolder.SourceItem;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static io.github.junheah.jsp.MainApplication.client;
+import static io.github.junheah.jsp.adapter.SourceAdapter.INSTALLED;
+
+public class SourceManagerActivity extends AppCompatActivity {
+    SourceAdapter adapter;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_source_manager);
+
+        RecyclerView recycler = findViewById(R.id.source_recycler);
+        ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new SourceAdapter(this, new SourceOnClickCallback() {
+            @Override
+            public void download(SourceItem item) {
+                new Thread(){
+                    @Override
+                    public void run() {
+                        Response r = client.getRaw(new Request.Builder().url(item.url).build());
+
+                        try {
+                            InputStream is = r.body().byteStream();
+
+                            BufferedInputStream input = new BufferedInputStream(is);
+
+                            File root = new File(getExternalFilesDir(null), "srcs");
+                            if (!root.exists())
+                                root.mkdir();
+
+                            OutputStream output = new FileOutputStream(new File(root, item.name + ".mjs"));
+
+                            byte[] data = new byte[1024];
+
+                            long total = 0;
+                            int count;
+
+                            while ((count = input.read(data)) != -1) {
+                                total += count;
+                                output.write(data, 0, count);
+                            }
+
+                            output.flush();
+                            output.close();
+                            input.close();
+
+                            item.status = INSTALLED;
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.notifyItemChanged(item);
+                                }
+                            });
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
+            }
+
+            @Override
+            public void delete(SourceItem item) {
+
+            }
+        });
+        recycler.setAdapter(adapter);
+        //background
+        new Thread(){
+            @Override
+            public void run() {
+                List<SourceItem> res = fetch();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for(SourceItem i : res){
+                            adapter.addAvailable(i);
+                        }
+                    }
+                });
+            }
+        }.start();
+    }
+
+    public List<SourceItem> fetch(){
+        //get available sources
+        List<SourceItem> res = new ArrayList<>();
+        try {
+            String raw = client.get(new Request.Builder().url("https://api.github.com/repositories/383681481/contents/scripts").build()).getBody();
+            JSONArray d = new JSONArray(raw);
+            for(int i=0; i<d.length(); i++){
+                JSONObject o = d.getJSONObject(i);
+                res.add(new SourceItem(o.getString("name").split(".mjs")[0], o.getString("download_url")));
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+}

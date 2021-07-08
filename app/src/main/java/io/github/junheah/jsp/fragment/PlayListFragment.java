@@ -129,6 +129,8 @@ public class PlayListFragment extends CallbackFragment implements SongCallback{
                     //restore using playlistio
                     playList = playListIO.get(name);
                 }
+                Song current = ((MainActivity)getActivity()).getCurrent();
+
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -145,7 +147,7 @@ public class PlayListFragment extends CallbackFragment implements SongCallback{
                             }
                         });
 
-                        callback(((MainActivity)getActivity()).getCurrent());
+                        callback(current);
 
                         recycler.setAdapter(adapter);
                     }

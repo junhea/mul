@@ -132,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
             resetPlayer();
             timeStampThread.interrupt();
             timeStampThread = null;
+            //notify current to fragments
+            if(adapter != null)
+                adapter.callback(null);
         }
     };
 
@@ -462,6 +465,9 @@ public class MainActivity extends AppCompatActivity {
 
                     if (bound) {
                         current = player.getCurrent();
+                        //notify current to fragments
+                        if(adapter != null)
+                            adapter.callback(current);
                         if (current == null) {
                             //no song loaded
                             nextbtn.setEnabled(false);
@@ -469,10 +475,6 @@ public class MainActivity extends AppCompatActivity {
                             pausebtn.setEnabled(false);
                             miniPlayerCover.setImageResource(R.drawable.music);
                         } else {
-                            //notify current to fragments
-                            if(adapter != null)
-                                adapter.callback(current);
-
                             if (current.getNext() == null) nextbtn.setEnabled(false);
                             else nextbtn.setEnabled(true);
                             if (current.getPrev() == null) prevbtn.setEnabled(false);
