@@ -42,7 +42,6 @@ public class SourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         SourceIO sourceIO = new SourceIO(context);
         sourceIO.load();
         for(Source s : sourceIO.getSources()){
-            System.out.println("pppp "+s.getName());
             items.add(new SourceItem(s.getName(), INSTALLED));
         }
         items.add("Available Sources");

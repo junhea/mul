@@ -6,6 +6,10 @@ import android.graphics.drawable.Drawable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -21,6 +25,7 @@ import java.util.Map;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
+import io.github.junheah.jsp.model.room.MapConverter;
 import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.model.source.ScriptRequest;
 
@@ -28,21 +33,36 @@ import static io.github.junheah.jsp.MainApplication.baseScript;
 import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.Utils.readFile;
 
+@Entity(tableName = "external")
 public class ExternalSong extends Song{
+
+
+    @Ignore
+    public ExternalSong(long sid){
+        super(sid);
+    }
+
+    public String getSourceID() {
+        return sourceID;
+    }
+
+    public void setSourceID(String sourceID) {
+        this.sourceID = sourceID;
+    }
 
     String sourceID;
     String id;
     String coverUrl;
+    @TypeConverters(MapConverter.class)
     Map<String, String> headers;
     transient Source source;
     transient boolean checked = false;
 
-    public ExternalSong(String songID, String name, String artist, String url, String cover, Map<String, String> headers) {
-        super(name, artist, url);
-        this.coverUrl = cover;
-        this.type="EXTERNAL";   //gson
+    public ExternalSong(String id, String name, String artist, String path, String coverUrl, Map<String, String> headers) {
+        super(name, artist, path);
+        this.coverUrl = coverUrl;
         this.headers = headers;
-        this.id = songID;
+        this.id = id;
     }
 
     public boolean getChecked(){

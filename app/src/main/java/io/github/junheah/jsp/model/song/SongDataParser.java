@@ -1,8 +1,11 @@
 package io.github.junheah.jsp.model.song;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteConstraintException;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.bumptech.glide.Glide;
 
@@ -11,17 +14,22 @@ import java.util.List;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.room.LocalSongDao;
+import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
+import static io.github.junheah.jsp.MainApplication.playListIO;
 
 
 public class SongDataParser extends Thread {
     List<SongPlayListParcel> queue;
     Context context;
+    LocalSongDao dao;
     public static boolean running;
     public SongDataParser(Context context){
         this.queue = new ArrayList<>();
         this.context = context;
+        this.dao = SongDatabase.getInstance(context).localDao();
     }
 
     public synchronized void execute(SongPlayListParcel parcel){
@@ -36,16 +44,32 @@ public class SongDataParser extends Thread {
     @Override
     public void run() {
         while(queue.size()>0 && running) {
+            //pop one item
             SongPlayListParcel parcel = queue.get(0);
             queue.remove(0);
-            //parse data
-            parcel.song.fetchData();
-            parcel.playList.add(parcel.song);
-            System.out.println(parcel.song.path);
+
+            for(Song s : parcel.songs){
+                try {
+                    s.setSid(dao.insert((LocalSong) s));
+                    s.fetchData();
+                }catch (SQLiteConstraintException e){
+                    //already exists
+                    s = dao.findWithPath(s.path);
+                }
+                System.out.println("pppp "+ s.getSid());
+                Song finalS = s;
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        parcel.playList.add(finalS);
+                    }
+                });
+            }
+            parcel.playList.forcesave();
+
         }
         running = false;
     }
-
     public void forceStop() {
         this.running = false ;
     }

@@ -38,7 +38,7 @@ public class DebugActivity extends AppCompatActivity {
         pref.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                output.setText(playListIO.getRaw());
+                output.setText("");
             }
         });
 
@@ -59,7 +59,7 @@ public class DebugActivity extends AppCompatActivity {
                 editor.setVisibility(View.VISIBLE);
                 save.setVisibility(View.VISIBLE);
                 cancel.setVisibility(View.VISIBLE);
-                editor.setText(playListIO.getRaw());
+                editor.setText("");
                 save.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -68,7 +68,7 @@ public class DebugActivity extends AppCompatActivity {
                         editor.setVisibility(View.GONE);
                         save.setVisibility(View.GONE);
                         cancel.setVisibility(View.GONE);
-                        editor.setText("");
+                        editor.setText(playListIO.getRaw());
                     }
                 });
                 cancel.setOnClickListener(new View.OnClickListener() {
@@ -78,7 +78,7 @@ public class DebugActivity extends AppCompatActivity {
                         editor.setVisibility(View.GONE);
                         save.setVisibility(View.GONE);
                         cancel.setVisibility(View.GONE);
-                        editor.setText("");
+                        editor.setText(playListIO.getRaw());
                     }
                 });
             }

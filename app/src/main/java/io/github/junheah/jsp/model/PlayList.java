@@ -20,7 +20,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     transient AdapterNotifier notifier;
     transient PlayListChangeCallback playListChangeCallback;
     transient boolean tmp = false;
-
+    public transient boolean cleared = false;
 
     public String getName(){
         return name == null ? "" : name;
@@ -59,26 +59,40 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         super();
     }
 
-    @Override
-    public boolean add(Song song) {
+    public boolean add(Song song, boolean isLoad, boolean silent) {
         boolean res = super.add(song);
         song.setParent(this);
         int size = size();
         updateIndex(size-1);
         if(size>1)
             updateIndex(size-2);
-        if(notifier != null)
+        if(notifier != null && !silent) {
             notifier.itemAdded(size-1);
+        }
 
         //notify player (if attached)
-        if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
+        if(playListChangeCallback != null && !silent) playListChangeCallback.playListUpdated();
         //playlist io
-        if(!tmp) playListIO.write(PlayList.this);
+        if(!tmp && !isLoad) playListIO.write(PlayList.this);
         return res;
     }
 
     @Override
+    public boolean add(Song song){
+        return add(song, false, false);
+    }
+
+    @Override
+    public void clear() {
+        playListChangeCallback = null;
+        notifier = null;
+        cleared = true;
+        super.clear();
+    }
+
+    @Override
     public void add(int index, Song song) {
+        System.out.println("add  by index on "+name);
         super.add(index, song);
         song.setParent(this);
         updateIndex(index);
@@ -119,10 +133,17 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     @Override
     public boolean addAll(@NonNull Collection<? extends Song> c) {
+        int prev = size();
         for(Song s : c){
-            add(s);
+            add(s, true, false);
         }
+        //save when adding complete
+        if(!tmp) playListIO.write(PlayList.this);
         return true;
+    }
+
+    public void forcesave(){
+        playListIO.write(PlayList.this);
     }
 
     @Override
@@ -166,7 +187,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         for(Song s : this){
             sb.append(s.getName());
             sb.append("__");
-            sb.append(s.getType());
             sb.append(", ");
         }
         sb.delete(sb.length()-2, sb.length()-1);

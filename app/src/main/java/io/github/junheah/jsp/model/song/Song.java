@@ -4,11 +4,20 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
+import androidx.room.PrimaryKey;
+
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.PlayList;
 
 public class Song{
+    public final static short NONE = -1;
+    public final static short LOCAL = 0;
+    public final static short EXTERNAL = 1;
+    public final static short EXTERNAL_CONTAINER = 2;
+
+    @PrimaryKey(autoGenerate = true)
+    long sid;
 
     //todo : on application start, automatically parse metadata in background
 
@@ -31,18 +40,19 @@ public class Song{
     transient Song prev;
     transient Song next;
     transient PlayList parent;
-
     String name="";
     String artist="";
     String path;
-    String type;   //gson
     transient Uri cover;
+
+    public Song(long sid){
+        this.sid = sid;
+    }
 
     public Song(String name, String artist, String path){
         this.name = name;
         this.artist = artist;
         this.path = path;
-        this.type = "SONG";
     }
 
     public void setParent(PlayList parent) {
@@ -51,10 +61,6 @@ public class Song{
 
     public PlayList getParent() {
         return this.parent;
-    }
-
-    public String getType(){
-        return this.type;
     }
 
     public String getName() {
@@ -87,9 +93,13 @@ public class Song{
         this.path = path;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void fetchData(){ }
+
+    public long getSid() {
+        return sid;
     }
 
-    public void fetchData(){ }
+    public void setSid(long sid) {
+        this.sid = sid;
+    }
 }

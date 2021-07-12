@@ -1,0 +1,26 @@
+package io.github.junheah.jsp.model.room;
+
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+
+import java.util.List;
+
+import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.LocalSong;
+import io.github.junheah.jsp.model.song.Song;
+
+@Dao
+public interface LocalSongDao {
+    @Query("SELECT * FROM local")
+    List<LocalSong> getAll();
+    @Insert
+    long[] insertAll(LocalSong... songs);
+    @Insert
+    long insert(LocalSong song);
+    @Query("SELECT * FROM local WHERE sid = (:sid)")
+    LocalSong get(long sid);
+    @Query("SELECT * FROM local WHERE path = (:path)")
+    LocalSong findWithPath(String path);
+}

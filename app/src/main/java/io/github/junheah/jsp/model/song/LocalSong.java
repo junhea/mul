@@ -9,20 +9,34 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import java.io.File;
 import java.util.HashMap;
 
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.model.song.Song;
 
-
+@Entity(tableName="local", indices = @Index(value = {"path"}, unique = true))
 public class LocalSong extends Song {
 
     public boolean nocover = false;
 
+    @Ignore
+    public LocalSong(long sid){
+        super(sid);
+    }
+    @Ignore
     public LocalSong(String name, String artist, String path) {
         super(name, artist, path);
-        this.type = "LOCAL";    //gson
+    }
+
+    public LocalSong(String name, String artist, String path, boolean nocover) {
+        super(name, artist, path);
+        this.nocover = nocover;
     }
 
     @Override
@@ -51,5 +65,12 @@ public class LocalSong extends Song {
             name = getPath().substring(getPath().lastIndexOf('/') + 1);
         }
         artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+
+        byte[] artBytes = retriever.getEmbeddedPicture();
+        Bitmap cover = null;
+        if (artBytes != null) {
+            cover = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
+        }
+        if(cover == null) this.nocover = true;
     }
 }

@@ -13,7 +13,6 @@ import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.Song;
 
-import static io.github.junheah.jsp.Utils.songListDeserializer;
 
 public class Search {
     Source source;

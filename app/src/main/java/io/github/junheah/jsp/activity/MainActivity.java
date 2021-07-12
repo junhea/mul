@@ -6,11 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,7 +19,6 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,20 +35,17 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
-import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
+import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.SongDataParser;
 import io.github.junheah.jsp.model.song.SongPlayListParcel;
-import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
@@ -60,7 +54,6 @@ import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerStatus;
-import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -139,8 +132,11 @@ public class MainActivity extends AppCompatActivity {
     };
 
     public void addSong(SongPlayListParcel parcel) {
-        if(parcel.song instanceof ExternalSong){
-            parcel.playList.add(parcel.song);
+        if(parcel.songs.get(0) instanceof ExternalSong){
+            for(Song s : parcel.songs) {
+                parcel.playList.add(s);
+                s.setSid(SongDatabase.getInstance(context).externalDao().insert((ExternalSong) s));
+            }
         }else {
             if (parser == null || !parser.running) {
                 parser = new SongDataParser(this);
@@ -566,6 +562,7 @@ public class MainActivity extends AppCompatActivity {
         calculateDimensions(portrait);
         reloadPlayerControls(portrait);
     }
+
 
     void toggleButtons(ViewGroup group, boolean playerIsRunning){
         for(int i=0; i<group.getChildCount(); i++){

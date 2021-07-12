@@ -201,6 +201,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
+
     @Override
     public int getItemCount() {
         return playList.size();

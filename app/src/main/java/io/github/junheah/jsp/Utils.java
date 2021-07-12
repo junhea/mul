@@ -1,23 +1,18 @@
 package io.github.junheah.jsp;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.DocumentsContract;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -25,32 +20,20 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.List;
 
-import io.github.junheah.jsp.gson.PlayListDeserializer;
-import io.github.junheah.jsp.gson.PlayListSerializer;
-import io.github.junheah.jsp.gson.RuntimeTypeAdapterFactory;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
-import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
-import io.github.junheah.jsp.model.song.ExternalSongContainer;
-import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 public class Utils {
@@ -101,37 +84,6 @@ public class Utils {
         return builder.toString();
     }
 
-
-    public static Gson playListSerializer(){
-        return new GsonBuilder()
-                .registerTypeAdapter(new TypeToken<PlayList>() {}.getType(), new PlayListSerializer())
-                .create();
-    }
-
-    public static Gson playListDeserializer(){
-        RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-                .of(Song.class, "type")
-                .registerSubtype(Song.class, "SONG")
-                .registerSubtype(LocalSong.class, "LOCAL")
-                .registerSubtype(ExternalSong.class, "EXTERNAL")
-                .registerSubtype(ExternalSongContainer.class, "EXTERNAL.CONTAINER");
-        return new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
-                .registerTypeAdapter(new TypeToken<PlayList>() {}.getType(), new PlayListDeserializer())
-                .create();
-    }
-
-    public static Gson songListDeserializer() {
-        RuntimeTypeAdapterFactory<Song> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-                .of(Song.class, "type")
-                .registerSubtype(Song.class, "SONG")
-                .registerSubtype(LocalSong.class, "LOCAL")
-                .registerSubtype(ExternalSong.class, "EXTERNAL")
-                .registerSubtype(ExternalSongContainer.class, "EXTERNAL.CONTAINER");
-        return new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
-                .create();
-    }
 
     public static void pickerPopup(Fragment fragment, String title, String[] options, StringCallback callback){
         View layout = fragment.getLayoutInflater().inflate(R.layout.content_picker_popup, null);

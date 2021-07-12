@@ -18,20 +18,18 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.Song;
 
-import static io.github.junheah.jsp.Utils.playListDeserializer;
-import static io.github.junheah.jsp.Utils.playListSerializer;
+import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
+import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 public class PlayListIO {
-    //sharedpref writer & reader
     Context context;
     SharedPreferences reader;
     SharedPreferences.Editor editor;
-    Gson s, d;
-    Type t;
-
-    //original object
-    List<PlayList> playLists;
+    List<PlayList> lists;
+    Gson g;
 
     List<String> keys;
 
@@ -43,35 +41,33 @@ public class PlayListIO {
         //only get keys & load on user request (dont save playlist object!!!)
         keys = new ArrayList<>();
         keys.addAll(reader.getAll().keySet());
-        t = new TypeToken<PlayList>() {}.getType();
-        s = playListSerializer();
-        d = playListDeserializer();
+        g = new Gson();
+        lists = new ArrayList<>();
     }
 
-    public PlayList get(String key){
+    public List<long[]> getids(String key){
         if(keys.indexOf(key) > -1){
-            t = new TypeToken<PlayList>() {}.getType();
-            return d.fromJson((String) reader.getString(key, "[]"), t);
+            return g.fromJson((String) reader.getString(key, "[]"), new TypeToken<List<long[]>>() {}.getType());
         }
         //not found
         return null;
     }
 
-    public String getRaw(){
-        Map<String,?> data = reader.getAll();
-        StringBuilder builder = new StringBuilder();
-        builder.append('{');
-        for(Map.Entry<String,?> e : data.entrySet()){
-            builder.append('\"');
-            builder.append(e.getKey());
-            builder.append("\" : ");
-            builder.append(e.getValue());
-            builder.append(", ");
-        }
-        builder.delete(builder.length()-2, builder.length()-1);
-        builder.append('}');
-        return builder.toString();
+    public PlayList get(String key){
+        PlayList pl = new PlayList(key);
+        lists.add(pl);
+        return pl;
     }
+
+    public void detach(PlayList pl){
+        System.out.println("detach!!! " + pl.getName());
+        lists.remove(pl);
+    }
+
+    public String getRaw(){
+        return "";
+    }
+
 
     public void writeRaw(String s){
         try {
@@ -95,7 +91,15 @@ public class PlayListIO {
     }
 
     public void write(PlayList playList){
-        editor.putString(playList.getName(), s.toJson(playList, t));
+        List<long[]> ids = new ArrayList<>();
+        for(Song s : playList){
+            if(s instanceof ExternalSong){
+                ids.add(new long[]{EXTERNAL, s.getSid()});
+            }else{
+                ids.add(new long[]{LOCAL, s.getSid()});
+            }
+        }
+        editor.putString(playList.getName(), g.toJson(ids));
         editor.commit();
     }
 

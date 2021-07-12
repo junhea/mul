@@ -14,7 +14,6 @@ import java.util.Map;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.model.source.ScriptRequest;
 
-import static io.github.junheah.jsp.Utils.songListDeserializer;
 
 public class ExternalSongContainer extends ExternalSong{
 
@@ -24,7 +23,6 @@ public class ExternalSongContainer extends ExternalSong{
 
     public ExternalSongContainer(String id, String name, String artist, String url, String cover, Map<String, String> headers, String etype) {
         super(id, name, artist, url, cover, headers);
-        this.type="EXTERNAL.CONTAINER";
         this.etype = etype;
     }
 
@@ -32,7 +30,6 @@ public class ExternalSongContainer extends ExternalSong{
         super(id, name, artist, url, cover, headers);
         this.songs = songs;
         this.etype = etype;
-        this.type="EXTERNAL.CONTAINER";
     }
 
     public String getEtype() {
