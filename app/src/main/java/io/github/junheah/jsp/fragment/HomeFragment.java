@@ -11,32 +11,22 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.util.List;
+import androidx.appcompat.app.AppCompatActivity;
 
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
-import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.SourceManagerActivity;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.source.Source;
 
 import static io.github.junheah.jsp.MainApplication.playListIO;
-import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
-public class HomeFragment extends CallbackFragment {
+public class HomeFragment extends CustomFragment {
     PlayListItemClickCallback playListCallback; //used when adding playlists
 
     public HomeFragment(){
@@ -56,6 +46,12 @@ public class HomeFragment extends CallbackFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Library");
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
@@ -65,53 +61,11 @@ public class HomeFragment extends CallbackFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.findViewById(R.id.home_add_playlist).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(fragmentAdapterCallback != null){
-                    singleInputPopup(getContext(), new StringCallback() {
-                        @Override
-                        public void callback(String data) {
-                            //playlist io
 
-                            if(playListIO.getNames().contains(data)){
-                                //duplicate
-                                showPopup(getContext(),data,"이 플레이리스트는 이미 존재합니다");
-                            } else {
-                                //create playlist instance
-                                PlayList pl = playListIO.create(data);
-
-                                //create fragment and add to adapter
-                                fragmentAdapterCallback.addItem(PlayListFragment.newInstance(pl));
-
-                                //save
-                                playListIO.write(pl);
-                            }
-                        }
-                    });
-                }
-            }
-        });
 
         //source io
         SourceIO sourceIO = new SourceIO(getContext());
         sourceIO.load();
-        sourceIO.createExample();   //debug
-
-        view.findViewById(R.id.home_search).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pickerPopup(HomeFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
-                    @Override
-                    public void callback(String data) {
-                        SearchFragment fragment = SearchFragment.newInstance(sourceIO.getSource(data));
-                        fragment.setAdapterCallback(fragmentAdapterCallback);
-                        fragmentAdapterCallback.insertItem(0, fragment);
-                    }
-                });
-
-            }
-        });
 
         //source manager
         view.findViewById(R.id.home_source_manager).setOnClickListener(new View.OnClickListener() {
@@ -128,6 +82,7 @@ public class HomeFragment extends CallbackFragment {
             case R.id.menu_debug:
                 startActivity(new Intent(getContext(), DebugActivity.class));
                 break;
+
         }
         return true;
     }

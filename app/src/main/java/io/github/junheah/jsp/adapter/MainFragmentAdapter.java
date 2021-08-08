@@ -3,58 +3,30 @@ package io.github.junheah.jsp.adapter;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.adapter.FragmentViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.junheah.jsp.fragment.CallbackFragment;
 import io.github.junheah.jsp.fragment.PlayListFragment;
-import io.github.junheah.jsp.interfaces.FragmentAdapterCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.model.song.Song;
 
-public class MainFragmentAdapter extends FragmentStateAdapter implements SongCallback {
+public class MainFragmentAdapter extends FragmentStateAdapter{
 
     List<Fragment> fragments;
-    FragmentAdapterCallback callback;
 
     public MainFragmentAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
         fragments = new ArrayList<>();
-        callback = new FragmentAdapterCallback() {
-            @Override
-            public void addItem(Object obj) {
-                append((Fragment)obj);
-            }
-
-            @Override
-            public void removeItem(Object obj) {
-                int i = fragments.indexOf(obj);
-                if(i>-1){
-                    remove(i);
-                }
-            }
-
-            @Override
-            public void insertItem(int index, Object obj) {
-                insert(index, (Fragment) obj);
-            }
-        };
     }
 
     public void append(Fragment fragment){
-        if(fragment instanceof CallbackFragment)
-            ((CallbackFragment) fragment).setAdapterCallback(callback);
         fragments.add(fragment);
         notifyItemInserted(fragments.size()-1);
     }
 
     public void insert(int index, Fragment fragment){
-        if(fragment instanceof CallbackFragment)
-            ((CallbackFragment) fragment).setAdapterCallback(callback);
         fragments.add(index, fragment);
         notifyItemInserted(index);
     }
@@ -89,12 +61,11 @@ public class MainFragmentAdapter extends FragmentStateAdapter implements SongCal
         return fragments.size();
     }
 
-    @Override
-    public void callback(Song song) {
+    public void notify(Song song) {
         //set now playing
         for(Fragment f : fragments){
             if(f instanceof PlayListFragment){
-                ((PlayListFragment)f).callback(song);
+                ((PlayListFragment)f).notify(song);
             }
         }
     }

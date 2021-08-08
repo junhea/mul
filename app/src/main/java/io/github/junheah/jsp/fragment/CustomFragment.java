@@ -13,14 +13,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.FragmentAdapterCallback;
 
 
-public class CallbackFragment extends Fragment {
-
-    FragmentAdapterCallback fragmentAdapterCallback;
-
-    public void setAdapterCallback(FragmentAdapterCallback callback){
-        this.fragmentAdapterCallback = callback;
-    }
-
+public class CustomFragment extends Fragment {
     public void setTheme(){
         getContext().getTheme().applyStyle(R.style.FragmentTheme, true);
     }

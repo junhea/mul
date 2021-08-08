@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             timeStampThread = null;
             //notify current to fragments
             if(adapter != null)
-                adapter.callback(null);
+                adapter.notify(null);
         }
     };
 
@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
                         current = player.getCurrent();
                         //notify current to fragments
                         if(adapter != null)
-                            adapter.callback(current);
+                            adapter.notify(current);
                         if (current == null) {
                             //no song loaded
                             nextbtn.setEnabled(false);
@@ -531,25 +531,11 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
         //add home fragment
-        adapter.append(HomeFragment.newInstance());
 
-        //load playlists
-        onPlayerConnected = new Runnable() {
-            @Override
-            public void run() {
-                PlayListFragment tmpfrag;
-                for(String key : playListIO.getNames()){
-                    if(bound && player.getPlayList().getName().equals(key)){
-                        System.out.println("restore from player");
-                        tmpfrag = PlayListFragment.newInstance(player.getPlayList());
-                    }else {
-                        tmpfrag = PlayListFragment.newInstance(key);
-                    }
-                    adapter.append(tmpfrag);
-                }
-            }
-        };
-        if(!Player.running){
+        adapter.append(HomeFragment.newInstance());
+        adapter.append(PlayListFragment.newInstance());
+
+        if(onPlayerConnected != null){
             onPlayerConnected.run();
             onPlayerConnected = null;
         }

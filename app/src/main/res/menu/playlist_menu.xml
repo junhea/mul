@@ -9,12 +9,4 @@
         android:icon="@drawable/add"
         android:title="add song"
         app:showAsAction="always" />
-    <item android:id="@+id/menu_addPlayList"
-        android:icon="@drawable/add_playlist"
-        android:title="add playlist"
-        app:showAsAction="always" />
-    <item android:id="@+id/menu_deletePlayList"
-        android:icon="@drawable/delete_playlist"
-        android:title="remove playlist"
-        app:showAsAction="always" />
 </menu>

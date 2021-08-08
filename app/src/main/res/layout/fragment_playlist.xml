@@ -1,17 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/fragmentBackground">
-    <TextView
-        style="?android:textAppearanceLarge"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:id="@+id/playlist_name"/>
+        android:orientation="horizontal"
+        android:id="@+id/playList_name_bar"
+        android:layout_gravity="center_vertical"
+        android:background="#202020"
+        android:layout_height="wrap_content">
+        <ImageButton
+            android:scaleType="centerInside"
+            android:id="@+id/playlist_back"
+            android:padding="10dp"
+            android:layout_width="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            app:srcCompat="@drawable/ic_baseline_arrow_back_ios_new_24"
+            android:layout_height="match_parent"/>
+        <TextView
+            android:textColor="#FFF"
+            style="?android:textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:id="@+id/playlist_name"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

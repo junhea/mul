@@ -1,7 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,7 +31,6 @@ import io.github.junheah.jsp.interfaces.SearchResultInterface;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.source.Search;
@@ -42,7 +40,7 @@ import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
 
-public class SearchFragment extends CallbackFragment{
+public class SearchFragment extends CustomFragment {
 
     Source source;
     LinearLayoutCompat container;
@@ -254,7 +252,6 @@ public class SearchFragment extends CallbackFragment{
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
             case R.id.search_close:
-                fragmentAdapterCallback.removeItem(SearchFragment.this);
                 source.close();
                 break;
             case R.id.search_add:

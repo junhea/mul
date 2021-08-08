@@ -28,7 +28,6 @@ public class PlayListIO {
     Context context;
     SharedPreferences reader;
     SharedPreferences.Editor editor;
-    List<PlayList> lists;
     Gson g;
 
     List<String> keys;
@@ -42,7 +41,6 @@ public class PlayListIO {
         keys = new ArrayList<>();
         keys.addAll(reader.getAll().keySet());
         g = new Gson();
-        lists = new ArrayList<>();
     }
 
     public List<long[]> getids(String key){
@@ -55,13 +53,11 @@ public class PlayListIO {
 
     public PlayList get(String key){
         PlayList pl = new PlayList(key);
-        lists.add(pl);
         return pl;
     }
 
     public void detach(PlayList pl){
         System.out.println("detach!!! " + pl.getName());
-        lists.remove(pl);
     }
 
     public String getRaw(){

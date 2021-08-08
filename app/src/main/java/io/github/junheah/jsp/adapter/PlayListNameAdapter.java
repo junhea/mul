@@ -1,0 +1,76 @@
+package io.github.junheah.jsp.adapter;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+import io.github.junheah.jsp.R;
+
+import static io.github.junheah.jsp.MainApplication.playListIO;
+
+public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+    List<String> keys;
+    Context context;
+    LayoutInflater inflater;
+    PlayListSelectListener callback;
+
+    public PlayListNameAdapter(Context context, PlayListSelectListener callback){
+        this.callback = callback;
+        this.context = context;
+        this.keys = playListIO.getNames();
+        this.inflater = LayoutInflater.from(context);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view  = inflater.inflate(R.layout.playlist_name_item, parent, false);
+        return new PlayListNameViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        String k = keys.get(position);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(callback != null)
+                    callback.itemClick(k);
+            }
+        });
+        ((PlayListNameViewHolder)holder).name.setText(k);
+    }
+
+    @Override
+    public int getItemCount() {
+        return keys.size();
+    }
+
+    public interface PlayListSelectListener{
+        void itemClick(String key);
+    }
+
+    public void added(String key){
+        notifyItemInserted(keys.size()-1);
+    }
+
+    public class PlayListNameViewHolder extends RecyclerView.ViewHolder{
+        TextView name;
+        public PlayListNameViewHolder(@NonNull View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.playlist_name_text);
+        }
+    }
+}

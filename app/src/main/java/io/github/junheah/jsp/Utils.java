@@ -150,7 +150,7 @@ public class Utils {
                                     urlInput.getText().toString(),
                                     coverInput.getText().toString(),
                                     new HashMap<>());
-                            callback.callback(song);
+                            callback.notify(song);
                         }catch (Exception e){
                             e.printStackTrace();
                             showPopup(context, "오류", "error in song info");
