@@ -236,6 +236,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+
     public boolean hasHistory(){
         return history.size()>0;
     }

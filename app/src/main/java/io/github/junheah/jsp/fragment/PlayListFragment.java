@@ -63,8 +63,6 @@ public class PlayListFragment extends CustomFragment {
     Song current;
 
 
-
-
     public PlayListFragment() {
         // don't do anything
     }
@@ -137,6 +135,8 @@ public class PlayListFragment extends CustomFragment {
                     needLoad = true;
                 }
                 adapter = new PlayListAdapter(getContext(), playList);
+                if (playList.indexOf(current) > -1)
+                    adapter.currentChanged(current);
                 adapter.setCallback(callback);
                 //drag
                 ItemTouchHelper.Callback callback = new ItemMoveCallback(adapter);
@@ -181,8 +181,8 @@ public class PlayListFragment extends CustomFragment {
 
     public void notify(Song song) {
         //now playing changed
+        current = song;
         if(adapter != null) {
-            current = song;
             if (playList.indexOf(song) > -1)
                 adapter.currentChanged(song);
             else

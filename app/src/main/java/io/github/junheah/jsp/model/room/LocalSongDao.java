@@ -19,6 +19,8 @@ public interface LocalSongDao {
     long[] insertAll(LocalSong... songs);
     @Insert
     long insert(LocalSong song);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long replace(LocalSong song);
     @Query("SELECT * FROM local WHERE sid = (:sid)")
     LocalSong get(long sid);
     @Query("SELECT * FROM local WHERE path = (:path)")

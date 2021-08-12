@@ -10,9 +10,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
@@ -53,10 +56,8 @@ public class SearchFragment extends CustomFragment {
         // do nothing
     }
 
-    public static SearchFragment newInstance(Source source){
+    public static SearchFragment newInstance(){
         SearchFragment fragment = new SearchFragment();
-        fragment.setSource(source);
-
         return fragment;
     }
 
@@ -71,10 +72,11 @@ public class SearchFragment extends CustomFragment {
         return inflater.inflate(R.layout.fragment_search, container, false);
     }
 
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Activity activity = getActivity();
         RecyclerView recyclerView = view.findViewById(R.id.search_result);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         EditText input = view.findViewById(R.id.search_input);
@@ -93,6 +95,26 @@ public class SearchFragment extends CustomFragment {
                 if(swipehistory.size()>0){
                     swipehistory.remove(swipehistory.size()-1);
                 }
+            }
+        });
+
+        //source io
+        SourceIO sourceIO = new SourceIO(getContext());
+        sourceIO.load();
+
+        view.findViewById(R.id.search_source_select).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickerPopup(SearchFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        SearchFragment.this.setSource(sourceIO.getSource(data));
+                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Search - " +data);
+                        input.setText("");
+                        adapter.clear();
+                        adapter.reset();
+                    }
+                });
             }
         });
 
@@ -169,37 +191,40 @@ public class SearchFragment extends CustomFragment {
                 toggleSelectMode(song);
             }
         });
+
         recyclerView.setAdapter(adapter);
 
         view.findViewById(R.id.search_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                lockui(true);
-                if(adapter.getSelectMode())
-                    toggleSelectMode(null);
-                adapter.reset();
-                prevResBtn.setVisibility(View.GONE);
-                Search search = source.getSearch(input.getText().toString());
-                ScriptCallback onSearch = new ScriptCallback() {
-                    @Override
-                    public void callback(Object res) {
-                        //update ui
-                        adapter.addAll(search.getResult());
-                        lockui(false);
-                    }
+                if(source != null && source.getName() != null) {
+                    lockui(true);
+                    if (adapter.getSelectMode())
+                        toggleSelectMode(null);
+                    adapter.reset();
+                    prevResBtn.setVisibility(View.GONE);
+                    Search search = source.getSearch(input.getText().toString());
+                    ScriptCallback onSearch = new ScriptCallback() {
+                        @Override
+                        public void callback(Object res) {
+                            //update ui
+                            adapter.addAll(search.getResult());
+                            lockui(false);
+                        }
 
-                    @Override
-                    public void onError(Exception e) {
-                        lockui(false);
-                    }
-                };
-                search.fetch(getContext(), onSearch);
-                swipehistory.add(new Runnable() {
-                    @Override
-                    public void run() {
-                        search.fetch(getContext(), onSearch);
-                    }
-                });
+                        @Override
+                        public void onError(Exception e) {
+                            lockui(false);
+                        }
+                    };
+                    search.fetch(getContext(), onSearch);
+                    swipehistory.add(new Runnable() {
+                        @Override
+                        public void run() {
+                            search.fetch(getContext(), onSearch);
+                        }
+                    });
+                }
             }
         });
     }
@@ -251,9 +276,6 @@ public class SearchFragment extends CustomFragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
-            case R.id.search_close:
-                source.close();
-                break;
             case R.id.search_add:
                 List<ExternalSong> res = adapter.getSelected();
                 pickerPopup(SearchFragment.this, "add to playlist", playListIO.getNames().toArray(new String[playListIO.getNames().size()]), new StringCallback() {
@@ -261,7 +283,7 @@ public class SearchFragment extends CustomFragment {
                     public void callback(String data) {
                         //add song to playlist
                         for(ExternalSong s : res){
-                            ((MainActivity)getActivity()).addSong(data, s);
+                            //TODO : 노래 추가 - playlistio를 사용하되, 현재 플레이어에 로드된 플레이리스트일 경우와, playlistfragment에 로드된 플레이리스트일 경우를 고려
                         }
                         toggleSelectMode(null);
                     }
@@ -269,6 +291,16 @@ public class SearchFragment extends CustomFragment {
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        String title = "Search";
+        if(source != null && source.getName() != null){
+            title += " - " + source.getName();
+        }
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(title);
     }
 
     public void lockui(boolean lock){

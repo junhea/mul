@@ -62,11 +62,6 @@ public class HomeFragment extends CustomFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
-        //source io
-        SourceIO sourceIO = new SourceIO(getContext());
-        sourceIO.load();
-
         //source manager
         view.findViewById(R.id.home_source_manager).setOnClickListener(new View.OnClickListener() {
             @Override

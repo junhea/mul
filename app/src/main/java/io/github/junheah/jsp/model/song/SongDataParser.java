@@ -52,6 +52,7 @@ public class SongDataParser extends Thread {
                 try {
                     s.setSid(dao.insert((LocalSong) s));
                     s.fetchData();
+                    dao.replace((LocalSong) s);
                 }catch (SQLiteConstraintException e){
                     //already exists
                     s = dao.findWithPath(s.path);

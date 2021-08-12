@@ -124,8 +124,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
     };
 
-    //todo: https://developer.android.com/guide/topics/media-apps/working-with-a-media-session
-
     public Player() {
         super();
     }

@@ -41,6 +41,7 @@ import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
+import io.github.junheah.jsp.fragment.SearchFragment;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
@@ -398,7 +399,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void SongLongClicked(Song song, PlayList list) {
                 //delete song
-                //todo: add more options (use menu popup)
                 YesNoPopup(context, song.getName(), "이 곡을 플레이리스트에서 삭제하겠습니까?",
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -532,8 +532,11 @@ public class MainActivity extends AppCompatActivity {
 
         //add home fragment
 
+        adapter.append(SearchFragment.newInstance());
         adapter.append(HomeFragment.newInstance());
         adapter.append(PlayListFragment.newInstance());
+
+        viewPager.setCurrentItem(1,false);
 
         if(onPlayerConnected != null){
             onPlayerConnected.run();
