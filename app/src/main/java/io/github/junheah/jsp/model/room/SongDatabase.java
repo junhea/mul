@@ -13,7 +13,11 @@ import io.github.junheah.jsp.model.song.LocalSong;
 public abstract class SongDatabase extends RoomDatabase {
     public abstract LocalSongDao localDao();
     public abstract ExternalSongDao externalDao();
-    public static SongDatabase getInstance(Context context){
-        return Room.databaseBuilder(context, SongDatabase.class, "songs").build();
+    private static SongDatabase db;
+    public static synchronized SongDatabase getInstance(Context context){
+        if(db == null){
+            db=Room.databaseBuilder(context.getApplicationContext(), SongDatabase.class, "songs").build();;
+        }
+        return db;
     }
 }

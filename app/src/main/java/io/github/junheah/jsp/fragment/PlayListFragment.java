@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import java.io.File;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.activity.FileChooserActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.adapter.PlayListNameAdapter;
@@ -43,10 +44,11 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 import static android.app.Activity.RESULT_OK;
-import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
+
+
 
 public class PlayListFragment extends CustomFragment {
     public final static int REQUEST_SELECT_SONG = 11;
@@ -58,13 +60,21 @@ public class PlayListFragment extends CustomFragment {
 
     PlayListAdapter adapter;
     PlayListNameAdapter parentadapter;
-    PlayList playList;
+    private static PlayList playList;
+
+    PlayListIO playListIO;
 
     Song current;
+
+    //TODO : 삭제시 중복있을때 인스턴스 구분
 
 
     public PlayListFragment() {
         // don't do anything
+    }
+
+    public static synchronized PlayList getCurrentPlayList(){
+        return playList;
     }
 
     public static final PlayListFragment newInstance() {
@@ -88,6 +98,8 @@ public class PlayListFragment extends CustomFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+
+        playListIO = PlayListIO.getInstance(getContext());
     }
 
 
@@ -126,7 +138,7 @@ public class PlayListFragment extends CustomFragment {
             public void itemClick(String key) {
                 //playlist selected
                 boolean needLoad = false;
-                Player player = ((MainActivity) getActivity()).getPlayer();
+                Player player = MainActivity.getPlayer();
                 if (player != null && player.getPlayList().getName().equals(key)) {
                     //restore using player
                     playList = player.getPlayList();
@@ -135,8 +147,7 @@ public class PlayListFragment extends CustomFragment {
                     needLoad = true;
                 }
                 adapter = new PlayListAdapter(getContext(), playList);
-                if (playList.indexOf(current) > -1)
-                    adapter.currentChanged(current);
+                adapter.currentChanged(current);
                 adapter.setCallback(callback);
                 //drag
                 ItemTouchHelper.Callback callback = new ItemMoveCallback(adapter);
@@ -173,6 +184,7 @@ public class PlayListFragment extends CustomFragment {
                     loader = null;
                 }
                 adapter = null;
+                playList = null;
             }
         });
         recycler.setAdapter(parentadapter);
@@ -182,10 +194,13 @@ public class PlayListFragment extends CustomFragment {
     public void notify(Song song) {
         //now playing changed
         current = song;
+        System.out.println("notified: " +song.hashCode());
         if(adapter != null) {
-            if (playList.indexOf(song) > -1)
+            System.out.println("notnull");
+            if (playList.indexOf(song) > -1) {
+                System.out.println("found!");
                 adapter.currentChanged(song);
-            else
+            }else
                 adapter.currentChanged(null);
         }
     }

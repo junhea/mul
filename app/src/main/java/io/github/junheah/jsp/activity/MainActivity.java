@@ -40,6 +40,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.fragment.SearchFragment;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
@@ -59,7 +60,6 @@ import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
-    Player player;
+    private static Player player;
     boolean bound = false;
     PlayerStatus status;
     boolean seekbarTouch = false;
@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     SongDataParser parser;
     public final static int PERMISSION_CODE = 14245;
     Song current;
+    PlayListIO playListIO;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void addSong(SongPlayListParcel parcel) {
+    public synchronized void addSong(SongPlayListParcel parcel) {
         if(parcel.songs.get(0) instanceof ExternalSong){
             for(Song s : parcel.songs) {
                 parcel.playList.add(s);
@@ -146,11 +147,6 @@ public class MainActivity extends AppCompatActivity {
                 parser.add(parcel);
             }
         }
-    }
-
-    public void addSong(String name, Song song){
-        //external song adder
-        //check if playlist is currently loaded, if true, add via playlist.add if not, add through playlist io,
     }
 
     public void calculateDimensions(boolean portrait){
@@ -264,10 +260,9 @@ public class MainActivity extends AppCompatActivity {
         return this.playListCallback;
     }
 
-    public Player getPlayer(){
-        return this.player;
+    public static synchronized Player getPlayer(){
+        return player;
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -275,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         context = this;
+        playListIO = PlayListIO.getInstance(context);
 
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
@@ -530,12 +526,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(adapter);
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
-        //add home fragment
-
-        adapter.append(SearchFragment.newInstance());
-        adapter.append(HomeFragment.newInstance());
-        adapter.append(PlayListFragment.newInstance());
-
         viewPager.setCurrentItem(1,false);
 
         if(onPlayerConnected != null){
@@ -635,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                     return;
                 }
-                if(bound) {
+                if(bound && player != null) {
                     status = player.getStatus();
                     if (status != null && status.playing && status.loaded && !seekbarTouch) {
                         Message msg = new Message();

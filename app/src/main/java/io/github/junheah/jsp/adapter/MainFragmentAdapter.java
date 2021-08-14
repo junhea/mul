@@ -8,37 +8,34 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.fragment.PlayListFragment;
+import io.github.junheah.jsp.fragment.SearchFragment;
 import io.github.junheah.jsp.interfaces.SongCallback;
+import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongPlayListParcel;
 
 public class MainFragmentAdapter extends FragmentStateAdapter{
 
-    List<Fragment> fragments;
+    Fragment[] fragments = new Fragment[3];
 
     public MainFragmentAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
-        fragments = new ArrayList<>();
+        fragments[0] = SearchFragment.newInstance();
+        fragments[1] = HomeFragment.newInstance();
+        fragments[2] = PlayListFragment.newInstance();
     }
 
-    public void append(Fragment fragment){
-        fragments.add(fragment);
-        notifyItemInserted(fragments.size()-1);
-    }
-
-    public void insert(int index, Fragment fragment){
-        fragments.add(index, fragment);
-        notifyItemInserted(index);
-    }
-
-    public void remove(int index){
-        fragments.remove(index);
-        notifyItemRemoved(index);
+    @NonNull
+    @Override
+    public Fragment createFragment(int position) {
+        return fragments[position];
     }
 
     @Override
     public long getItemId(int position) {
-        return fragments.get(position).hashCode();
+        return fragments[position].hashCode();
     }
 
     @Override
@@ -50,23 +47,13 @@ public class MainFragmentAdapter extends FragmentStateAdapter{
         return false;
     }
 
-    @NonNull
-    @Override
-    public Fragment createFragment(int position) {
-        return fragments.get(position);
-    }
-
     @Override
     public int getItemCount() {
-        return fragments.size();
+        return fragments.length;
     }
 
     public void notify(Song song) {
         //set now playing
-        for(Fragment f : fragments){
-            if(f instanceof PlayListFragment){
-                ((PlayListFragment)f).notify(song);
-            }
-        }
+        ((PlayListFragment)fragments[2]).notify(song);
     }
 }

@@ -16,12 +16,12 @@ import android.widget.TextView;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 
-import static io.github.junheah.jsp.MainApplication.playListIO;
 
 public class DebugActivity extends AppCompatActivity {
     TextView output;
     Context context;
     ScrollView scroll;
+    PlayListIO playListIO;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +29,11 @@ public class DebugActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
 
-
         Button pref = this.findViewById(R.id.debug_pref);
         output = this.findViewById(R.id.debug_out);
         context = this;
 
+        playListIO = PlayListIO.getInstance(context);
         scroll = this.findViewById(R.id.debug_scroll);
         pref.setOnClickListener(new View.OnClickListener() {
             @Override

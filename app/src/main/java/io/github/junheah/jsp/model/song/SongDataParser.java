@@ -7,18 +7,12 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.bumptech.glide.Glide;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
-import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
-import static io.github.junheah.jsp.MainApplication.playListIO;
 
 
 public class SongDataParser extends Thread {
@@ -26,6 +20,7 @@ public class SongDataParser extends Thread {
     Context context;
     LocalSongDao dao;
     public static boolean running;
+
     public SongDataParser(Context context){
         this.queue = new ArrayList<>();
         this.context = context;
@@ -57,7 +52,6 @@ public class SongDataParser extends Thread {
                     //already exists
                     s = dao.findWithPath(s.path);
                 }
-                System.out.println("pppp "+ s.getSid());
                 Song finalS = s;
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override

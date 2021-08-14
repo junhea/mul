@@ -20,4 +20,6 @@ public interface ExternalSongDao {
     long insert(ExternalSong song);
     @Query("SELECT * FROM external WHERE sid = (:sid)")
     ExternalSong get(long sid);
+    @Query("SELECT * FROM external WHERE id = (:id)")
+    ExternalSong findWithId(String id);
 }

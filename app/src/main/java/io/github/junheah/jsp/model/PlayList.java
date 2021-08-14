@@ -1,17 +1,19 @@
 package io.github.junheah.jsp.model;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListChangeCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.song.Song;
 
-import static io.github.junheah.jsp.MainApplication.playListIO;
 
 public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     //doubly linked list
@@ -22,6 +24,8 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     transient boolean tmp = false;
     public transient boolean cleared = false;
 
+    transient PlayListIO playListIO;
+
     public String getName(){
         return name == null ? "" : name;
     }
@@ -30,16 +34,18 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         this.name = name;
     }
 
-    public PlayList(String name) {
+    public PlayList(Context context, String name) {
         super();
         this.name = name;
         this.tmp = false;
+        playListIO = PlayListIO.getInstance(context);
     }
 
-    public PlayList(String name, boolean tmp) {
+    public PlayList(Context context, String name, boolean tmp) {
         super();
         this.name = name;
         this.tmp = tmp;
+        playListIO = PlayListIO.getInstance(context);
     }
 
     public void playListRemoved(){
@@ -78,6 +84,18 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     }
 
     @Override
+    public int indexOf(@Nullable Object o) {
+        System.out.println(o.hashCode());
+        for(int i = 0; i<size(); i++){
+            System.out.println("\t\t"+get(i).hashCode());
+            if(get(i).hashCode() == o.hashCode()){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public boolean add(Song song){
         return add(song, false, false);
     }
@@ -89,6 +107,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         cleared = true;
         super.clear();
     }
+
 
     @Override
     public void add(int index, Song song) {

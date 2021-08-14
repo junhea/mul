@@ -39,7 +39,7 @@ public class SourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.items = new ArrayList<>();
         //add local sources first
         items.add("Installed Sources");
-        SourceIO sourceIO = new SourceIO(context);
+        SourceIO sourceIO = SourceIO.getInstance(context);
         sourceIO.load();
         for(Source s : sourceIO.getSources()){
             items.add(new SourceItem(s.getName(), INSTALLED));

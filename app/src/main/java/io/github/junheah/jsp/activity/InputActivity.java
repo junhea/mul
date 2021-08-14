@@ -24,7 +24,7 @@ public class InputActivity extends AppCompatActivity {
         EditText input = this.findViewById(R.id.userdata_input);
         input.setText(intent.getStringExtra("data"));
         String name = intent.getStringExtra("name");
-        SourceIO sourceIO = new SourceIO(this);
+        SourceIO sourceIO = SourceIO.getInstance(getApplicationContext());
         this.findViewById(R.id.userdata_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

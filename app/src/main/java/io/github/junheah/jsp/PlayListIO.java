@@ -32,6 +32,15 @@ public class PlayListIO {
 
     List<String> keys;
 
+    private static PlayListIO io;
+
+    public static synchronized PlayListIO getInstance(Context context){
+        if(io == null){
+            io = new PlayListIO(context.getApplicationContext());
+        }
+        return io;
+    }
+
     public PlayListIO(Context context){
         this.context = context;
         //initialize variables
@@ -52,7 +61,7 @@ public class PlayListIO {
     }
 
     public PlayList get(String key){
-        PlayList pl = new PlayList(key);
+        PlayList pl = new PlayList(context, key);
         return pl;
     }
 
@@ -81,9 +90,18 @@ public class PlayListIO {
 
     public PlayList create(String name){
         keys.add(name);
-        PlayList playList = new PlayList(name);
+        PlayList playList = new PlayList(context, name);
         write(playList);
         return playList;
+    }
+
+    public void addSongs(String playList, List<long[]> items){
+        List<long[]> ids = getids(playList);
+        for(long[] id : items){
+            ids.add(id);
+        }
+        editor.putString(playList, g.toJson(ids));
+        editor.commit();
     }
 
     public void write(PlayList playList){

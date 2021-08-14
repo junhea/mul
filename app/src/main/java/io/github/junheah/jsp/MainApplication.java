@@ -28,7 +28,6 @@ import static org.acra.ReportField.STACK_TRACE;
 
 public class MainApplication extends Application {
     public static HttpClient client;
-    public static PlayListIO playListIO;
     public static Bitmap defaultCover;
 
     public static String baseScript;
@@ -47,7 +46,6 @@ public class MainApplication extends Application {
         defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
 
         this.client = new HttpClient();
-        playListIO = new PlayListIO(this);
         //load basescript
         this.baseScript = getBaseScript(this);
     }

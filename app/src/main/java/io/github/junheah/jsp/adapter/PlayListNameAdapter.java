@@ -11,21 +11,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
-
-import static io.github.junheah.jsp.MainApplication.playListIO;
 
 public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     List<String> keys;
     Context context;
     LayoutInflater inflater;
     PlayListSelectListener callback;
+    PlayListIO playListIO;
 
     public PlayListNameAdapter(Context context, PlayListSelectListener callback){
         this.callback = callback;
         this.context = context;
-        this.keys = playListIO.getNames();
         this.inflater = LayoutInflater.from(context);
+        this.playListIO = PlayListIO.getInstance(context);
+        keys = playListIO.getNames();
     }
 
     @Override

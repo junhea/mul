@@ -31,6 +31,13 @@ public class SourceIO {
         }
     };
 
+    private static SourceIO io;
+
+    public static synchronized SourceIO getInstance(Context context){
+        if(io == null) io = new SourceIO(context.getApplicationContext());
+        return io;
+    }
+
     public SourceIO(Context context){
         this.context = context;
         reader = context.getSharedPreferences("JSPlayer.source_data", Context.MODE_PRIVATE);

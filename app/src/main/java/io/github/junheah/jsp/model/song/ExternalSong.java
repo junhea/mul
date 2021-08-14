@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
@@ -33,7 +34,7 @@ import static io.github.junheah.jsp.MainApplication.baseScript;
 import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.Utils.readFile;
 
-@Entity(tableName = "external")
+@Entity(tableName = "external", indices = @Index(value = {"id"}, unique = true))
 public class ExternalSong extends Song{
 
 
@@ -102,7 +103,7 @@ public class ExternalSong extends Song{
             if(context == null){
                 callback.onError(new Exception("need context"));
             }else {
-                SourceIO io = new SourceIO(context);
+                SourceIO io = SourceIO.getInstance(context);
                 io.load();
                 source = io.getSource(this.sourceID);
             }
@@ -125,7 +126,7 @@ public class ExternalSong extends Song{
             //base script
             rhino.evaluateString(scope, baseScript, "base", 1, null);
             //script
-            SourceIO sourceIO = new SourceIO(context);
+            SourceIO sourceIO = SourceIO.getInstance(context);
             sourceIO.load();
             File script = sourceIO.getSource(this.sourceID).getScript();
             rhino.evaluateString(scope, readFile(script), "JavaScript", 1, null);
@@ -148,11 +149,6 @@ public class ExternalSong extends Song{
 
     public String getId() {
         return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
     }
 
     @Override

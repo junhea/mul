@@ -2,6 +2,8 @@ package io.github.junheah.jsp.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +27,7 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.MainActivity;
@@ -34,14 +37,18 @@ import io.github.junheah.jsp.interfaces.SearchResultInterface;
 import io.github.junheah.jsp.interfaces.ScriptCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
+import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
+import io.github.junheah.jsp.service.Player;
 
-import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
+import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 
 public class SearchFragment extends CustomFragment {
 
@@ -51,6 +58,7 @@ public class SearchFragment extends CustomFragment {
     PlayListItemClickCallback callback;
     SearchResultAdapter adapter;
     Button prevResBtn;
+    PlayListIO playListIO;
 
     public SearchFragment(){
         // do nothing
@@ -99,7 +107,7 @@ public class SearchFragment extends CustomFragment {
         });
 
         //source io
-        SourceIO sourceIO = new SourceIO(getContext());
+        SourceIO sourceIO = SourceIO.getInstance(getContext());
         sourceIO.load();
 
         view.findViewById(R.id.search_source_select).setOnClickListener(new View.OnClickListener() {
@@ -128,7 +136,7 @@ public class SearchFragment extends CustomFragment {
                     @Override
                     public void callback(Object res) {
                         //play in player
-                        PlayList pl = new PlayList("", true);
+                        PlayList pl = new PlayList(getContext(),"", true);
                         pl.add(song);
                         callback.SongClicked(song, pl);
                     }
@@ -252,6 +260,8 @@ public class SearchFragment extends CustomFragment {
 
         //playlist callback
         callback = ((MainActivity) getActivity()).getPlayListCallback();
+
+        playListIO = PlayListIO.getInstance(getContext());
     }
 
     @Override
@@ -277,15 +287,55 @@ public class SearchFragment extends CustomFragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
             case R.id.search_add:
-                List<ExternalSong> res = adapter.getSelected();
+                List<Song> res = adapter.getSelected();
+                toggleSelectMode(null);
                 pickerPopup(SearchFragment.this, "add to playlist", playListIO.getNames().toArray(new String[playListIO.getNames().size()]), new StringCallback() {
                     @Override
                     public void callback(String data) {
-                        //add song to playlist
-                        for(ExternalSong s : res){
-                            //TODO : 노래 추가 - playlistio를 사용하되, 현재 플레이어에 로드된 플레이리스트일 경우와, playlistfragment에 로드된 플레이리스트일 경우를 고려
-                        }
-                        toggleSelectMode(null);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SongDatabase db = SongDatabase.getInstance(getContext());
+                                List<long[]> ids = new ArrayList<>();
+                                for(int i=0; i<res.size(); i++){
+                                    Song s = res.get(i);
+                                    try {
+                                        long id = db.externalDao().insert((ExternalSong) s);
+                                        s.setSid(id);
+                                        System.out.println(res.get(i).getSid());
+                                        ids.add(new long[]{EXTERNAL, id});
+                                    }catch (Exception e){
+                                        res.set(i, db.externalDao().findWithId(((ExternalSong)s).getId()));
+                                        ids.add(new long[]{EXTERNAL, res.get(i).getSid()});
+                                    }
+                                }
+                                //ui thread
+                                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        PlayList playList = null;
+                                        //add song to playlist
+                                        Player player = MainActivity.getPlayer();
+                                        if(player != null && player.getPlayList() != null && player.getPlayList().getName().equals(data)){
+                                            //from player
+                                            playList = player.getPlayList();
+                                        }else if(PlayListFragment.getCurrentPlayList() != null && PlayListFragment.getCurrentPlayList().getName().equals(data)){
+                                            //from playlist fragment
+                                            playList = PlayListFragment.getCurrentPlayList();
+                                        }
+                                        if(playList == null){
+                                            //don't need load : just add via playListio
+                                            playListIO.addSongs(data, ids);
+                                        }else {
+                                            for(Song s : res){
+                                                playList.add(s);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }).start();
+
                     }
                 });
                 break;

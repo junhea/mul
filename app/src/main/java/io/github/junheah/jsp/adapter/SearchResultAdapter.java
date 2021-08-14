@@ -215,8 +215,8 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     }
 
-    public List<ExternalSong> getSelected(){
-        List<ExternalSong> res = new ArrayList<>();
+    public List<Song> getSelected(){
+        List<Song> res = new ArrayList<>();
         for(Object o : data){
             if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)){
                 if(((ExternalSong) o).getChecked()){

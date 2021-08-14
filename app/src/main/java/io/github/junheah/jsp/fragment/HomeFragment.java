@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
@@ -22,12 +23,12 @@ import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 
-import static io.github.junheah.jsp.MainApplication.playListIO;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
 public class HomeFragment extends CustomFragment {
     PlayListItemClickCallback playListCallback; //used when adding playlists
+    PlayListIO playListIO;
 
     public HomeFragment(){
         //don't do anything
@@ -56,6 +57,7 @@ public class HomeFragment extends CustomFragment {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
         playListCallback = ((MainActivity)getActivity()).getPlayListCallback();
+        playListIO = PlayListIO.getInstance(getContext());
     }
 
     @Override

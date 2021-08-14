@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
 import androidx.room.PrimaryKey;
 
 import io.github.junheah.jsp.interfaces.BitmapCallback;
