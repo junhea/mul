@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat;
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -133,10 +135,20 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
 
         if(current != null && item.equals(current)){
-            ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
-            Glide.with(context)
-                    .load(R.drawable.nowplaying)
-                    .into(((PlayListViewHolder) holder).playing);
+            if(((PlayListViewHolder) holder).playing.getVisibility() == View.GONE) {
+                ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
+                AnimatedVectorDrawableCompat d = AnimatedVectorDrawableCompat.create(context, R.drawable.nowplaying);
+                ((PlayListViewHolder) holder).playing.setImageDrawable(d);
+                d.registerAnimationCallback(new Animatable2Compat.AnimationCallback() {
+                    @Override
+                    public void onAnimationEnd(Drawable drawable) {
+                        super.onAnimationEnd(drawable);
+                        d.start();
+                    }
+                });
+                d.start();
+
+            }
         }else {
             ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }

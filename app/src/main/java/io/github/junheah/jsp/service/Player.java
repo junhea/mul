@@ -212,7 +212,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
             @Override
             public void songRemoved(Song song) {
-                if(current.hashCode() == song.hashCode()){
+                if(current.equals(song)){
                     stop();
                 }else{
                     this.playListUpdated();

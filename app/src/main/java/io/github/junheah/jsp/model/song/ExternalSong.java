@@ -151,11 +151,6 @@ public class ExternalSong extends Song{
         return id;
     }
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if(obj == null) return false;
-        return this.hashCode() == obj.hashCode();
-    }
 
     public void setId(String ID) {
         this.id = ID;

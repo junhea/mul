@@ -302,7 +302,6 @@ public class SearchFragment extends CustomFragment {
                                     try {
                                         long id = db.externalDao().insert((ExternalSong) s);
                                         s.setSid(id);
-                                        System.out.println(res.get(i).getSid());
                                         ids.add(new long[]{EXTERNAL, id});
                                     }catch (Exception e){
                                         res.set(i, db.externalDao().findWithId(((ExternalSong)s).getId()));

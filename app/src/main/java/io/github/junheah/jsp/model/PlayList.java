@@ -83,17 +83,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         return res;
     }
 
-    @Override
-    public int indexOf(@Nullable Object o) {
-        System.out.println(o.hashCode());
-        for(int i = 0; i<size(); i++){
-            System.out.println("\t\t"+get(i).hashCode());
-            if(get(i).hashCode() == o.hashCode()){
-                return i;
-            }
-        }
-        return -1;
-    }
 
     @Override
     public boolean add(Song song){

@@ -194,11 +194,8 @@ public class PlayListFragment extends CustomFragment {
     public void notify(Song song) {
         //now playing changed
         current = song;
-        System.out.println("notified: " +song.hashCode());
         if(adapter != null) {
-            System.out.println("notnull");
             if (playList.indexOf(song) > -1) {
-                System.out.println("found!");
                 adapter.currentChanged(song);
             }else
                 adapter.currentChanged(null);
