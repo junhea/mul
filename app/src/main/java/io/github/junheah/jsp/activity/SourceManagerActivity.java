@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.adapter.SourceAdapter;
 import io.github.junheah.jsp.interfaces.SourceOnClickCallback;
 import io.github.junheah.jsp.model.source.Source;
@@ -75,6 +76,9 @@ public class SourceManagerActivity extends AppCompatActivity {
 
                             item.status = INSTALLED;
 
+                            //reload
+                            SourceIO.getInstance(SourceManagerActivity.this).load();
+
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -90,7 +94,7 @@ public class SourceManagerActivity extends AppCompatActivity {
 
             @Override
             public void delete(SourceItem item) {
-
+                SourceIO.getInstance(SourceManagerActivity.this).remove(item.name);
             }
         });
         recycler.setAdapter(adapter);

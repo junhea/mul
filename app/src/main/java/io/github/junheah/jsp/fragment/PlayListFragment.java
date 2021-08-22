@@ -62,6 +62,10 @@ public class PlayListFragment extends CustomFragment {
     PlayListNameAdapter parentadapter;
     private static PlayList playList;
 
+    LinearLayoutCompat titlebar;
+    TextView titletext;
+    RecyclerView recycler;
+
     PlayListIO playListIO;
 
     Song current;
@@ -86,6 +90,8 @@ public class PlayListFragment extends CustomFragment {
     public void addSong(SongPlayListParcel parcel) {
         ((MainActivity)getActivity()).addSong(parcel);
     }
+
+
 
     @Nullable
     @Override
@@ -126,12 +132,12 @@ public class PlayListFragment extends CustomFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         callback = ((MainActivity) getActivity()).getPlayListCallback();
-        RecyclerView recycler = view.findViewById(R.id.recycler);
+        recycler = view.findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
 
-        final LinearLayoutCompat titlebar = view.findViewById(R.id.playList_name_bar);
-        final TextView titletext = view.findViewById(R.id.playlist_name);
+        titlebar = view.findViewById(R.id.playList_name_bar);
+        titletext = view.findViewById(R.id.playlist_name);
 
         parentadapter = new PlayListNameAdapter(getContext(), new PlayListNameAdapter.PlayListSelectListener() {
             @Override
@@ -189,6 +195,23 @@ public class PlayListFragment extends CustomFragment {
         });
         recycler.setAdapter(parentadapter);
 
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if(titlebar.getVisibility() == View.VISIBLE) {
+            getActivity().invalidateOptionsMenu();
+            titlebar.setVisibility(View.GONE);
+            recycler.setAdapter(parentadapter);
+            if (loader != null) {
+                loader.interrupt();
+                loader = null;
+            }
+            adapter = null;
+            playList = null;
+            return true;
+        }
+        return false;
     }
 
     public void notify(Song song) {

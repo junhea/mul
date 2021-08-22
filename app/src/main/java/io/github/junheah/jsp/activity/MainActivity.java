@@ -515,14 +515,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         viewPager.setOffscreenPageLimit(1);
         adapter = new MainFragmentAdapter(this);
-        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onItemRangeRemoved(int positionStart, int itemCount) {
-                if(positionStart > 0){
-                    viewPager.setCurrentItem(positionStart-1,false);
-                }
-            }
-        });
         viewPager.setAdapter(adapter);
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
@@ -532,6 +524,12 @@ public class MainActivity extends AppCompatActivity {
             onPlayerConnected.run();
             onPlayerConnected = null;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(!adapter.onBackPressed(viewPager.getCurrentItem()))
+            super.onBackPressed();
     }
 
     @Override

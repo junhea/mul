@@ -58,10 +58,12 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void setSelectMode(boolean mode, ExternalSong song){
         this.selectMode = mode;
-        for(Object o : data){
-            if(o instanceof ExternalSong) {
-                ((ExternalSong) o).resetCheck();
-                if(song != null && o == song) ((ExternalSong)o).toggleCheck();
+        if(song != null) {
+            for (Object o : data) {
+                if (o instanceof ExternalSong) {
+                    ((ExternalSong) o).resetCheck();
+                    if (song != null && o == song) ((ExternalSong) o).toggleCheck();
+                }
             }
         }
         for(int i=0; i<data.size(); i++){

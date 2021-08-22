@@ -28,5 +28,6 @@ public class PlayListViewHolder extends RecyclerView.ViewHolder{
         cover = itemView.findViewById(R.id.item_cover);
         handle = itemView.findViewById(R.id.item_handle);
         playing = itemView.findViewById(R.id.item_playing);
+
     }
 }

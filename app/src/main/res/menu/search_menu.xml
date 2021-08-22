@@ -6,8 +6,4 @@
         android:visible="false"
         android:icon="@drawable/add"
         android:title="add"/>
-    <item android:id="@+id/search_close"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_baseline_clear"
-        android:title="close"/>
 </menu>

@@ -64,6 +64,10 @@ public class SourceIO {
         }
     }
 
+    public void remove(String name){
+        //TODO
+    }
+
     public String[] getNames(){
         String[] names = new String[sources.size()];
         for(int i=0; i<sources.size(); i++){

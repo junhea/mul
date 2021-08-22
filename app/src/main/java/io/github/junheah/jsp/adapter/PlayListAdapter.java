@@ -137,18 +137,17 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(current != null && item.equals(current)){
             if(((PlayListViewHolder) holder).playing.getVisibility() == View.GONE) {
                 ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
-                AnimatedVectorDrawableCompat d = AnimatedVectorDrawableCompat.create(context, R.drawable.nowplaying);
-                ((PlayListViewHolder) holder).playing.setImageDrawable(d);
-                d.registerAnimationCallback(new Animatable2Compat.AnimationCallback() {
-                    @Override
-                    public void onAnimationEnd(Drawable drawable) {
-                        super.onAnimationEnd(drawable);
-                        d.start();
-                    }
-                });
-                d.start();
-
             }
+            AnimatedVectorDrawableCompat d = AnimatedVectorDrawableCompat.create(context, R.drawable.nowplaying);
+            ((PlayListViewHolder) holder).playing.setImageDrawable(d);
+            d.registerAnimationCallback(new Animatable2Compat.AnimationCallback() {
+                @Override
+                public void onAnimationEnd(Drawable drawable) {
+                    super.onAnimationEnd(drawable);
+                    d.start();
+                }
+            });
+            d.start();
         }else {
             ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }

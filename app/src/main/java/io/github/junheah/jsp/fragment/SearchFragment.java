@@ -237,7 +237,6 @@ public class SearchFragment extends CustomFragment {
         });
     }
 
-
     public void toggleSelectMode(ExternalSong song){
         adapter.setSelectMode(!adapter.getSelectMode(), song);
         prevResBtn.setEnabled(!adapter.getSelectMode());
@@ -340,6 +339,20 @@ public class SearchFragment extends CustomFragment {
                 break;
         }
         return true;
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if(adapter.getSelectMode()){
+            toggleSelectMode(null);
+            return true;
+        }
+        //navigate history
+        if(prevResBtn.getVisibility() == View.VISIBLE){
+            prevResBtn.performClick();
+            return true;
+        }
+        return false;
     }
 
     @Override

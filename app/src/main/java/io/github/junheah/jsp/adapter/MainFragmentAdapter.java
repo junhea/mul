@@ -8,6 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.fragment.CustomFragment;
 import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.fragment.SearchFragment;
@@ -35,7 +36,7 @@ public class MainFragmentAdapter extends FragmentStateAdapter{
 
     @Override
     public long getItemId(int position) {
-        return fragments[position].hashCode();
+        return position;
     }
 
     @Override
@@ -55,5 +56,9 @@ public class MainFragmentAdapter extends FragmentStateAdapter{
     public void notify(Song song) {
         //set now playing
         ((PlayListFragment)fragments[2]).notify(song);
+    }
+
+    public boolean onBackPressed(int index){
+        return ((CustomFragment) fragments[index]).onBackPressed();
     }
 }
