@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
     PlayListItemClickCallback playListCallback;
     PlayList playListQueue;
     Song songQueue;
-    Thread timeStampThread;
     Toolbar toolbar;
     Runnable onPlayerConnected;
     SlidingUpPanelLayout.PanelSlideListener portraitPanelListener, landscapePanelListener;
@@ -117,8 +116,27 @@ public class MainActivity extends AppCompatActivity {
                 songQueue = null;
             }
             //timestamp thread
-            timeStampThread = new Thread(new TimeStampThread());
-            timeStampThread.start();
+            Handler timestampHandler = new Handler(Looper.getMainLooper());
+            final Runnable tr = new Runnable() {
+                @Override
+                public void run() {
+                    if (bound && player != null) {
+                        status = player.getStatus();
+                        if (status != null && status.playing && status.loaded && !seekbarTouch) {
+                            int t = player.getCurrentPosition();
+                            if (!prevbtn.isEnabled() && t > 3000)
+                                prevbtn.setEnabled(true);
+                            String timestamp = getTimeStamp(t);
+                            timestamp_cur.setText(timestamp);
+                            seekBar.setProgress(t);
+                            mini_progress.setProgress(t);
+                        }
+                        timestampHandler.postDelayed(this, 60);
+                    }
+                }
+            };
+            timestampHandler.postDelayed(tr,100);
+
 
             if(onPlayerConnected != null){
                 onPlayerConnected.run();
@@ -130,8 +148,6 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName arg0) {
             System.out.println("service unbound");
             resetPlayer();
-            timeStampThread.interrupt();
-            timeStampThread = null;
             //notify current to fragments
             if(adapter != null)
                 adapter.notify(null);
@@ -626,28 +642,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public class TimeStampThread implements Runnable{
-        @Override
-        public void run() {
-            while(true){
-                try {
-                    Thread.sleep(10);
-                }catch (Exception e){
-                    //interrupted
-                    e.printStackTrace();
-                    return;
-                }
-                if(bound && player != null) {
-                    status = player.getStatus();
-                    if (status != null && status.playing && status.loaded && !seekbarTouch) {
-                        Message msg = new Message();
-                        msg.arg1 = player.getCurrentPosition();
-                        handler.sendMessage(msg);
-                    }
-                }
-            }
-        }
-    };
+
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

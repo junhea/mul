@@ -3,10 +3,13 @@ package io.github.junheah.jsp.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +33,7 @@ import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
+import io.github.junheah.jsp.ui.NowPlayingIcon;
 
 
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemMoveCallback.ItemTouchHelperContract {
@@ -99,7 +103,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view  = inflater.inflate(R.layout.playlist_item, parent, false);
-        return new PlayListViewHolder(view);
+        return new PlayListViewHolder(view, context);
     }
 
     public void currentChanged(Song song){
@@ -135,19 +139,16 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
 
         if(current != null && item.equals(current)){
+            System.out.println("is playing!!");
             if(((PlayListViewHolder) holder).playing.getVisibility() == View.GONE) {
                 ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
             }
-            AnimatedVectorDrawableCompat d = AnimatedVectorDrawableCompat.create(context, R.drawable.nowplaying);
-            ((PlayListViewHolder) holder).playing.setImageDrawable(d);
-            d.registerAnimationCallback(new Animatable2Compat.AnimationCallback() {
+            new Handler(Looper.getMainLooper()).post(new Runnable(){
                 @Override
-                public void onAnimationEnd(Drawable drawable) {
-                    super.onAnimationEnd(drawable);
-                    d.start();
+                public void run() {
+                    NowPlayingIcon.getInstance(context).start();
                 }
             });
-            d.start();
         }else {
             ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }

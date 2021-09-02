@@ -24,6 +24,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.activity.FileChooserActivity;
@@ -342,6 +344,8 @@ public class PlayListFragment extends CustomFragment {
             LocalSongDao ld = db.localDao();
             ExternalSongDao ed = db.externalDao();
 
+            List<Song> pls = new ArrayList<>();
+
             for(long[] id : playListIO.getids(pl.getName())){
                 if(stop) break;
                 Song target;
@@ -350,13 +354,14 @@ public class PlayListFragment extends CustomFragment {
                 }else{
                     target = ed.get(id[1]);
                 }
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        pl.add(target, true, false);
-                    }
-                });
+                pls.add(target);
             }
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    pl.addAll(pls);
+                }
+            });
         }
 
         @Override

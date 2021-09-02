@@ -36,7 +36,6 @@ public class ClipLinearLayout extends LinearLayoutCompat {
     @Override
     protected void dispatchDraw(Canvas canvas) {
         canvas.clipPath(clipPath);
-        System.out.println(canvas.getClipBounds().left + " : " +canvas.getClipBounds().top+ " : " +canvas.getClipBounds().right+ " : " +canvas.getClipBounds().bottom);
         super.dispatchDraw(canvas);
     }
 
