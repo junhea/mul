@@ -61,6 +61,7 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'org.apache.commons:commons-text:1.6'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     def room_version = "2.3.0"
 

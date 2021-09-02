@@ -58,7 +58,7 @@ public class MainFragmentAdapter extends FragmentStateAdapter{
         ((PlayListFragment)fragments[2]).notify(song);
     }
 
-    public boolean onBackPressed(int index){
+    public short onBackPressed(int index){
         return ((CustomFragment) fragments[index]).onBackPressed();
     }
 }

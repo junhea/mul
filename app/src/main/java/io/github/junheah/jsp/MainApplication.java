@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 
 
+import androidx.multidex.MultiDexApplication;
+
 import org.acra.ACRA;
 import org.acra.annotation.AcraCore;
 import org.acra.annotation.AcraDialog;
@@ -26,7 +28,7 @@ import static org.acra.ReportField.STACK_TRACE;
 @AcraCore(reportContent = { APP_VERSION_NAME, ANDROID_VERSION, PHONE_MODEL, STACK_TRACE, REPORT_ID})
 @AcraDialog(resText=R.string.acra_dialog_text)
 
-public class MainApplication extends Application {
+public class MainApplication extends MultiDexApplication {
     public static HttpClient client;
     public static Bitmap defaultCover;
 
@@ -36,17 +38,16 @@ public class MainApplication extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         System.out.println("main app start");
-        ACRA.init(this);
+        //ACRA.init(this);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         System.out.println("main app oncreate");
-        defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
-
         this.client = new HttpClient();
         //load basescript
+        this.defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
         this.baseScript = getBaseScript(this);
     }
 

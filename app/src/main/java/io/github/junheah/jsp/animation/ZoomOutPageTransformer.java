@@ -11,6 +11,7 @@ public class ZoomOutPageTransformer implements ViewPager2.PageTransformer {
     private static final float MIN_ALPHA = 0.95f;
 
     public void transformPage(View view, float position) {
+        view.setPivotY(view.getMeasuredHeight());
         int pageWidth = view.getWidth();
         int pageHeight = view.getHeight();
 
@@ -24,9 +25,9 @@ public class ZoomOutPageTransformer implements ViewPager2.PageTransformer {
             float vertMargin = pageHeight * (1 - scaleFactor) / 2;
             float horzMargin = pageWidth * (1 - scaleFactor) / 2;
             if (position < 0) {
-                view.setTranslationX(horzMargin - vertMargin / 2);
+                view.setTranslationX(horzMargin - vertMargin);
             } else {
-                view.setTranslationX(-horzMargin + vertMargin / 2);
+                view.setTranslationX(-horzMargin + vertMargin);
             }
 
             // Scale the page down (between MIN_SCALE and 1)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="fragmentBackground">#FDFDFD</color>
-    <color name="colorDarkWindowBackground">#1A1A1A</color>
+    <color name="colorDarkWindowBackground">#202020</color>
     <color name="panel">#292929</color>
 </resources>

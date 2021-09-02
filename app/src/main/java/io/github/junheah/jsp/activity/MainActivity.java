@@ -40,6 +40,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import io.github.junheah.jsp.MainApplication;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.fragment.SearchFragment;
@@ -60,6 +61,10 @@ import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static io.github.junheah.jsp.Utils.getBitmapFromVectorDrawable;
+import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
+import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
+import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
@@ -286,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
         //action bar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
         //orientation
@@ -528,8 +534,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(!adapter.onBackPressed(viewPager.getCurrentItem()))
-            super.onBackPressed();
+        switch(adapter.onBackPressed(viewPager.getCurrentItem())){
+            case BACK_NONE:
+                break;
+            case BACK_HOME:
+                viewPager.setCurrentItem(1);
+                break;
+            case BACK_NORMAL:
+                super.onBackPressed();
+                break;
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package io.github.junheah.jsp;
 
+import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,6 +25,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,6 +58,11 @@ public class Utils {
             }
         }
     }
+    public static int dpToPx(Context context, int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
+
 
     public static String getBaseScript(Context context){
         StringBuilder builder = new StringBuilder();
@@ -205,9 +212,12 @@ public class Utils {
     }
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
-        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        Drawable drawable;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = VectorDrawableCompat.create(context.getResources(), drawableId, context.getTheme());
             drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }else{
+            drawable = ContextCompat.getDrawable(context, drawableId);
         }
         Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);

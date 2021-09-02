@@ -46,11 +46,7 @@ public class HomeFragment extends CustomFragment {
         return inflater.inflate(R.layout.fragment_home,container,false);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Library");
-    }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,14 +59,6 @@ public class HomeFragment extends CustomFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        //source manager
-        view.findViewById(R.id.home_source_manager).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getContext(), SourceManagerActivity.class));
-            }
-        });
     }
 
     @Override

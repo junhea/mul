@@ -1,6 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,6 +30,7 @@ import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.MainActivity;
+import io.github.junheah.jsp.activity.SourceManagerActivity;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
@@ -41,7 +41,6 @@ import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.song.Song;
-import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.service.Player;
@@ -59,6 +58,8 @@ public class SearchFragment extends CustomFragment {
     SearchResultAdapter adapter;
     Button prevResBtn;
     PlayListIO playListIO;
+    SourceIO sourceIO;
+    EditText input;
 
     public SearchFragment(){
         // do nothing
@@ -87,7 +88,7 @@ public class SearchFragment extends CustomFragment {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recyclerView = view.findViewById(R.id.search_result);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        EditText input = view.findViewById(R.id.search_input);
+        input = view.findViewById(R.id.search_input);
         prevResBtn = view.findViewById(R.id.prev_result_btn);
 
         List<Runnable> swipehistory = new ArrayList<>();
@@ -107,24 +108,8 @@ public class SearchFragment extends CustomFragment {
         });
 
         //source io
-        SourceIO sourceIO = SourceIO.getInstance(getContext());
+        sourceIO = SourceIO.getInstance(getContext());
         sourceIO.load();
-
-        view.findViewById(R.id.search_source_select).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pickerPopup(SearchFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
-                    @Override
-                    public void callback(String data) {
-                        SearchFragment.this.setSource(sourceIO.getSource(data));
-                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Search - " +data);
-                        input.setText("");
-                        adapter.clear();
-                        adapter.reset();
-                    }
-                });
-            }
-        });
 
         container = view.findViewById(R.id.search_container);
         adapter = new SearchResultAdapter(getContext(), result);
@@ -337,33 +322,39 @@ public class SearchFragment extends CustomFragment {
                     }
                 });
                 break;
+            case R.id.search_source_select:
+                pickerPopup(SearchFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        SearchFragment.this.setSource(sourceIO.getSource(data));
+                        setTitle("Search - " +data);
+                        input.setText("");
+                        adapter.clear();
+                        adapter.reset();
+                    }
+                });
+                break;
+            case R.id.search_source_manager:
+                startActivity(new Intent(getContext(), SourceManagerActivity.class));
+                break;
         }
         return true;
     }
 
     @Override
-    public boolean onBackPressed() {
+    public short onBackPressed() {
         if(adapter.getSelectMode()){
             toggleSelectMode(null);
-            return true;
+            return BACK_NONE;
         }
         //navigate history
         if(prevResBtn.getVisibility() == View.VISIBLE){
             prevResBtn.performClick();
-            return true;
+            return BACK_NONE;
         }
-        return false;
+        return BACK_HOME;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        String title = "Search";
-        if(source != null && source.getName() != null){
-            title += " - " + source.getName();
-        }
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(title);
-    }
 
     public void lockui(boolean lock){
         if(container != null){

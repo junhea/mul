@@ -6,4 +6,14 @@
         android:visible="false"
         android:icon="@drawable/add"
         android:title="add"/>
+    <item android:id="@+id/search_source_select"
+        app:showAsAction="always"
+        android:visible="true"
+        android:icon="@drawable/ic_baseline_source_24"
+        android:title="select source"/>
+    <item android:id="@+id/search_source_manager"
+        app:showAsAction="always"
+        android:visible="true"
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="source manager"/>
 </menu>

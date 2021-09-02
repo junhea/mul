@@ -122,11 +122,6 @@ public class PlayListFragment extends CustomFragment {
         super.onStop();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Playlists");
-    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -198,7 +193,7 @@ public class PlayListFragment extends CustomFragment {
     }
 
     @Override
-    public boolean onBackPressed() {
+    public short onBackPressed() {
         if(titlebar.getVisibility() == View.VISIBLE) {
             getActivity().invalidateOptionsMenu();
             titlebar.setVisibility(View.GONE);
@@ -209,9 +204,9 @@ public class PlayListFragment extends CustomFragment {
             }
             adapter = null;
             playList = null;
-            return true;
+            return BACK_NONE;
         }
-        return false;
+        return BACK_HOME;
     }
 
     public void notify(Song song) {
