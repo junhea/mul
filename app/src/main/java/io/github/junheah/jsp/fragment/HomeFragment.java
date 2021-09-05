@@ -1,6 +1,7 @@
 package io.github.junheah.jsp.fragment;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -8,10 +9,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.transition.Fade;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.SourceIO;
@@ -19,6 +23,7 @@ import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.SourceManagerActivity;
+import io.github.junheah.jsp.animation.DetailsTransition;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
@@ -27,8 +32,6 @@ import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 
 public class HomeFragment extends CustomFragment {
-    PlayListItemClickCallback playListCallback; //used when adding playlists
-    PlayListIO playListIO;
 
     public HomeFragment(){
         //don't do anything
@@ -46,23 +49,9 @@ public class HomeFragment extends CustomFragment {
         return inflater.inflate(R.layout.fragment_home,container,false);
     }
 
-
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
-        super.onCreate(savedInstanceState);
-        playListCallback = ((MainActivity)getActivity()).getPlayListCallback();
-        playListIO = PlayListIO.getInstance(getContext());
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        System.out.println("menu selected in HOME");
         switch (item.getItemId()){
             case R.id.menu_debug:
                 startActivity(new Intent(getContext(), DebugActivity.class));
@@ -71,6 +60,7 @@ public class HomeFragment extends CustomFragment {
         }
         return true;
     }
+
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {

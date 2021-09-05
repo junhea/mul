@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -48,10 +49,11 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             @Override
             public void onClick(View v) {
                 if(callback != null)
-                    callback.itemClick(k);
+                    callback.itemClick(k, ((PlayListNameViewHolder)holder).name);
             }
         });
         ((PlayListNameViewHolder)holder).name.setText(k);
+        ViewCompat.setTransitionName(((PlayListNameViewHolder)holder).name,"playlist_title:"+position);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public interface PlayListSelectListener{
-        void itemClick(String key);
+        void itemClick(String key, TextView sharedElement);
     }
 
     public void added(String key){
@@ -71,7 +73,7 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         TextView name;
         public PlayListNameViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.playlist_name_text);
+            name = itemView.findViewById(R.id.subtitle);
         }
     }
 }

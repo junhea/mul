@@ -230,9 +230,7 @@ public class SearchFragment extends CustomFragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
-
         if(savedInstanceState != null){
             // restore state
             new Gson().fromJson(savedInstanceState.getString("source", "{}"), new TypeToken< Source >() {
@@ -267,8 +265,11 @@ public class SearchFragment extends CustomFragment {
         inflater.inflate(R.menu.search_menu, menu);
     }
 
+
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        System.out.println("menu selected in SEARCH");
         switch(item.getItemId()){
             case R.id.search_add:
                 List<Song> res = adapter.getSelected();
@@ -302,9 +303,9 @@ public class SearchFragment extends CustomFragment {
                                         if(player != null && player.getPlayList() != null && player.getPlayList().getName().equals(data)){
                                             //from player
                                             playList = player.getPlayList();
-                                        }else if(PlayListFragment.getCurrentPlayList() != null && PlayListFragment.getCurrentPlayList().getName().equals(data)){
+                                        }else if(DetailFragment.getCurrentPlayList() != null && DetailFragment.getCurrentPlayList().getName().equals(data)){
                                             //from playlist fragment
-                                            playList = PlayListFragment.getCurrentPlayList();
+                                            playList = DetailFragment.getCurrentPlayList();
                                         }
                                         if(playList == null){
                                             //don't need load : just add via playListio

@@ -100,7 +100,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     @Override
     public void add(int index, Song song) {
-        System.out.println("add  by index on "+name);
         super.add(index, song);
         song.setParent(this);
         updateIndex(index);

@@ -14,17 +14,12 @@
         android:textColor="#FFF"
         android:layout_height="?attr/actionBarSize"/>
     <io.github.junheah.jsp.ui.ClipLinearLayout
-        android:background="@drawable/fragment_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="library"
-            android:textStyle="italic"
-            android:textSize="100dp"
-            android:textColor="#989592"
-            android:gravity="center"/>
+    android:background="@drawable/fragment_background"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+
     </io.github.junheah.jsp.ui.ClipLinearLayout>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

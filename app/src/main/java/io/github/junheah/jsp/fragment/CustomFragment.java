@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.model.song.Song;
 
 
 public class CustomFragment extends Fragment {
@@ -27,11 +28,27 @@ public class CustomFragment extends Fragment {
         title = view.findViewById(R.id.title);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        setHasOptionsMenu(false);
+    }
+
     public void setTitle(String title){
         this.title.setText(title);
     }
 
     public short onBackPressed() {
         return BACK_NORMAL;
+    }
+
+    public void notify(Song song){
+
     }
 }

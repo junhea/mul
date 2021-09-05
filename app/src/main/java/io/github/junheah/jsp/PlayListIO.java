@@ -70,17 +70,19 @@ public class PlayListIO {
     }
 
     public String getRaw(){
-        return "";
+        Map<String, List<long[]>> data = new HashMap<>();
+        for(String k : keys){
+            data.put(k, getids(k));
+        }
+        return g.toJson(data);
     }
 
 
     public void writeRaw(String s){
         try {
-            JSONObject data = new JSONObject(s);
-            Iterator keys = data.keys();
-            while(keys.hasNext()){
-                String key = (String)keys.next();
-                editor.putString(key, data.getJSONObject(key).toString().replaceAll("\\\\",""));
+            Map<String, List<long[]>> data = g.fromJson(s, new TypeToken<Map<String, List<long[]>>>() {}.getType());
+            for(String k : data.keySet()){
+                editor.putString(k, g.toJson(data.get(k)));
             }
             editor.commit();
         }catch (Exception e){

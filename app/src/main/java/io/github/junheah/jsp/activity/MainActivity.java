@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.BroadcastReceiver;
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     boolean bound = false;
     PlayerStatus status;
     boolean seekbarTouch = false;
-    ViewPager2 viewPager;
+    ViewPager viewPager;
     MainFragmentAdapter adapter;
     PlayListItemClickCallback playListCallback;
     PlayList playListQueue;
@@ -534,11 +536,9 @@ public class MainActivity extends AppCompatActivity {
 
         //viewPager
         viewPager = this.findViewById(R.id.viewPager);
-        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        viewPager.setOffscreenPageLimit(1);
-        adapter = new MainFragmentAdapter(this);
+        adapter = new MainFragmentAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         viewPager.setAdapter(adapter);
-        viewPager.setPageTransformer(new ZoomOutPageTransformer());
+        viewPager.setPageTransformer(true, new ZoomOutPageTransformer());
 
         viewPager.setCurrentItem(1,false);
 
