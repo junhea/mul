@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 
 import androidx.multidex.MultiDexApplication;
 
+
 import org.acra.ACRA;
 import org.acra.annotation.AcraCore;
 import org.acra.annotation.AcraDialog;
@@ -38,7 +39,7 @@ public class MainApplication extends MultiDexApplication {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         System.out.println("main app start");
-        //ACRA.init(this);
+//        ACRA.init(this);
     }
 
     @Override

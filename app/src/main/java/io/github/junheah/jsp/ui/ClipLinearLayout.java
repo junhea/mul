@@ -44,6 +44,7 @@ public class ClipLinearLayout extends LinearLayoutCompat {
         super.onSizeChanged(w, h, oldw, oldh);
         clipPath.reset();
         clipPath.addRoundRect(new RectF(0f,0f,w,h), radii, radii, Path.Direction.CW);
+        clipPath.addRect(new RectF(0f, h/2, w, h),Path.Direction.CW);
         clipPath.close();
     }
 }

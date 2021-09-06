@@ -11,6 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -29,6 +32,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -82,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     boolean bound = false;
     PlayerStatus status;
     boolean seekbarTouch = false;
-    ViewPager viewPager;
+    ViewPager2 viewPager;
     MainFragmentAdapter adapter;
     PlayListItemClickCallback playListCallback;
     PlayList playListQueue;
@@ -97,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     SongDataParser parser;
     public final static int PERMISSION_CODE = 14245;
     Song current;
+    BroadcastReceiver receiver;
     PlayListIO playListIO;
 
 
@@ -299,6 +307,54 @@ public class MainActivity extends AppCompatActivity {
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
 
+        //reveal animation
+        View cover = this.findViewById(R.id.cover);
+        View shadow = this.findViewById(R.id.shadow);
+        ImageView logo = this.findViewById(R.id.logo);
+        if(cover.getVisibility() == View.VISIBLE) {
+            cover.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    cover.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    ObjectAnimator animation = ObjectAnimator.ofFloat(cover, "translationY", cover.getHeight());
+                    animation.setInterpolator(new AccelerateInterpolator());
+                    animation.setDuration(1200);
+                    animation.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            cover.setVisibility(View.GONE);
+                        }
+                    });
+                    animation.start();
+
+                    logo.animate()
+                            .alpha(0f)
+                            .setDuration(2000)
+                            .setInterpolator(new AccelerateInterpolator())
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    logo.setVisibility(View.GONE);
+                                }
+                            });
+                    shadow.animate()
+                            .alpha(0f)
+                            .setDuration(800)
+                            .setInterpolator(new AccelerateInterpolator())
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    shadow.setVisibility(View.GONE);
+                                }
+                            });
+                }
+            });
+        }
+
+
         //check for permission
         int permissionCheck = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE);
         if(permissionCheck== PackageManager.PERMISSION_DENIED){
@@ -402,6 +458,8 @@ public class MainActivity extends AppCompatActivity {
         }
         reloadPlayerControls(portrait);
 
+
+        panel.setParallaxOffset(1000);
         //playlist callback
         playListCallback = new PlayListItemClickCallback() {
             @Override
@@ -434,7 +492,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         //broadcast receiver
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 //if broadcast received, player is running
                 if(intent.getAction().equals(ACTION_PLAYER_BROADCAST)) {
@@ -536,9 +594,11 @@ public class MainActivity extends AppCompatActivity {
 
         //viewPager
         viewPager = this.findViewById(R.id.viewPager);
-        adapter = new MainFragmentAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+        viewPager.setOffscreenPageLimit(1);
+        adapter = new MainFragmentAdapter(this);
         viewPager.setAdapter(adapter);
-        viewPager.setPageTransformer(true, new ZoomOutPageTransformer());
+        viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
         viewPager.setCurrentItem(1,false);
 
@@ -559,6 +619,16 @@ public class MainActivity extends AppCompatActivity {
             case BACK_NORMAL:
                 super.onBackPressed();
                 break;
+        }
+    }
+
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(receiver != null && bound){
+            unregisterReceiver(receiver);
         }
     }
 

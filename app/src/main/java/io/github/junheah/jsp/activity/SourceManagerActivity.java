@@ -1,11 +1,13 @@
 package io.github.junheah.jsp.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +30,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static io.github.junheah.jsp.MainApplication.client;
+import static io.github.junheah.jsp.adapter.SourceAdapter.AVAILABLE;
 import static io.github.junheah.jsp.adapter.SourceAdapter.INSTALLED;
 
 public class SourceManagerActivity extends AppCompatActivity {
@@ -37,6 +40,8 @@ public class SourceManagerActivity extends AppCompatActivity {
         setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_source_manager);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         RecyclerView recycler = findViewById(R.id.source_recycler);
         ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
@@ -95,6 +100,8 @@ public class SourceManagerActivity extends AppCompatActivity {
             @Override
             public void delete(SourceItem item) {
                 SourceIO.getInstance(SourceManagerActivity.this).remove(item.name);
+                item.status = AVAILABLE;
+                adapter.notifyItemChanged(item);
             }
         });
         recycler.setAdapter(adapter);
@@ -129,5 +136,15 @@ public class SourceManagerActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return res;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

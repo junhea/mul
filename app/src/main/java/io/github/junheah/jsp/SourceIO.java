@@ -66,6 +66,24 @@ public class SourceIO {
 
     public void remove(String name){
         //TODO
+        try {
+            if(root == null)
+                root = new File(context.getExternalFilesDir(null), "srcs");
+            File target = new File(root, name+".mjs");
+            if(target.exists()) {
+                target.delete();
+                for(int i = sources.size()-1; i>=0; i--){
+                    if(sources.get(i).getName().equals(name)){
+                        sources.remove(i);
+                        return;
+                    }
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public String[] getNames(){

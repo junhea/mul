@@ -150,7 +150,6 @@ public class PlayListFragment extends CustomFragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        System.out.println("menu selected in PL");
         switch (item.getItemId()) {
             case R.id.menu_addPlayList:
                 singleInputPopup(getContext(), new StringCallback() {

@@ -269,7 +269,6 @@ public class SearchFragment extends CustomFragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        System.out.println("menu selected in SEARCH");
         switch(item.getItemId()){
             case R.id.search_add:
                 List<Song> res = adapter.getSelected();

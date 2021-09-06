@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +58,7 @@ public class PlayListIO {
             return g.fromJson((String) reader.getString(key, "[]"), new TypeToken<List<long[]>>() {}.getType());
         }
         //not found
-        return null;
+        return new ArrayList<>();
     }
 
     public PlayList get(String key){
@@ -81,6 +82,7 @@ public class PlayListIO {
     public void writeRaw(String s){
         try {
             Map<String, List<long[]>> data = g.fromJson(s, new TypeToken<Map<String, List<long[]>>>() {}.getType());
+            editor.clear();
             for(String k : data.keySet()){
                 editor.putString(k, g.toJson(data.get(k)));
             }

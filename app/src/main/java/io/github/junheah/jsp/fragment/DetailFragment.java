@@ -171,7 +171,6 @@ public class DetailFragment extends CustomFragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        System.out.println("menu selected in DETAIL");
         switch (item.getItemId()) {
             case R.id.menu_addSong:
                 showAddMenu();
@@ -234,7 +233,6 @@ public class DetailFragment extends CustomFragment {
                 if(!f.isDirectory()){
                     boolean supported = false;
                     for(String ext : extensions){
-                        System.out.println(f.getName());
                         if(f.getName().toLowerCase().endsWith("."+ ext)){
                             supported = true;
                             break;

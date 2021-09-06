@@ -1,14 +1,22 @@
 package io.github.junheah.jsp.adapter;
 
+import android.content.Context;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import io.github.junheah.jsp.model.room.ExternalSongDao;
+import io.github.junheah.jsp.model.room.LocalSongDao;
+import io.github.junheah.jsp.model.room.SongDatabase;
+
 public class LibraryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
-
-    public LibraryAdapter() {
-
+    Context context;
+    SongDatabase db;
+    LocalSongDao l;
+    ExternalSongDao e;
+    public LibraryAdapter(Context context) {
+        this.context = context;
     }
 
     @Override

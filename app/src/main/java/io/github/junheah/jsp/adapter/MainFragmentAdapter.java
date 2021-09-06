@@ -14,12 +14,12 @@ import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.fragment.SearchFragment;
 import io.github.junheah.jsp.model.song.Song;
 
-public class MainFragmentAdapter extends FragmentStatePagerAdapter {
+public class MainFragmentAdapter extends FragmentStateAdapter {
 
     Fragment[] fragments = new Fragment[3];
 
-    public MainFragmentAdapter(@NonNull FragmentManager fm, int behavior) {
-        super(fm, behavior);
+    public MainFragmentAdapter(@NonNull FragmentActivity fragmentActivity) {
+        super(fragmentActivity);
         fragments[0] = SearchFragment.newInstance();
         fragments[1] = HomeFragment.newInstance();
         fragments[2] = PlayListContainerFragment.newInstance();
@@ -27,19 +27,35 @@ public class MainFragmentAdapter extends FragmentStatePagerAdapter {
 
     @NonNull
     @Override
-    public Fragment getItem(int position) {
+    public Fragment createFragment(int position) {
         return fragments[position];
     }
 
+
+
+    public long getItemId(int position) {
+        return position;
+    }
+
     @Override
-    public int getCount() {
+    public boolean containsItem(long itemId) {
+        for(Fragment f : fragments){
+            if(f.hashCode() == itemId)
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int getItemCount() {
         return fragments.length;
     }
 
     public void notify(Song song) {
         //set now playing
         for(Fragment f : fragments){
-            ((CustomFragment)f).notify(song);
+            if (!f.isDetached())
+                ((CustomFragment)f).notify(song);
         }
     }
 
