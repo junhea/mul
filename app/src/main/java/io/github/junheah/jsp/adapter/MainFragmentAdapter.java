@@ -34,7 +34,7 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
 
 
     public long getItemId(int position) {
-        return position;
+        return fragments[position].hashCode();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
     public void notify(Song song) {
         //set now playing
         for(Fragment f : fragments){
-            if (!f.isDetached())
+            if (f.isAdded())
                 ((CustomFragment)f).notify(song);
         }
     }

@@ -22,7 +22,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.Fade;
 
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.github.junheah.jsp.PlayListIO;
@@ -31,10 +38,12 @@ import io.github.junheah.jsp.activity.DebugActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.SourceManagerActivity;
+import io.github.junheah.jsp.adapter.LibraryAdapter;
 import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.animation.DetailsTransition;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
+import io.github.junheah.jsp.model.Library;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.room.ExternalSongDao;
 import io.github.junheah.jsp.model.room.LocalSongDao;
@@ -49,7 +58,7 @@ import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 public class HomeFragment extends CustomFragment {
 
-    PlayList library;
+    public static Library library;
     LibraryLoader loader;
 
     public HomeFragment(){
@@ -72,11 +81,14 @@ public class HomeFragment extends CustomFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recycler = view.findViewById(R.id.recycler);
-        recycler.setLayoutManager(new SlowLinearLayoutManager(getContext()));
+        FlexboxLayoutManager lm = new FlexboxLayoutManager(getContext());
+        lm.setFlexDirection(FlexDirection.ROW);
+        lm.setJustifyContent(JustifyContent.CENTER);
+        recycler.setLayoutManager(lm);
 
-        library = new PlayList(getContext(),"library", true);
+        library = new Library(getContext());
 
-        PlayListAdapter adapter = new PlayListAdapter(getContext(), library);
+        LibraryAdapter adapter = new LibraryAdapter(getContext(), library);
 
         recycler.setAdapter(adapter);
 
@@ -123,13 +135,16 @@ public class HomeFragment extends CustomFragment {
             LocalSongDao ld = db.localDao();
             ExternalSongDao ed = db.externalDao();
 
-            List<LocalSong> pls = ld.getAll();
+            List<Song> pls = new ArrayList<>();
+            pls.addAll(ld.getAll());
+            pls.addAll(ed.getAll());
+
 
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
                     for(Song s : pls){
-                        library.add(s,true,false);
+                        library.addWithSort(s);
                     }
                 }
             });

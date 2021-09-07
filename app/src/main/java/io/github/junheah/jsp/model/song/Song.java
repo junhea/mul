@@ -11,7 +11,7 @@ import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.PlayList;
 
-public class Song{
+public class Song implements Comparable<Song>{
     public final static short NONE = -1;
     public final static short LOCAL = 0;
     public final static short EXTERNAL = 1;
@@ -102,5 +102,10 @@ public class Song{
 
     public void setSid(long sid) {
         this.sid = sid;
+    }
+
+    @Override
+    public int compareTo(Song o) {
+        return this.getName().compareTo(o.getName());
     }
 }

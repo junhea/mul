@@ -39,7 +39,7 @@ public class MainApplication extends MultiDexApplication {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         System.out.println("main app start");
-//        ACRA.init(this);
+        ACRA.init(this);
     }
 
     @Override
@@ -51,6 +51,4 @@ public class MainApplication extends MultiDexApplication {
         this.defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
         this.baseScript = getBaseScript(this);
     }
-
-
 }

@@ -103,8 +103,10 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         super.add(index, song);
         song.setParent(this);
         updateIndex(index);
-        updateIndex(index-1);
-        updateIndex(index+1);
+        if(index>0)
+            updateIndex(index-1);
+        if(index<size()-1)
+            updateIndex(index+1);
         if(notifier != null)
             notifier.itemAdded(index);
 

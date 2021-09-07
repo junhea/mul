@@ -314,6 +314,12 @@ public class SearchFragment extends CustomFragment {
                                                 playList.add(s);
                                             }
                                         }
+
+                                        if(HomeFragment.library != null){
+                                            for(Song s : res){
+                                                HomeFragment.library.addWithSort(s);
+                                            }
+                                        }
                                     }
                                 });
                             }

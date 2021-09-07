@@ -10,6 +10,7 @@ import android.os.Looper;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 
@@ -48,6 +49,9 @@ public class SongDataParser extends Thread {
                     s.setSid(dao.insert((LocalSong) s));
                     s.fetchData();
                     dao.replace((LocalSong) s);
+                    if(HomeFragment.library!=null){
+                        HomeFragment.library.addWithSort(s);
+                    }
                 }catch (SQLiteConstraintException e){
                     //already exists
                     s = dao.findWithPath(s.path);

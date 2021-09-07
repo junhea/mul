@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
@@ -33,6 +34,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
     Song current;
     BroadcastReceiver receiver;
     PlayListIO playListIO;
+    IntentFilter filter;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -306,32 +309,25 @@ public class MainActivity extends AppCompatActivity {
         timestamp_cur = this.findViewById(R.id.timestamp_current);
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
+        panel = this.findViewById(R.id.panel);
+
+        viewPager = this.findViewById(R.id.viewPager);
 
         //reveal animation
-        View cover = this.findViewById(R.id.cover);
-        View shadow = this.findViewById(R.id.shadow);
         ImageView logo = this.findViewById(R.id.logo);
-        if(cover.getVisibility() == View.VISIBLE) {
-            cover.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        if(savedInstanceState == null) {
+            viewPager.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    cover.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    ObjectAnimator animation = ObjectAnimator.ofFloat(cover, "translationY", cover.getHeight());
-                    animation.setInterpolator(new AccelerateInterpolator());
-                    animation.setDuration(1200);
-                    animation.addListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            cover.setVisibility(View.GONE);
-                        }
-                    });
+                    viewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    ObjectAnimator animation = ObjectAnimator.ofFloat(viewPager, "translationY", viewPager.getHeight(), 0);
+                    animation.setInterpolator(new FastOutSlowInInterpolator());
+                    animation.setDuration(1500);
                     animation.start();
-
                     logo.animate()
-                            .alpha(0f)
-                            .setDuration(2000)
-                            .setInterpolator(new AccelerateInterpolator())
+                            .translationY(-viewPager.getHeight())
+                            .setDuration(1500)
+                            .setInterpolator(new FastOutSlowInInterpolator())
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
                                 public void onAnimationEnd(Animator animation) {
@@ -339,20 +335,16 @@ public class MainActivity extends AppCompatActivity {
                                     logo.setVisibility(View.GONE);
                                 }
                             });
-                    shadow.animate()
-                            .alpha(0f)
-                            .setDuration(800)
-                            .setInterpolator(new AccelerateInterpolator())
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    super.onAnimationEnd(animation);
-                                    shadow.setVisibility(View.GONE);
-                                }
-                            });
+                    ObjectAnimator panimation = ObjectAnimator.ofFloat(panel, "translationY", panel.getHeight(), 0);
+                    panimation.setInterpolator(new FastOutSlowInInterpolator());
+                    panimation.setDuration(1500);
+                    panimation.start();
                 }
             });
+        }else{
+            logo.setVisibility(View.GONE);
         }
+
 
 
         //check for permission
@@ -372,7 +364,6 @@ public class MainActivity extends AppCompatActivity {
         boolean portrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 
         //sliding up panel
-        panel = this.findViewById(R.id.panel);
         View miniPlayer = this.findViewById(R.id.mini_player);
         View miniPlayerInfoContainer = this.findViewById(R.id.mini_infoContainer);
         ImageButton miniPlayerPlaybtn = this.findViewById(R.id.mini_pause_btn);
@@ -588,12 +579,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        IntentFilter filter = new IntentFilter();
+        filter = new IntentFilter();
         filter.addAction(ACTION_PLAYER_BROADCAST);
-        registerReceiver(receiver, filter);
+
 
         //viewPager
-        viewPager = this.findViewById(R.id.viewPager);
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         viewPager.setOffscreenPageLimit(1);
         adapter = new MainFragmentAdapter(this);
@@ -624,13 +614,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if(receiver != null && bound){
-            unregisterReceiver(receiver);
-        }
-    }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
@@ -677,6 +660,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         //unbind player service
         unbindService(connection);
+        unregisterReceiver(receiver);
     }
 
     @Override
@@ -685,6 +669,7 @@ public class MainActivity extends AppCompatActivity {
         //bind service
         resetPlayer();
         bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
+        registerReceiver(receiver, filter);
     }
 
     private void startPlayer(Intent intent, String action){

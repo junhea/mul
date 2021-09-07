@@ -25,18 +25,6 @@
             android:layout_height="match_parent"
             android:visibility="visible" />
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/shadow"
-        android:background="#C8000000"
-        />
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/cover"
-        android:background="@drawable/cover_background"/>
-
 
     <ImageView
         android:id="@+id/logo"
