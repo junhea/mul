@@ -57,6 +57,8 @@ public class LibraryAdapter extends PlayListAdapter {
 
         ((LibraryViewHolder) holder).external.setVisibility(item instanceof ExternalSong ? View.VISIBLE : View.GONE);
 
+        ((LibraryViewHolder) holder).getBackgroundImage().reuse();
+
 
         ((LibraryViewHolder)holder).layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,6 +80,8 @@ public class LibraryAdapter extends PlayListAdapter {
         });
 
 
+        ((LibraryViewHolder) holder).cover.setImageDrawable(null);
+
         //load cover
         if (item instanceof ExternalSong) {
             String url = ((ExternalSong) item).getCoverUrl();
@@ -90,8 +94,6 @@ public class LibraryAdapter extends PlayListAdapter {
                 Glide.with(context)
                         .load(new AudioCoverModel(item.getPath()))
                         .dontTransform()
-                        .placeholder(R.drawable.music_dark)
-                        .fallback(R.drawable.music_dark)
                         .listener(new RequestListener<Drawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -106,8 +108,6 @@ public class LibraryAdapter extends PlayListAdapter {
                             }
                         })
                         .into(((LibraryViewHolder) holder).cover);
-            }else{
-                ((LibraryViewHolder) holder).cover.setImageDrawable(null);
             }
         }
     }

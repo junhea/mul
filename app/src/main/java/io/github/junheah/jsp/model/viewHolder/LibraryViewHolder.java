@@ -12,13 +12,16 @@ import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.yayandroid.parallaxrecyclerview.ParallaxImageView;
+import com.yayandroid.parallaxrecyclerview.ParallaxViewHolder;
+
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.ui.NowPlayingIcon;
 
-public class LibraryViewHolder extends RecyclerView.ViewHolder {
+public class LibraryViewHolder extends ParallaxViewHolder {
     public CheckBox checkBox;
     //public ImageView handle;
-    public ImageView cover;
+    public ParallaxImageView cover;
     public ConstraintLayout layout;
     public TextView name, artist;
     public ImageView external;
@@ -34,5 +37,10 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
         //handle = itemView.findViewById(R.id.item_handle);
         //playing = itemView.findViewById(R.id.item_playing);
         //playing.setImageDrawable(NowPlayingIcon.getInstance(context));
+    }
+
+    @Override
+    public int getParallaxImageId() {
+        return R.id.item_cover;
     }
 }
