@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.recyclerview.widget.RecyclerView;
@@ -106,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
     SongDataParser parser;
     public final static int PERMISSION_CODE = 14245;
     Song current;
+    PlayList playList;
     BroadcastReceiver receiver;
     PlayListIO playListIO;
     IntentFilter filter;
@@ -163,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
             resetPlayer();
             //notify current to fragments
             if(adapter != null)
-                adapter.notify(null);
+                adapter.notify("", null);
         }
     };
 
@@ -323,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                     viewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     ObjectAnimator animation = ObjectAnimator.ofFloat(viewPager, "translationY", viewPager.getHeight(), 0);
                     animation.setInterpolator(new FastOutSlowInInterpolator());
-                    animation.setDuration(1500);
+                    animation.setDuration(500);
                     animation.addListener(new Animator.AnimatorListener() {
                         @Override
                         public void onAnimationStart(Animator animation) {
@@ -349,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
                     animation.start();
                     logo.animate()
                             .translationY(-viewPager.getHeight())
-                            .setDuration(1500)
+                            .setDuration(500)
                             .setInterpolator(new FastOutSlowInInterpolator())
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
@@ -360,7 +364,7 @@ public class MainActivity extends AppCompatActivity {
                             });
                     ObjectAnimator panimation = ObjectAnimator.ofFloat(panel, "translationY", panel.getHeight(), 0);
                     panimation.setInterpolator(new FastOutSlowInInterpolator());
-                    panimation.setDuration(1500);
+                    panimation.setDuration(500);
                     panimation.start();
                 }
             });
@@ -554,9 +558,10 @@ public class MainActivity extends AppCompatActivity {
 
                     if (bound) {
                         current = player.getCurrent();
+                        playList = player.getPlayList();
                         //notify current to fragments
                         if(adapter != null)
-                            adapter.notify(current);
+                            adapter.notify(playList.getName(), current);
                         if (current == null) {
                             //no song loaded
                             nextbtn.setEnabled(false);
@@ -564,9 +569,9 @@ public class MainActivity extends AppCompatActivity {
                             pausebtn.setEnabled(false);
                             miniPlayerCover.setImageResource(R.drawable.music);
                         } else {
-                            if (current.getNext() == null) nextbtn.setEnabled(false);
+                            if (playList.getNext(current) == null) nextbtn.setEnabled(false);
                             else nextbtn.setEnabled(true);
-                            if (current.getPrev() == null) prevbtn.setEnabled(false);
+                            if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
                             else prevbtn.setEnabled(true);
 
                             name.setText(current.getName());

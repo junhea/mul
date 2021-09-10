@@ -48,6 +48,20 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         playListIO = PlayListIO.getInstance(context);
     }
 
+    public Song getNext(Song s){
+        int i = indexOf(s);
+        if(i>-1 && i<size()-1)
+            return get(i+1);
+        return null;
+    }
+
+    public Song getPrev(Song s){
+        int i = indexOf(s);
+        if(i>-1 && i>0)
+            return get(i-1);
+        return null;
+    }
+
     public void playListRemoved(){
         if(playListChangeCallback != null)
             playListChangeCallback.playListRemoved();
@@ -68,12 +82,8 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     public boolean add(Song song, boolean isLoad, boolean silent) {
         boolean res = super.add(song);
         song.setParent(this);
-        int size = size();
-        updateIndex(size-1);
-        if(size>1)
-            updateIndex(size-2);
         if(notifier != null && !silent) {
-            notifier.itemAdded(size-1);
+            notifier.itemAdded(size()-1);
         }
 
         //notify player (if attached)
@@ -102,11 +112,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     public void add(int index, Song song) {
         super.add(index, song);
         song.setParent(this);
-        updateIndex(index);
-        if(index>0)
-            updateIndex(index-1);
-        if(index<size()-1)
-            updateIndex(index+1);
         if(notifier != null)
             notifier.itemAdded(index);
 
@@ -121,16 +126,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     public Song remove(int index) {
         Song obj = super.remove(index);
         int size = size();
-        if(index == 0){
-            if(size > 0){
-                updateIndex(index);
-            }
-        }else if(index >= size-1){
-            updateIndex(index-1);
-        }else{
-            updateIndex(index);
-            updateIndex(index-1);
-        }
+
         if(notifier != null)
             notifier.itemRemoved(index);
 
@@ -163,32 +159,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         return true;
     }
 
-    private void updateIndex(int index){
-        int size = size();
-        if(index == 0){
-            if(size>1)
-                updateNext(index);
-            else
-                get(index).setNext(null);
-            get(index).setPrev(null);
-        }else if(index == size-1){
-            updatePrev(index);
-            get(index).setNext(null);
-        }else {
-            // in between
-            updatePrev(index);
-            updateNext(index);
-        }
-    }
-
-    private void updatePrev(int index){
-        get(index).setPrev(get(index-1));
-    }
-
-    private void updateNext(int index){
-        get(index).setNext(get(index+1));
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -215,16 +185,6 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         Song tmp = get(i);
         set(i, get(j));
         set(j, tmp);
-        updateIndex(i);
-        if(i>0)
-            updateIndex(i-1);
-        if(i<size()-1)
-            updateIndex(i+1);
-        updateIndex(j);
-        if(j>0)
-            updateIndex(j-1);
-        if(j<size()-1)
-            updateIndex(j+1);
     }
 
     public void save(){

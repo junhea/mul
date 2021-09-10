@@ -19,6 +19,7 @@ import io.github.junheah.jsp.model.song.Song;
 
 public class PlayListContainerFragment extends CustomFragment{
     Song current;
+    String pl;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -70,13 +71,16 @@ public class PlayListContainerFragment extends CustomFragment{
         return this.current;
     }
 
+    public String getCurrentPl(){return this.pl;}
+
     @Override
-    public void notify(Song song) {
+    public void notify(String pl, Song song) {
+        this.pl = pl;
         this.current = song;
         FragmentManager fragmentManager = getChildFragmentManager();
         List<Fragment> fragments = fragmentManager.getFragments();
         for(Fragment f : fragments){
-            ((CustomFragment)f).notify(song);
+            ((CustomFragment)f).notify(pl, song);
         }
     }
 }

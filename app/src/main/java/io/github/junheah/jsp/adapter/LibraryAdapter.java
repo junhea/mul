@@ -24,6 +24,7 @@ import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.LibraryViewHolder;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 
 public class LibraryAdapter extends PlayListAdapter {
@@ -50,10 +51,16 @@ public class LibraryAdapter extends PlayListAdapter {
     }
 
     @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        ((LibraryViewHolder) holder).playing.setVisibility(View.GONE);
+        ((LibraryViewHolder) holder).cover.reuse();
+        ((LibraryViewHolder) holder).cover.setImageDrawable(null);
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Song item = playList.get(position);
         ((LibraryViewHolder)holder).name.setText(item.getName());
-        ((LibraryViewHolder)holder).name.setSelected(true); // for marquee
         if(item.getArtist() != null && item.getArtist().length()>0) {
             ((LibraryViewHolder) holder).artist.setVisibility(View.VISIBLE);
             ((LibraryViewHolder) holder).artist.setText(item.getArtist());
@@ -86,9 +93,6 @@ public class LibraryAdapter extends PlayListAdapter {
         //nowplaying
         if(current != null && item.equals(current)){
             ((LibraryViewHolder) holder).playing.setVisibility(View.VISIBLE);
-            Glide.with(context)
-                    .load(R.drawable.nowplaying)
-                    .into(((LibraryViewHolder) holder).playing);
         }else {
             ((LibraryViewHolder) holder).playing.setVisibility(View.GONE);
         }
@@ -96,8 +100,6 @@ public class LibraryAdapter extends PlayListAdapter {
         if(showCover) {
             //load cover
             boolean hascover = false;
-            ((LibraryViewHolder) holder).cover.reuse();
-            ((LibraryViewHolder) holder).cover.setImageDrawable(null);
             if (item instanceof ExternalSong) {
                 String url = ((ExternalSong) item).getCoverUrl();
                 if (url != null && url.length() > 0) {

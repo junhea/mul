@@ -396,8 +396,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public boolean next(){
-        if(current.getNext() != null){
-            current = current.getNext();
+        if(playList.getNext(current) != null){
+            current = playList.getNext(current);
             currentCover = null;
             play();
             return true;
@@ -412,8 +412,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             seekTo(0);
             broadcast();
             return true;
-        }else if(current.getPrev() != null){
-            current = current.getPrev();
+        }else if(playList.getPrev(current) != null){
+            current = playList.getPrev(current);
             currentCover = null;
             play();
             return true;

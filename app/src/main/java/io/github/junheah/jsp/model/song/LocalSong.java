@@ -9,6 +9,7 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.Index;
@@ -72,5 +73,13 @@ public class LocalSong extends Song {
             cover = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
         }
         if(cover == null) this.nocover = true;
+    }
+
+    @NonNull
+    @Override
+    public Object clone(){
+        LocalSong s = new LocalSong(name, artist, path, nocover);
+        s.setSid(sid);
+        return s;
     }
 }

@@ -97,7 +97,17 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view  = inflater.inflate(R.layout.playlist_item, parent, false);
-        return new PlayListViewHolder(view);
+        PlayListViewHolder holder = new PlayListViewHolder(view);
+        ((PlayListViewHolder)holder).handle.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    drag.requestDrag(holder);
+                }
+                return false;
+            }
+        });
+        return holder;
     }
 
     public void currentChanged(Song song){
@@ -113,32 +123,22 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+        ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
+    }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Song item = playList.get(position);
         ((PlayListViewHolder)holder).name.setText(item.getName());
-        ((PlayListViewHolder)holder).name.setSelected(true); // for marquee
         ((PlayListViewHolder)holder).artist.setText(item.getArtist());
         ((PlayListViewHolder)holder).handle.setVisibility(this.editMode ? View.VISIBLE : View.GONE);
 
-        ((PlayListViewHolder)holder).handle.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    drag.requestDrag(holder);
-                }
-                return false;
-            }
-        });
 
         if(current != null && item.equals(current)){
             ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
-            Glide.with(context)
-                    .load(R.drawable.nowplaying)
-                    .into(((PlayListViewHolder) holder).playing);
-        }else {
-            ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }
 
         if (item instanceof ExternalSong) {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.PrimaryKey;
 
@@ -21,25 +22,6 @@ public class Song implements Comparable<Song>{
     long sid;
 
     //todo : on application start, automatically parse metadata in background
-
-    public Song getNext(){
-        return next;
-    }
-
-    public void setNext(Song song){
-        next = song;
-    }
-
-    public Song getPrev(){
-        return prev;
-    }
-
-    public void setPrev(Song song){
-        prev = song;
-    }
-
-    transient Song prev;
-    transient Song next;
     transient PlayList parent;
     String name="";
     String artist="";
@@ -107,5 +89,13 @@ public class Song implements Comparable<Song>{
     @Override
     public int compareTo(Song o) {
         return this.getName().compareTo(o.getName());
+    }
+
+    @NonNull
+    @Override
+    public Object clone(){
+        Song s  = new Song(name, artist, path);
+        s.setSid(sid);
+        return s;
     }
 }

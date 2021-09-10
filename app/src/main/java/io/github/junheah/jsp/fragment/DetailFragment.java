@@ -60,6 +60,7 @@ public class DetailFragment extends CustomFragment {
     RecyclerView recycler;
     PlayListIO playListIO;
     Song current;
+    String pl;
 
     private static PlayList playList;
 
@@ -76,8 +77,6 @@ public class DetailFragment extends CustomFragment {
         ((MainActivity)getActivity()).addSong(parcel);
     }
 
-
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,14 +90,17 @@ public class DetailFragment extends CustomFragment {
         super.onStop();
     }
 
-    public void notify(Song song) {
+    @Override
+    public void notify(String pl, Song song) {
         //now playing changed
-        current = song;
-        if(adapter != null) {
-            if (playList.indexOf(song) > -1) {
-                adapter.currentChanged(song);
-            }else
-                adapter.currentChanged(null);
+        this.pl = pl;
+        if(pl != null) {
+            if (pl.equals(this.name))
+                current = song;
+            else
+                current = null;
+            if (adapter != null)
+                adapter.currentChanged(current);
         }
     }
 
@@ -153,10 +155,10 @@ public class DetailFragment extends CustomFragment {
         }
     }
 
-    public static DetailFragment newInstance(String key, Song current){
+    public static DetailFragment newInstance(String key, String currentpl, Song current){
         DetailFragment f = new DetailFragment();
         f.setName(key);
-        f.notify(current);
+        f.notify(currentpl, current);
         return f;
     }
 
@@ -290,17 +292,18 @@ public class DetailFragment extends CustomFragment {
 //                }
 //            });
 
+            List<Song> pls = new ArrayList<>();
             //add from mainapplication.library
             for(long[] id : playListIO.getids(pl.getName())){
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        pl.add(library.getWithId(id), true, false);
-                    }
-                });
+                pls.add(library.getWithId(id));
             }
 
-
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    pl.addAll(pls);
+                }
+            });
 
         }
 

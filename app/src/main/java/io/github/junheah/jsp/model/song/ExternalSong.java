@@ -155,4 +155,17 @@ public class ExternalSong extends Song{
     public void setId(String ID) {
         this.id = ID;
     }
+
+    public void setSourceId(String id){
+        this.sourceID = id;
+    }
+
+    @NonNull
+    @Override
+    public Object clone(){
+        ExternalSong s = new ExternalSong(id, name, artist, path, coverUrl, headers);
+        s.setSid(sid);
+        s.setSourceId(sourceID);
+        return s;
+    }
 }

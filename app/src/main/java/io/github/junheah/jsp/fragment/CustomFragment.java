@@ -48,7 +48,7 @@ public class CustomFragment extends Fragment {
         return BACK_NORMAL;
     }
 
-    public void notify(Song song){}
+    public void notify(String pl, Song song){}
 
     public void onAnimationEnd(){}
 }

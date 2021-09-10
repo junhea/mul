@@ -71,6 +71,7 @@ public class PlayListFragment extends CustomFragment {
     PlayListIO playListIO;
 
     Song current;
+    String pl;
 
 
     public PlayListFragment() {
@@ -83,7 +84,8 @@ public class PlayListFragment extends CustomFragment {
     }
 
     @Override
-    public void notify(Song song) {
+    public void notify(String pl, Song song) {
+        this.pl = pl;
         this.current = song;
     }
 
@@ -110,6 +112,7 @@ public class PlayListFragment extends CustomFragment {
     public void onResume() {
         super.onResume();
         this.current = ((PlayListContainerFragment)getParentFragment()).getCurrent();
+        this.pl = ((PlayListContainerFragment)getParentFragment()).getCurrentPl();
     }
 
     @Override
@@ -122,7 +125,7 @@ public class PlayListFragment extends CustomFragment {
         parentadapter = new PlayListNameAdapter(getContext(), new PlayListNameAdapter.PlayListSelectListener() {
             @Override
             public void itemClick(String key, TextView sharedElement) {
-                DetailFragment fragment = DetailFragment.newInstance(key, current);
+                DetailFragment fragment = DetailFragment.newInstance(key, pl, current);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     fragment.setSharedElementEnterTransition(new DetailsTransition());
                     fragment.setEnterTransition(new Fade());

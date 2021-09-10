@@ -51,11 +51,11 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
         return fragments.length;
     }
 
-    public void notify(Song song) {
+    public void notify(String pl, Song song) {
         //set now playing
         for(Fragment f : fragments){
             if (f.isAdded())
-                ((CustomFragment)f).notify(song);
+                ((CustomFragment)f).notify(pl, song);
         }
     }
 

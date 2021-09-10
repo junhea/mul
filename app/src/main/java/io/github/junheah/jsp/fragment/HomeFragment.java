@@ -60,6 +60,7 @@ public class HomeFragment extends CustomFragment {
     LibraryLoader loader;
     LibraryAdapter adapter;
     Song current;
+    String pl;
 
     public HomeFragment(){
         //don't do anything
@@ -104,14 +105,15 @@ public class HomeFragment extends CustomFragment {
     }
 
     @Override
-    public void notify(Song song) {
-        //now playing changed
-        current = song;
-        if(adapter != null) {
-            if (library.indexOf(song) > -1) {
-                adapter.currentChanged(song);
-            }else
-                adapter.currentChanged(null);
+    public void notify(String pl, Song song) {
+        this.pl = pl;
+        if(pl != null) {
+            if (pl.equals(""))
+                current = song;
+            else
+                current = null;
+            if (adapter != null)
+                adapter.currentChanged(current);
         }
     }
 
