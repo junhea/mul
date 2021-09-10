@@ -19,13 +19,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.Fade;
 
-import com.google.android.flexbox.FlexDirection;
-import com.google.android.flexbox.FlexWrap;
-import com.google.android.flexbox.FlexboxLayoutManager;
-import com.google.android.flexbox.JustifyContent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,16 +47,19 @@ import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
+import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 public class HomeFragment extends CustomFragment {
 
-    public static Library library;
     LibraryLoader loader;
+    LibraryAdapter adapter;
+    Song current;
 
     public HomeFragment(){
         //don't do anything
@@ -80,20 +80,45 @@ public class HomeFragment extends CustomFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+
+
         RecyclerView recycler = view.findViewById(R.id.recycler);
-        FlexboxLayoutManager lm = new FlexboxLayoutManager(getContext());
-        lm.setFlexDirection(FlexDirection.ROW);
-        lm.setJustifyContent(JustifyContent.CENTER);
+        SlowLinearLayoutManager lm = new SlowLinearLayoutManager(getContext());
         recycler.setLayoutManager(lm);
 
-        library = new Library(getContext());
+        Player player = MainActivity.getPlayer();
+        if (player != null && player.getPlayList().getName().equals("")) {
+            //restore using player
+            library = (Library) player.getPlayList();
+        }
 
-        LibraryAdapter adapter = new LibraryAdapter(getContext(), library);
+        adapter = new LibraryAdapter(getContext(), library);
+        adapter.setCallback(((MainActivity) getActivity()).getPlayListCallback());
 
         recycler.setAdapter(adapter);
+//        if(needLoad) {
+//            loader = new LibraryLoader();
+//            loader.start();
+//        }
+    }
 
-        loader = new LibraryLoader();
-        loader.start();
+    @Override
+    public void notify(Song song) {
+        //now playing changed
+        current = song;
+        if(adapter != null) {
+            if (library.indexOf(song) > -1) {
+                adapter.currentChanged(song);
+            }else
+                adapter.currentChanged(null);
+        }
+    }
+
+    @Override
+    public void onAnimationEnd() {
+        //show covers
+        adapter.setShowCover(true);
     }
 
     @Override
@@ -138,7 +163,6 @@ public class HomeFragment extends CustomFragment {
             List<Song> pls = new ArrayList<>();
             pls.addAll(ld.getAll());
             pls.addAll(ed.getAll());
-
 
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override

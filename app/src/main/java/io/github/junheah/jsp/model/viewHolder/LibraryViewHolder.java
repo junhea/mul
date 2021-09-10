@@ -25,6 +25,7 @@ public class LibraryViewHolder extends ParallaxViewHolder {
     public ConstraintLayout layout;
     public TextView name, artist;
     public ImageView external;
+    public ImageView playing;
 
     public LibraryViewHolder(@NonNull View itemView, Context context) {
         super(itemView);
@@ -35,8 +36,8 @@ public class LibraryViewHolder extends ParallaxViewHolder {
         external = itemView.findViewById(R.id.item_external);
         cover = itemView.findViewById(R.id.item_cover);
         //handle = itemView.findViewById(R.id.item_handle);
-        //playing = itemView.findViewById(R.id.item_playing);
-        //playing.setImageDrawable(NowPlayingIcon.getInstance(context));
+        playing = itemView.findViewById(R.id.item_playing);
+        playing.setImageDrawable(NowPlayingIcon.getInstance(context));
     }
 
     @Override

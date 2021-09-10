@@ -40,4 +40,8 @@
         <item name="colorOnSurface">#FFFFFF</item>
     </style>
 
+    <style name="splashScreenTheme" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
 </resources>

@@ -14,6 +14,7 @@ import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 
+import static io.github.junheah.jsp.MainApplication.library;
 
 
 public class SongDataParser extends Thread {
@@ -49,9 +50,7 @@ public class SongDataParser extends Thread {
                     s.setSid(dao.insert((LocalSong) s));
                     s.fetchData();
                     dao.replace((LocalSong) s);
-                    if(HomeFragment.library!=null){
-                        HomeFragment.library.addWithSort(s);
-                    }
+                    library.addWithSort(s);
                 }catch (SQLiteConstraintException e){
                     //already exists
                     s = dao.findWithPath(s.path);

@@ -62,4 +62,11 @@ public class MainFragmentAdapter extends FragmentStateAdapter {
     public short onBackPressed(int index){
         return ((CustomFragment) fragments[index]).onBackPressed();
     }
+
+    public void onAnimationEnd(){
+        for(Fragment f : fragments){
+            if (f.isAdded())
+                ((CustomFragment)f).onAnimationEnd();
+        }
+    }
 }

@@ -300,6 +300,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -323,6 +324,28 @@ public class MainActivity extends AppCompatActivity {
                     ObjectAnimator animation = ObjectAnimator.ofFloat(viewPager, "translationY", viewPager.getHeight(), 0);
                     animation.setInterpolator(new FastOutSlowInInterpolator());
                     animation.setDuration(1500);
+                    animation.addListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            //notify home fragment for image show
+                            adapter.onAnimationEnd();
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+
+                        }
+                    });
                     animation.start();
                     logo.animate()
                             .translationY(-viewPager.getHeight())
@@ -343,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }else{
             logo.setVisibility(View.GONE);
+            adapter.onAnimationEnd();
         }
 
 

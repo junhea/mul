@@ -45,6 +45,7 @@ import io.github.junheah.jsp.model.source.Search;
 import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.service.Player;
 
+import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
@@ -315,10 +316,8 @@ public class SearchFragment extends CustomFragment {
                                             }
                                         }
 
-                                        if(HomeFragment.library != null){
-                                            for(Song s : res){
-                                                HomeFragment.library.addWithSort(s);
-                                            }
+                                        for(Song s : res){
+                                            library.addWithSort(s);
                                         }
                                     }
                                 });

@@ -109,15 +109,17 @@ public class PlayListIO {
     }
 
     public void write(PlayList playList){
+        String name = playList.getName();
+        PlayList tmp = (PlayList) playList.clone();
         List<long[]> ids = new ArrayList<>();
-        for(Song s : playList){
+        for(Song s : tmp){
             if(s instanceof ExternalSong){
                 ids.add(new long[]{EXTERNAL, s.getSid()});
             }else{
                 ids.add(new long[]{LOCAL, s.getSid()});
             }
         }
-        editor.putString(playList.getName(), g.toJson(ids));
+        editor.putString(name, g.toJson(ids));
         editor.commit();
     }
 

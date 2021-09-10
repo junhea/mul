@@ -139,7 +139,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
 
         if(current != null && item.equals(current)){
-            System.out.println("is playing!!");
             if(((PlayListViewHolder) holder).playing.getVisibility() == View.GONE) {
                 ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
             }

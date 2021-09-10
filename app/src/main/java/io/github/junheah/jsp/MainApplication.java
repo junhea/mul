@@ -17,6 +17,8 @@ import org.acra.annotation.AcraMailSender;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+import io.github.junheah.jsp.model.Library;
+
 import static io.github.junheah.jsp.Utils.getBaseScript;
 import static io.github.junheah.jsp.Utils.getBitmapFromVectorDrawable;
 import static org.acra.ReportField.ANDROID_VERSION;
@@ -34,6 +36,7 @@ public class MainApplication extends MultiDexApplication {
     public static Bitmap defaultCover;
 
     public static String baseScript;
+    public static Library library;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -44,11 +47,17 @@ public class MainApplication extends MultiDexApplication {
 
     @Override
     public void onCreate() {
-        super.onCreate();
         System.out.println("main app oncreate");
         this.client = new HttpClient();
         //load basescript
         this.defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
         this.baseScript = getBaseScript(this);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                library = new Library(MainApplication.this);
+                MainApplication.super.onCreate();
+            }
+        }).start();
     }
 }

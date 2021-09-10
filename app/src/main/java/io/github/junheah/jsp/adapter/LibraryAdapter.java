@@ -18,6 +18,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.yayandroid.parallaxrecyclerview.ParallaxImageView;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.model.Library;
@@ -27,10 +28,13 @@ import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.LibraryViewHolder;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 import io.github.junheah.jsp.ui.NowPlayingIcon;
 
 
 public class LibraryAdapter extends PlayListAdapter {
+
+    boolean showCover = false;
 
     public LibraryAdapter(Context context, PlayList playList) {
         super(context, playList);
@@ -41,6 +45,13 @@ public class LibraryAdapter extends PlayListAdapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view  = inflater.inflate(R.layout.library_item, parent, false);
         return new LibraryViewHolder(view, context);
+    }
+
+    public void setShowCover(boolean s){
+        this.showCover = s;
+        for(int i=0; i<playList.size(); i++){
+            notifyItemChanged(i);
+        }
     }
 
     @Override
@@ -56,8 +67,6 @@ public class LibraryAdapter extends PlayListAdapter {
         }
 
         ((LibraryViewHolder) holder).external.setVisibility(item instanceof ExternalSong ? View.VISIBLE : View.GONE);
-
-        ((LibraryViewHolder) holder).getBackgroundImage().reuse();
 
 
         ((LibraryViewHolder)holder).layout.setOnClickListener(new View.OnClickListener() {
@@ -79,36 +88,59 @@ public class LibraryAdapter extends PlayListAdapter {
             }
         });
 
-
-        ((LibraryViewHolder) holder).cover.setImageDrawable(null);
-
-        //load cover
-        if (item instanceof ExternalSong) {
-            String url = ((ExternalSong) item).getCoverUrl();
-            if (url != null && url.length() > 0)
-                Glide.with(context)
-                        .load(url)
-                        .into(((LibraryViewHolder) holder).cover);
-        } else {
-            if(!((LocalSong)item).nocover) {
-                Glide.with(context)
-                        .load(new AudioCoverModel(item.getPath()))
-                        .dontTransform()
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                //no cover
-                                ((LocalSong) item).nocover = true;
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                return false;
-                            }
-                        })
-                        .into(((LibraryViewHolder) holder).cover);
+        //nowplaying
+        if(current != null && item.equals(current)){
+            if(((LibraryViewHolder) holder).playing.getVisibility() == View.GONE) {
+                ((LibraryViewHolder) holder).playing.setVisibility(View.VISIBLE);
             }
+            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                @Override
+                public void run() {
+                    NowPlayingIcon.getInstance(context).start();
+                }
+            });
+        }else {
+            ((LibraryViewHolder) holder).playing.setVisibility(View.GONE);
         }
+
+        if(showCover) {
+            //load cover
+            boolean hascover = false;
+            ((LibraryViewHolder) holder).cover.reuse();
+            ((LibraryViewHolder) holder).cover.setImageDrawable(null);
+            if (item instanceof ExternalSong) {
+                String url = ((ExternalSong) item).getCoverUrl();
+                if (url != null && url.length() > 0) {
+                    Glide.with(context)
+                            .load(url)
+                            .into(((LibraryViewHolder) holder).cover);
+                    hascover = true;
+                }
+            } else {
+                if (!((LocalSong) item).nocover) {
+                    hascover = true;
+                    Glide.with(context)
+                            .load(new AudioCoverModel(item.getPath()))
+                            .dontTransform()
+                            .listener(new RequestListener<Drawable>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                    //no cover
+                                    ((LocalSong) item).nocover = true;
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                    return false;
+                                }
+                            })
+                            .into(((LibraryViewHolder) holder).cover);
+                }
+            }
+            if (hascover) {
+                ((LibraryViewHolder) holder).cover.setVisibility(View.VISIBLE);
+            } else ((LibraryViewHolder) holder).cover.setVisibility(View.GONE);
+        }else ((LibraryViewHolder) holder).cover.setVisibility(View.GONE);
     }
 }

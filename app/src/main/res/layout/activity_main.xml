@@ -27,10 +27,15 @@
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
     <ImageView
+        android:layout_marginTop="25dp"
         android:id="@+id/logo"
         android:layout_width="200dp"
-        android:layout_height="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:foregroundGravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/panel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/logo" />
 </androidx.constraintlayout.widget.ConstraintLayout>
