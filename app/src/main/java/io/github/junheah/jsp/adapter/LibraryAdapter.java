@@ -52,6 +52,7 @@ public class LibraryAdapter extends PlayListAdapter {
 
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        Glide.with(((LibraryViewHolder) holder).cover).clear(((LibraryViewHolder) holder).cover);
         ((LibraryViewHolder) holder).playing.setVisibility(View.GONE);
         ((LibraryViewHolder) holder).cover.reuse();
         ((LibraryViewHolder) holder).cover.setImageDrawable(null);
@@ -103,7 +104,7 @@ public class LibraryAdapter extends PlayListAdapter {
             if (item instanceof ExternalSong) {
                 String url = ((ExternalSong) item).getCoverUrl();
                 if (url != null && url.length() > 0) {
-                    Glide.with(context)
+                    Glide.with(((LibraryViewHolder) holder).cover)
                             .load(url)
                             .into(((LibraryViewHolder) holder).cover);
                     hascover = true;
@@ -111,7 +112,7 @@ public class LibraryAdapter extends PlayListAdapter {
             } else {
                 if (!((LocalSong) item).nocover) {
                     hascover = true;
-                    Glide.with(context)
+                    Glide.with(((LibraryViewHolder) holder).cover)
                             .load(new AudioCoverModel(item.getPath()))
                             .dontTransform()
                             .listener(new RequestListener<Drawable>() {

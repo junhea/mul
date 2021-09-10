@@ -27,6 +27,7 @@ import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.viewHolder.LibraryViewHolder;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 
@@ -127,6 +128,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewRecycled(holder);
         ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
+        Glide.with(((PlayListViewHolder) holder).cover).clear(((PlayListViewHolder) holder).cover);
     }
 
     @Override
@@ -144,14 +146,14 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (item instanceof ExternalSong) {
             String url = ((ExternalSong) item).getCoverUrl();
             if (url != null && url.length() > 0)
-                Glide.with(context)
+                Glide.with(((PlayListViewHolder) holder).cover)
                         .load(url)
                         .placeholder(R.drawable.music_dark)
                         .fallback(R.drawable.music_dark)
                         .into(((PlayListViewHolder) holder).cover);
         } else {
             if(!((LocalSong)item).nocover) {
-                Glide.with(context)
+                Glide.with(((PlayListViewHolder) holder).cover)
                         .load(new AudioCoverModel(item.getPath()))
                         .dontTransform()
                         .placeholder(R.drawable.music_dark)
@@ -172,7 +174,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         .into(((PlayListViewHolder) holder).cover);
             }else{
                 //local and no cover
-                Glide.with(context)
+                Glide.with(((PlayListViewHolder) holder).cover)
                         .load(R.drawable.music_dark)
                         .dontTransform()
                         .into(((PlayListViewHolder) holder).cover);

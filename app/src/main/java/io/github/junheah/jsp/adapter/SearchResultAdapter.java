@@ -137,13 +137,13 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if (song instanceof ExternalSong) {
                 String url = song.getCoverUrl();
                 if (url != null && url.length() > 0)
-                    Glide.with(context)
+                    Glide.with(((PlayListViewHolder) holder).cover)
                             .load(url)
                             .placeholder(R.drawable.music_dark)
                             .fallback(R.drawable.music_dark)
                             .into(((PlayListViewHolder) holder).cover);
             } else {
-                Glide.with(context)
+                Glide.with(((PlayListViewHolder) holder).cover)
                         .load(new AudioCoverModel(song.getPath()))
                         .dontTransform()
                         .placeholder(R.drawable.music_dark)

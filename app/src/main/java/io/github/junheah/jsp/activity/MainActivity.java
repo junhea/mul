@@ -584,14 +584,14 @@ public class MainActivity extends AppCompatActivity {
                                     String url = ((ExternalSong) current).getCoverUrl();
                                     if (url != null && url.length() > 0)
                                         System.out.println(url);
-                                    Glide.with(getApplicationContext())
+                                    Glide.with(miniPlayerCover)
                                             .load(url)
                                             .dontTransform()
                                             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                                             .placeholder(R.drawable.music)
                                             .into(miniPlayerCover);
                                 } else {
-                                    Glide.with(getApplicationContext())
+                                    Glide.with(miniPlayerCover)
                                             .load(new AudioCoverModel(current.getPath()))
                                             .dontTransform()
                                             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
