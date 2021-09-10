@@ -9,6 +9,7 @@
     android:gravity="center_vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <com.yayandroid.parallaxrecyclerview.ParallaxImageView
+        android:scaleType="centerInside"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -66,10 +67,9 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <ImageView
-        android:visibility="gone"
         android:id="@+id/item_playing"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_marginEnd="10dp"
         android:scaleType="centerInside"
         app:layout_constraintBottom_toBottomOf="parent"

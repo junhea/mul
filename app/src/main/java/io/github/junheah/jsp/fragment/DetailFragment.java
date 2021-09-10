@@ -47,6 +47,7 @@ import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static android.app.Activity.RESULT_OK;
+import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
@@ -265,29 +266,42 @@ public class DetailFragment extends CustomFragment {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            //load songs from db
-            SongDatabase db = SongDatabase.getInstance(getContext());
-            LocalSongDao ld = db.localDao();
-            ExternalSongDao ed = db.externalDao();
+//            //load songs from db
+//            SongDatabase db = SongDatabase.getInstance(getContext());
+//            LocalSongDao ld = db.localDao();
+//            ExternalSongDao ed = db.externalDao();
+//
+//            List<Song> pls = new ArrayList<>();
+//
+//            for(long[] id : playListIO.getids(pl.getName())){
+//                if(stop) break;
+//                Song target;
+//                if (id[0] == LOCAL) {
+//                    target = ld.get(id[1]);
+//                } else {
+//                    target = ed.get(id[1]);
+//                }
+//                pls.add(target);
+//            }
+//            new Handler(Looper.getMainLooper()).post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    pl.addAll(pls);
+//                }
+//            });
 
-            List<Song> pls = new ArrayList<>();
-
+            //add from mainapplication.library
             for(long[] id : playListIO.getids(pl.getName())){
-                if(stop) break;
-                Song target;
-                if (id[0] == LOCAL) {
-                    target = ld.get(id[1]);
-                } else {
-                    target = ed.get(id[1]);
-                }
-                pls.add(target);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        pl.add(library.getWithId(id), true, false);
+                    }
+                });
             }
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    pl.addAll(pls);
-                }
-            });
+
+
+
         }
 
         @Override

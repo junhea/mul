@@ -1,11 +1,7 @@
 package io.github.junheah.jsp.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,23 +14,22 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.yayandroid.parallaxrecyclerview.ParallaxImageView;
+
+import java.util.Map;
 
 import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.model.Library;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.LibraryViewHolder;
-import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
-import io.github.junheah.jsp.ui.NowPlayingIcon;
 
 
 public class LibraryAdapter extends PlayListAdapter {
 
     boolean showCover = false;
+
 
     public LibraryAdapter(Context context, PlayList playList) {
         super(context, playList);
@@ -44,7 +39,7 @@ public class LibraryAdapter extends PlayListAdapter {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view  = inflater.inflate(R.layout.library_item, parent, false);
-        return new LibraryViewHolder(view, context);
+        return new LibraryViewHolder(view);
     }
 
     public void setShowCover(boolean s){
@@ -90,15 +85,10 @@ public class LibraryAdapter extends PlayListAdapter {
 
         //nowplaying
         if(current != null && item.equals(current)){
-            if(((LibraryViewHolder) holder).playing.getVisibility() == View.GONE) {
-                ((LibraryViewHolder) holder).playing.setVisibility(View.VISIBLE);
-            }
-            new Handler(Looper.getMainLooper()).post(new Runnable(){
-                @Override
-                public void run() {
-                    NowPlayingIcon.getInstance(context).start();
-                }
-            });
+            ((LibraryViewHolder) holder).playing.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(R.drawable.nowplaying)
+                    .into(((LibraryViewHolder) holder).playing);
         }else {
             ((LibraryViewHolder) holder).playing.setVisibility(View.GONE);
         }

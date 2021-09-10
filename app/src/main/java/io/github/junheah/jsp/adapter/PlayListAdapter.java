@@ -3,19 +3,14 @@ package io.github.junheah.jsp.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.vectordrawable.graphics.drawable.Animatable2Compat;
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -33,7 +28,6 @@ import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
-import io.github.junheah.jsp.ui.NowPlayingIcon;
 
 
 public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemMoveCallback.ItemTouchHelperContract {
@@ -103,7 +97,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view  = inflater.inflate(R.layout.playlist_item, parent, false);
-        return new PlayListViewHolder(view, context);
+        return new PlayListViewHolder(view);
     }
 
     public void currentChanged(Song song){
@@ -139,15 +133,10 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
 
         if(current != null && item.equals(current)){
-            if(((PlayListViewHolder) holder).playing.getVisibility() == View.GONE) {
-                ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
-            }
-            new Handler(Looper.getMainLooper()).post(new Runnable(){
-                @Override
-                public void run() {
-                    NowPlayingIcon.getInstance(context).start();
-                }
-            });
+            ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(R.drawable.nowplaying)
+                    .into(((PlayListViewHolder) holder).playing);
         }else {
             ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }
