@@ -27,7 +27,6 @@ import static org.acra.ReportField.PHONE_MODEL;
 import static org.acra.ReportField.REPORT_ID;
 import static org.acra.ReportField.STACK_TRACE;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
 
 @AcraMailSender(mailTo = "junheah@gmail.com")
 @AcraCore(reportContent = { APP_VERSION_NAME, ANDROID_VERSION, PHONE_MODEL, STACK_TRACE, REPORT_ID})
@@ -54,7 +53,6 @@ public class MainApplication extends MultiDexApplication {
         //load basescript
         this.defaultCover = getBitmapFromVectorDrawable(this, R.drawable.music_dark);
         this.baseScript = getBaseScript(this);
-        Fresco.initialize(this);
         new Thread(new Runnable() {
             @Override
             public void run() {
