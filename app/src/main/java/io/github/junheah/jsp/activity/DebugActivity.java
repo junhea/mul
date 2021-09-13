@@ -1,9 +1,14 @@
 package io.github.junheah.jsp.activity;
 
+import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.model.song.Song.LOCAL;
+
 import android.content.Context;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,9 +17,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.List;
+import java.util.Map;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.model.room.LocalSongDao;
+import io.github.junheah.jsp.model.room.SongDatabase;
+import io.github.junheah.jsp.model.song.LocalSong;
+import io.github.junheah.jsp.model.song.Song;
 
 
 public class DebugActivity extends AppCompatActivity {
@@ -81,6 +94,45 @@ public class DebugActivity extends AppCompatActivity {
                         editor.setText("");
                     }
                 });
+            }
+        });
+
+
+        this.findViewById(R.id.debug_only_album_Art).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        Map<String, List<long[]>> data = playListIO.getRawObject();
+                        for(Song s : library){
+                            if(s instanceof LocalSong){
+                                if(((LocalSong) s).nocover){
+                                    long sid = s.getSid();
+                                    LocalSongDao ld = SongDatabase.getInstance(context).localDao();
+                                    ld.delete((LocalSong) s);
+
+                                    for(String k : data.keySet()){
+                                        for(int i=data.get(k).size()-1; i>-1; i--){
+                                            long[] o = data.get(k).get(i);
+                                            if(o[0] == LOCAL && o[1] == sid){
+                                                data.get(k).remove(i);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        playListIO.writeRawObj(data);
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "done!", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }).start();
             }
         });
     }

@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
     Toolbar toolbar;
     Runnable onPlayerConnected;
     SlidingUpPanelLayout.PanelSlideListener panelListener;
-    int playerOriginalHeight, miniPlayerCoverOriginal, miniPlayerCoverMax, screenWidth;
     SlidingUpPanelLayout panel;
     View playerControl;
     ImageView miniPlayerCover;
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     View miniPlayerInfoContainer, miniPlayer;
     ImageButton miniPlayerPlaybtn;
     ViewSwitcher viewSwitcher;
+    float miniCoverHeight;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -176,15 +176,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void calculateDimensions(boolean portrait){
-        playerOriginalHeight = Math.round(68 * getResources().getDisplayMetrics().density);
-        miniPlayerCoverOriginal = Math.round(50 * getResources().getDisplayMetrics().density);
-        if(portrait)
-            miniPlayerCoverMax = Resources.getSystem().getDisplayMetrics().widthPixels - Math.round(20 * getResources().getDisplayMetrics().density);
-        else
-            miniPlayerCoverMax = Resources.getSystem().getDisplayMetrics().heightPixels - Math.round(40 * getResources().getDisplayMetrics().density);
-        screenWidth = portrait ? Resources.getSystem().getDisplayMetrics().widthPixels : Resources.getSystem().getDisplayMetrics().heightPixels;
-    }
 
     private void resetPlayer(){
         //reset all player controls
@@ -318,6 +309,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onGlobalLayout() {
                     viewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    //set initial
+                    miniCoverHeight = miniPlayerCover.getMeasuredHeight();
+                    refreshPanel();
+
                     ObjectAnimator animation = ObjectAnimator.ofFloat(viewPager, "translationY", viewPager.getHeight(), 0);
                     animation.setInterpolator(new FastOutSlowInInterpolator());
                     animation.setDuration(500);
@@ -384,7 +380,6 @@ public class MainActivity extends AppCompatActivity {
         //orientation
         boolean portrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 
-        calculateDimensions(portrait);
         //sliding up panel
 
         viewSwitcher = this.findViewById(R.id.viewSwitcher);
@@ -392,34 +387,19 @@ public class MainActivity extends AppCompatActivity {
             viewSwitcher.showNext();
 
         reloadPlayerControls(viewSwitcher.getCurrentView(), portrait);
-        System.out.println("ppppp"+miniPlayerCover.getScaleX());
-
 
         panelListener = new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                System.out.println(slideOffset);
-                ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
-                int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
-                miniPlayer.getLayoutParams().height = height;
-                miniPlayer.setLayoutParams(params);
+                miniPlayerInfoContainer.setVisibility(slideOffset == 1 ? View.GONE : View.VISIBLE);
+                miniPlayerPlaybtn.setVisibility(slideOffset == 1 ? View.GONE : View.VISIBLE);
 
-                //info container
                 miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
-
-                //play button
                 miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
-
-                //cover image
-                int width = miniPlayerCoverOriginal +
-                        Math.round((miniPlayerCoverMax - miniPlayerCoverOriginal)*slideOffset);
-                ViewGroup.LayoutParams paramss = miniPlayerCover.getLayoutParams();
-                paramss.height = width;
-                paramss.width = width;
-                miniPlayerCover.setLayoutParams(paramss);
-                //player controls
                 playerControl.setAlpha(slideOffset);
+                miniPlayerCover.setAlpha(0.25f + slideOffset);
 
+                miniPlayerCover.setTranslationY((-miniCoverHeight/2)*(1-slideOffset));
             }
 
             @Override
@@ -427,37 +407,8 @@ public class MainActivity extends AppCompatActivity {
                 if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
             }
         };
-//        landscapePanelListener = new SlidingUpPanelLayout.PanelSlideListener() {
-//            @Override
-//            public void onPanelSlide(View panel, float slideOffset) {
-//                ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
-//                int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
-//                miniPlayer.getLayoutParams().height = height;
-//                miniPlayer.setLayoutParams(params);
-//
-//                //info container
-//                miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
-//
-//                //play button
-//                miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
-//
-//                //cover image
-//                int width = miniPlayerCoverOriginal +
-//                        Math.round((miniPlayerCoverMax - miniPlayerCoverOriginal)*slideOffset);
-//                ViewGroup.LayoutParams paramss = miniPlayerCover.getLayoutParams();
-//                paramss.height = width;
-//                paramss.width = width;
-//                miniPlayerCover.setLayoutParams(paramss);
-//
-//                //player controls
-//                playerControl.setAlpha(slideOffset);
-//            }
-//
-//            @Override
-//            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-//                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
-//            }
-//        };
+
+
         panel.addPanelSlideListener(panelListener);
         if (panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
             panelListener.onPanelSlide(panel, 1f);
@@ -626,17 +577,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         boolean portrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
-        calculateDimensions(portrait);
         viewSwitcher.showNext();
         reloadPlayerControls(viewSwitcher.getCurrentView(), portrait);
+
+        //set initial player state
+        refreshPanel();
     }
 
+    public void refreshPanel(){
+        panelListener.onPanelSlide(panel, panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED ? 1 : 0);
+    }
 
     void toggleButtons(ViewGroup group, boolean playerIsRunning){
         for(int i=0; i<group.getChildCount(); i++){
@@ -654,12 +608,15 @@ public class MainActivity extends AppCompatActivity {
                 if(!playerIsRunning)((ProgressBar) view).setProgress(0);
             }else if(view instanceof TextView){
                 if(!playerIsRunning) ((TextView) view).setText("");
+            }else if(view instanceof ImageView){
+                if(!playerIsRunning) ((ImageView) view).setImageResource(R.drawable.music);
             }
         }
     }
 
     void toggleButtons(boolean playerIsRunning){
-        toggleButtons((ViewGroup) this.findViewById(R.id.player_panel), playerIsRunning);
+        toggleButtons((ViewGroup) viewSwitcher.getCurrentView(), playerIsRunning);
+        toggleButtons((ViewGroup) viewSwitcher.getNextView(), playerIsRunning);
     }
 
     public String getTimeStamp(int m){

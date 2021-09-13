@@ -38,6 +38,11 @@
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:text="sharedpref 편집" />
+            <Button
+                android:id="@+id/debug_only_album_Art"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="album art 있는 노래만 남기기" />
 
 
             <TextView

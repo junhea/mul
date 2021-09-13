@@ -78,6 +78,14 @@ public class PlayListIO {
         return g.toJson(data);
     }
 
+    public Map<String, List<long[]>> getRawObject(){
+        Map<String, List<long[]>> data = new HashMap<>();
+        for(String k : keys){
+            data.put(k, getids(k));
+        }
+        return data;
+    }
+
 
     public void writeRaw(String s){
         try {
@@ -90,6 +98,14 @@ public class PlayListIO {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void writeRawObj(Map<String, List<long[]>> data){
+        editor.clear();
+        for(String k : data.keySet()){
+            editor.putString(k, g.toJson(data.get(k)));
+        }
+        editor.commit();
     }
 
     public PlayList create(String name){

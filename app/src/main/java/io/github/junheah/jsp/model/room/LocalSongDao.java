@@ -1,6 +1,7 @@
 package io.github.junheah.jsp.model.room;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -25,4 +26,6 @@ public interface LocalSongDao {
     LocalSong get(long sid);
     @Query("SELECT * FROM local WHERE path = (:path)")
     LocalSong findWithPath(String path);
+    @Delete
+    void delete(LocalSong song);
 }

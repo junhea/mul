@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/player_panel"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@color/panel">
 
@@ -23,6 +22,27 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mini_cover_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="parent"
+            android:id="@+id/mini_cover"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/music" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/mini_player"
         android:layout_width="match_parent"
         android:layout_height="68dp"
@@ -31,26 +51,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/mini_cover"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_margin="9dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/music"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_marginLeft="10dp"
             android:id="@+id/mini_infoContainer"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintStart_toEndOf="@+id/mini_cover"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/mini_pause_btn"
-            app:layout_constraintBottom_toBottomOf="@id/mini_cover">
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/mini_name"
@@ -62,11 +69,10 @@
                 android:layout_weight="1"
                 android:textColor="#FFF"
                 android:ellipsize="marquee"
-
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:text="" />
+                android:text="asdf" />
 
             <TextView
                 android:id="@+id/mini_artist"
@@ -78,27 +84,24 @@
                 android:layout_weight="1"
                 android:textColor="#FFF"
                 android:ellipsize="marquee"
-
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:text="" />
+                android:text="asdf" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <ImageButton
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/mini_pause_btn"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:adjustViewBounds="true"
             android:background="?android:selectableItemBackground"
             android:padding="15dp"
             app:srcCompat="@drawable/player_start"
             />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
 
@@ -109,7 +112,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mini_player"
+        app:layout_constraintTop_toBottomOf="@+id/mini_cover_container"
         android:focusable="true">
 
         <SeekBar
@@ -127,17 +130,17 @@
 
         <TextView
             android:id="@+id/playerSongName"
-            android:textSize="20dp"
-            android:textColor="#FFF"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:gravity="center"
             android:singleLine="true"
             android:text="Song Name"
+            android:textColor="#FFF"
+            android:textSize="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:gravity="center"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:textColor="#FFF"
@@ -182,51 +185,52 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/seekBar">
+
             <ImageButton
                 android:id="@+id/repeat_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="30dp"
-                app:srcCompat="@drawable/player_repeat"
                 android:background="?android:selectableItemBackground"
-                android:padding="15dp"/>
+                android:padding="15dp"
+                app:srcCompat="@drawable/player_repeat" />
+
             <ImageButton
                 android:id="@+id/prev_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="5dp"
-                app:srcCompat="@drawable/player_prev"
                 android:background="?android:selectableItemBackground"
-                android:padding="15dp"/>
+                android:padding="15dp"
+                app:srcCompat="@drawable/player_prev" />
+
             <ImageButton
                 android:id="@+id/pause_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="5dp"
                 android:background="?android:selectableItemBackground"
-                app:srcCompat="@drawable/player_start"
-                android:padding="15dp" />
+                android:padding="15dp"
+                app:srcCompat="@drawable/player_start" />
+
             <ImageButton
                 android:id="@+id/next_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="30dp"
-                app:srcCompat="@drawable/player_next"
                 android:background="?android:selectableItemBackground"
-                android:padding="15dp"/>
+                android:padding="15dp"
+                app:srcCompat="@drawable/player_next" />
+
             <ImageButton
                 android:id="@+id/shuffle_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/player_shuffle"
                 android:background="?android:selectableItemBackground"
-                android:padding="15dp"/>
-
-
-
-
+                android:padding="15dp"
+                app:srcCompat="@drawable/player_shuffle" />
 
 
         </androidx.appcompat.widget.LinearLayoutCompat>
