@@ -13,7 +13,7 @@ import com.bumptech.glide.module.AppGlideModule;
 import java.io.InputStream;
 
 @GlideModule
-public class AudioCoverModule extends AppGlideModule {
+public class CustomGlideModule extends AppGlideModule {
 
 
     @Override

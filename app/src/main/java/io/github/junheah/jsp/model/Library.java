@@ -31,7 +31,7 @@ public class Library extends PlayList {
         }
     }
 
-    public int addWithSort(Song song) {
+    public synchronized int addWithSort(Song song) {
         if(song instanceof LocalSong)
             refl.put(song.getSid(), song);
         else

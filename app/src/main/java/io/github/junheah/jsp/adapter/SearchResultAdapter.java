@@ -89,9 +89,16 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+        if(holder instanceof PlayListViewHolder)
+            Glide.with(((PlayListViewHolder) holder).cover).clear(((PlayListViewHolder) holder).cover);
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if(holder instanceof PlayListViewHolder) {
-            ExternalSong song = (ExternalSong)data.get(position);
+            ExternalSong song = (ExternalSong)data.get(holder.getAbsoluteAdapterPosition());
             PlayListViewHolder v = (PlayListViewHolder) holder;
             if (song instanceof ExternalSongContainer) {
                 v.layout.setOnClickListener(new View.OnClickListener() {
@@ -111,7 +118,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         if(!lock) {
                             if(selectMode){
                                 song.toggleCheck();
-                                notifyItemChanged(position);
+                                notifyItemChanged(holder.getAbsoluteAdapterPosition());
                             }else listener.clickedSong(song);
                         }
                     }
@@ -133,7 +140,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             v.artist.setText(song.getArtist());
             v.checkBox.setChecked(song.getChecked());
 
-            //dont load images from onbind : infinite loop
             if (song instanceof ExternalSong) {
                 String url = song.getCoverUrl();
                 if (url != null && url.length() > 0)
@@ -152,7 +158,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
 
         }else if(holder instanceof ButtonViewHolder){
-            ButtonItem item = (ButtonItem) data.get(position);
+            ButtonItem item = (ButtonItem) data.get(holder.getAbsoluteAdapterPosition());
             ButtonViewHolder v = (ButtonViewHolder) holder;
             v.text.setVisibility(item.loading ? View.GONE : View.VISIBLE);
             v.progressBar.setVisibility(item.loading ? View.VISIBLE : View.GONE);
@@ -162,10 +168,33 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     if(!lock) {
                         listener.clickedLoadMore();
                         item.loading = true;
-                        notifyItemChanged(position);
+                        notifyItemChanged(holder.getAbsoluteAdapterPosition());
                     }
                 }
             });
+        }
+    }
+
+    public void toggleSelectAll(){
+        //check if there are any selected items
+        boolean flag = false;
+        for(Object o :data){
+            if(o instanceof ExternalSong){
+                if(((ExternalSong)o).getChecked()){
+                    flag = true;
+                    break;
+                }
+            }
+        }
+
+        for(int i = 0; i<data.size(); i++){
+            Object o = data.get(i);
+            if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)) {
+                if(((ExternalSong)o).getChecked() == flag) {
+                    ((ExternalSong) o).resetCheck(!flag);
+                    notifyItemChanged(i);
+                }
+            }
         }
     }
 
@@ -214,7 +243,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }else{
             return false;
         }
-
     }
 
     public List<Song> getSelected(){
@@ -259,5 +287,5 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         public int hashCode() {
             return loading? -1: -2;
         }
-    }
+    };
 }

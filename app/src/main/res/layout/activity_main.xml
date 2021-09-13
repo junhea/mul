@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="bottom"
+        sothree:umanoParallaxOffset="68dp"
         sothree:umanoPanelHeight="68dp"
         sothree:umanoShadowHeight="4dp">
 
@@ -19,11 +20,13 @@
             android:layout_height="match_parent"
             android:visibility="visible" />
 
-        <include
-            layout="@layout/content_panel"
+        <ViewSwitcher
+            android:id="@+id/viewSwitcher"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible" />
+            android:layout_height="match_parent">
+                <include layout="@layout/content_panel"/>
+                <include layout="@layout/content_panel_landscape"/>
+        </ViewSwitcher>
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
     <ImageView

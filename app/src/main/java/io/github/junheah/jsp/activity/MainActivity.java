@@ -6,13 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
@@ -37,16 +31,13 @@ import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
@@ -54,10 +45,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import io.github.junheah.jsp.MainApplication;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
-import io.github.junheah.jsp.fragment.SearchFragment;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
@@ -66,8 +55,6 @@ import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
-import io.github.junheah.jsp.fragment.HomeFragment;
-import io.github.junheah.jsp.fragment.PlayListFragment;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.PlayerStatus;
@@ -75,7 +62,6 @@ import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static io.github.junheah.jsp.Utils.getBitmapFromVectorDrawable;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
@@ -101,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     Song songQueue;
     Toolbar toolbar;
     Runnable onPlayerConnected;
-    SlidingUpPanelLayout.PanelSlideListener portraitPanelListener, landscapePanelListener;
+    SlidingUpPanelLayout.PanelSlideListener panelListener;
     int playerOriginalHeight, miniPlayerCoverOriginal, miniPlayerCoverMax, screenWidth;
     SlidingUpPanelLayout panel;
     View playerControl;
@@ -113,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver;
     PlayListIO playListIO;
     IntentFilter filter;
+    View miniPlayerInfoContainer, miniPlayer;
+    ImageButton miniPlayerPlaybtn;
+    ViewSwitcher viewSwitcher;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -193,8 +182,8 @@ public class MainActivity extends AppCompatActivity {
         if(portrait)
             miniPlayerCoverMax = Resources.getSystem().getDisplayMetrics().widthPixels - Math.round(20 * getResources().getDisplayMetrics().density);
         else
-            miniPlayerCoverMax = Resources.getSystem().getDisplayMetrics().heightPixels - Math.round(20 * getResources().getDisplayMetrics().density);
-        screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
+            miniPlayerCoverMax = Resources.getSystem().getDisplayMetrics().heightPixels - Math.round(40 * getResources().getDisplayMetrics().density);
+        screenWidth = portrait ? Resources.getSystem().getDisplayMetrics().widthPixels : Resources.getSystem().getDisplayMetrics().heightPixels;
     }
 
     private void resetPlayer(){
@@ -205,16 +194,27 @@ public class MainActivity extends AppCompatActivity {
         miniPlayerCover.setImageResource(R.drawable.music);
     }
 
-    private void reloadPlayerControls(boolean portrait) {
+    private void reloadPlayerControls(View container, boolean portrait) {
+
+        miniPlayer = container.findViewById(R.id.mini_player);
+        miniPlayerInfoContainer = container.findViewById(R.id.mini_infoContainer);
+        miniPlayerPlaybtn = container.findViewById(R.id.mini_pause_btn);
+        miniPlayerCover = container.findViewById(R.id.mini_cover);
+        mini_pausebtn = container.findViewById(R.id.mini_pause_btn);
+        mini_name = container.findViewById(R.id.mini_name);
+        mini_artist = container.findViewById(R.id.mini_artist);
+        mini_progress = container.findViewById(R.id.mini_progress);
+        playerControl = container.findViewById(R.id.playerControl);
+
         //called on orientation change
-        name = this.findViewById(portrait ? R.id.playerSongName : R.id.playerSongName_landscape);
-        artist = this.findViewById(portrait ? R.id.playerArtistName : R.id.playerArtistName_landscape);
-        seekBar = this.findViewById(portrait ? R.id.seekBar : R.id.seekBar_landscape);
-        timestamp_cur = this.findViewById(portrait ? R.id.timestamp_current : R.id.timestamp_current_landscape);
-        timestamp_dur = this.findViewById(portrait ? R.id.timestamp_duration : R.id.timestamp_duration_landscape);
-        nextbtn = this.findViewById(portrait ? R.id.next_btn : R.id.next_btn_landscape);
-        prevbtn = this.findViewById(portrait ? R.id.prev_btn : R.id.prev_btn_landscape);
-        pausebtn = this.findViewById(portrait ? R.id.pause_btn : R.id.pause_btn_landscape);
+        name = container.findViewById(R.id.playerSongName);
+        artist = container.findViewById(R.id.playerArtistName);
+        seekBar = container.findViewById(R.id.seekBar);
+        timestamp_cur = container.findViewById(R.id.timestamp_current);
+        timestamp_dur = container.findViewById(R.id.timestamp_duration);
+        nextbtn = container.findViewById(R.id.next_btn);
+        prevbtn = container.findViewById(R.id.prev_btn);
+        pausebtn = container.findViewById(R.id.pause_btn);
 
 
         //listeners
@@ -269,22 +269,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(playerControl != null) {
-            playerControl.setVisibility(View.GONE);
-            panel.removePanelSlideListener(portrait ? landscapePanelListener : portraitPanelListener);
-        }
-
-        playerControl = this.findViewById(portrait ? R.id.playerControl : R.id.landscape_playerControl);
         playerControl.setAlpha(0.0f);
         playerControl.setVisibility(View.VISIBLE);
 
-        panel.addPanelSlideListener(portrait ? portraitPanelListener : landscapePanelListener);
+        if(panelListener != null) {
+            panel.addPanelSlideListener(panelListener);
 
-        if(panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
-            if(portrait)
-                portraitPanelListener.onPanelSlide(panel,1f);
-            else
-                landscapePanelListener.onPanelSlide(panel, 1f);
+            if (panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                panelListener.onPanelSlide(panel, 1f);
+            }
         }
 
         if(bound){
@@ -391,27 +384,21 @@ public class MainActivity extends AppCompatActivity {
         //orientation
         boolean portrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 
-        //sliding up panel
-        View miniPlayer = this.findViewById(R.id.mini_player);
-        View miniPlayerInfoContainer = this.findViewById(R.id.mini_infoContainer);
-        ImageButton miniPlayerPlaybtn = this.findViewById(R.id.mini_pause_btn);
-        miniPlayerCover = this.findViewById(R.id.mini_cover);
-        mini_pausebtn = this.findViewById(R.id.mini_pause_btn);
-        mini_name = this.findViewById(R.id.mini_name);
-        mini_artist = this.findViewById(R.id.mini_artist);
-        mini_progress = this.findViewById(R.id.mini_progress);
-        if(portrait) {
-            this.findViewById(R.id.landscape_playerControl).setVisibility(View.GONE);
-            playerControl = this.findViewById(R.id.playerControl);
-        }else {
-            this.findViewById(R.id.playerControl).setVisibility(View.GONE);
-            playerControl = this.findViewById(R.id.landscape_playerControl);
-        }
-        playerControl.setVisibility(View.VISIBLE);
         calculateDimensions(portrait);
-        portraitPanelListener = new SlidingUpPanelLayout.PanelSlideListener() {
+        //sliding up panel
+
+        viewSwitcher = this.findViewById(R.id.viewSwitcher);
+        if(!portrait)
+            viewSwitcher.showNext();
+
+        reloadPlayerControls(viewSwitcher.getCurrentView(), portrait);
+        System.out.println("ppppp"+miniPlayerCover.getScaleX());
+
+
+        panelListener = new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
+                System.out.println(slideOffset);
                 ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
                 int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
                 miniPlayer.getLayoutParams().height = height;
@@ -432,6 +419,7 @@ public class MainActivity extends AppCompatActivity {
                 miniPlayerCover.setLayoutParams(paramss);
                 //player controls
                 playerControl.setAlpha(slideOffset);
+
             }
 
             @Override
@@ -439,46 +427,42 @@ public class MainActivity extends AppCompatActivity {
                 if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
             }
         };
-        landscapePanelListener = new SlidingUpPanelLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View panel, float slideOffset) {
-                ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
-                int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
-                miniPlayer.getLayoutParams().height = height;
-                miniPlayer.setLayoutParams(params);
-
-                //info container
-                miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
-
-                //play button
-                miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
-
-                //cover image
-                int width = miniPlayerCoverOriginal +
-                        Math.round((miniPlayerCoverMax - miniPlayerCoverOriginal)*slideOffset);
-                ViewGroup.LayoutParams paramss = miniPlayerCover.getLayoutParams();
-                paramss.height = width;
-                paramss.width = width;
-                miniPlayerCover.setLayoutParams(paramss);
-
-                //player controls
-                playerControl.setAlpha(slideOffset);
-            }
-
-            @Override
-            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
-            }
-        };
-        if(portrait) {
-            panel.addPanelSlideListener(portraitPanelListener);
-        }else {
-            panel.addPanelSlideListener(landscapePanelListener);
+//        landscapePanelListener = new SlidingUpPanelLayout.PanelSlideListener() {
+//            @Override
+//            public void onPanelSlide(View panel, float slideOffset) {
+//                ViewGroup.LayoutParams params = miniPlayer.getLayoutParams();
+//                int height = playerOriginalHeight+Math.round((screenWidth-playerOriginalHeight)*slideOffset);
+//                miniPlayer.getLayoutParams().height = height;
+//                miniPlayer.setLayoutParams(params);
+//
+//                //info container
+//                miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
+//
+//                //play button
+//                miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
+//
+//                //cover image
+//                int width = miniPlayerCoverOriginal +
+//                        Math.round((miniPlayerCoverMax - miniPlayerCoverOriginal)*slideOffset);
+//                ViewGroup.LayoutParams paramss = miniPlayerCover.getLayoutParams();
+//                paramss.height = width;
+//                paramss.width = width;
+//                miniPlayerCover.setLayoutParams(paramss);
+//
+//                //player controls
+//                playerControl.setAlpha(slideOffset);
+//            }
+//
+//            @Override
+//            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+//                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
+//            }
+//        };
+        panel.addPanelSlideListener(panelListener);
+        if (panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            panelListener.onPanelSlide(panel, 1f);
         }
-        reloadPlayerControls(portrait);
 
-
-        panel.setParallaxOffset(1000);
         //playlist callback
         playListCallback = new PlayListItemClickCallback() {
             @Override
@@ -649,7 +633,8 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
         boolean portrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
         calculateDimensions(portrait);
-        reloadPlayerControls(portrait);
+        viewSwitcher.showNext();
+        reloadPlayerControls(viewSwitcher.getCurrentView(), portrait);
     }
 
 

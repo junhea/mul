@@ -258,6 +258,7 @@ public class SearchFragment extends CustomFragment {
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.search_add).setVisible(adapter == null ? false : adapter.getSelectMode());
+        menu.findItem(R.id.search_select_all).setVisible(adapter == null ? false : adapter.getSelectMode());
     }
 
     @Override
@@ -265,7 +266,6 @@ public class SearchFragment extends CustomFragment {
         menu.clear();
         inflater.inflate(R.menu.search_menu, menu);
     }
-
 
 
     @Override
@@ -327,13 +327,15 @@ public class SearchFragment extends CustomFragment {
                     }
                 });
                 break;
+            case R.id.search_select_all:
+                adapter.toggleSelectAll();
+                break;
             case R.id.search_source_select:
                 pickerPopup(SearchFragment.this, "select source", sourceIO.getNames(), new StringCallback() {
                     @Override
                     public void callback(String data) {
                         SearchFragment.this.setSource(sourceIO.getSource(data));
                         setTitle("Search - " +data);
-                        input.setText("");
                         adapter.clear();
                         adapter.reset();
                     }

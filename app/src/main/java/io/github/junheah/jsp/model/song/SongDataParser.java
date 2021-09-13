@@ -50,7 +50,6 @@ public class SongDataParser extends Thread {
                     s.setSid(dao.insert((LocalSong) s));
                     s.fetchData();
                     dao.replace((LocalSong) s);
-                    library.addWithSort(s);
                 }catch (SQLiteConstraintException e){
                     //already exists
                     s = dao.findWithPath(s.path);
@@ -59,6 +58,7 @@ public class SongDataParser extends Thread {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
+                        library.addWithSort(finalS);
                         parcel.playList.add(finalS);
                     }
                 });

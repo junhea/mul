@@ -75,6 +75,9 @@ public class ExternalSong extends Song{
     public void resetCheck(){
         checked = false;
     }
+    public void resetCheck(boolean flag){
+        checked = flag;
+    }
 
     public void setSource(Source source){
         this.source = source;
