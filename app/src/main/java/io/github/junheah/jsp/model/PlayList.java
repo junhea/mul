@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
@@ -16,15 +17,42 @@ import io.github.junheah.jsp.model.song.Song;
 
 
 public class PlayList extends ArrayList<Song> implements SongInfoObserver {
-    //doubly linked list
+
+    public static final short MODE_NORMAL = 0;
+    public static final short MODE_SHUFFLE = 1;
+    public static final short MODE_REPEAT_SONG = 2;
+    public static final short MODE_REPEAT_ALL = 3;
+
 
     String name;
     transient AdapterNotifier notifier;
     transient PlayListChangeCallback playListChangeCallback;
     transient boolean tmp = false;
+    transient short mode = 0;
+    transient ArrayList<Song> filtered;
+
     public transient boolean cleared = false;
 
     transient PlayListIO playListIO;
+
+    public void setMode(short newmode){
+        if(this.mode != newmode) {
+            this.mode = newmode;
+            if (filtered != null)
+                filtered.clear();
+
+            switch (newmode) {
+                case MODE_SHUFFLE:
+                    filtered = new ArrayList<>(this);
+                    Collections.shuffle(filtered);
+                    break;
+            }
+        }
+    }
+
+    public short getMode(){
+        return this.mode;
+    }
 
     public String getName(){
         return name == null ? "" : name;
@@ -49,16 +77,47 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     }
 
     public Song getNext(Song s){
-        int i = indexOf(s);
-        if(i>-1 && i<size()-1)
-            return get(i+1);
+        int i;
+        switch(mode){
+            case MODE_NORMAL:
+                i = indexOf(s);
+                if(i>-1 && i<size()-1)
+                    return get(i+1);
+                return null;
+            case MODE_SHUFFLE:
+                i = filtered.indexOf(s);
+                if(i>-1 && i<filtered.size()-1)
+                    return filtered.get(i+1);
+                return null;
+            case MODE_REPEAT_SONG:
+                return s;
+            case MODE_REPEAT_ALL:
+                i = indexOf(s);
+                return get((i+1)%size());
+        }
         return null;
     }
 
     public Song getPrev(Song s){
-        int i = indexOf(s);
-        if(i>-1 && i>0)
-            return get(i-1);
+        int i;
+        switch(mode){
+            case MODE_NORMAL:
+                i = indexOf(s);
+                if(i>-1 && i>0)
+                    return get(i-1);
+                return null;
+            case MODE_SHUFFLE:
+                i = filtered.indexOf(s);
+                if(i>-1 && i>0)
+                    return filtered.get(i-1);
+                return null;
+            case MODE_REPEAT_SONG:
+                return s;
+            case MODE_REPEAT_ALL:
+                i = indexOf(s);
+                if(i == 0) return get(size()-1);
+                return get((i-1)%size());
+        }
         return null;
     }
 

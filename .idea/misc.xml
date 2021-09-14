@@ -11,6 +11,11 @@
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_next.xml" value="0.88" />
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_pause.xml" value="0.88" />
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_prev.xml" value="0.88" />
+        <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_repeat.xml" value="0.88" />
+        <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_repeat_off.xml" value="0.57375" />
+        <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_repeat_song.xml" value="0.57375" />
+        <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_shuffle.xml" value="0.57375" />
+        <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_shuffle_off.xml" value="0.57375" />
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/drawable/player_start.xml" value="0.88" />
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/layout-land/content_panel.xml" value="0.2967372134038801" />
         <entry key="..\:/GitHub/JSPlayer/app/src/main/res/layout/activity_main.xml" value="0.503968253968254" />

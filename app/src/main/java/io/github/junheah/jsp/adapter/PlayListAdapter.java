@@ -127,8 +127,8 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewRecycled(holder);
-        ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         Glide.with(((PlayListViewHolder) holder).cover).clear(((PlayListViewHolder) holder).cover);
+        ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
     }
 
     @Override
@@ -139,8 +139,11 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ((PlayListViewHolder)holder).handle.setVisibility(this.editMode ? View.VISIBLE : View.GONE);
 
 
+        //nowplaying
         if(current != null && item.equals(current)){
             ((PlayListViewHolder) holder).playing.setVisibility(View.VISIBLE);
+        }else {
+            ((PlayListViewHolder) holder).playing.setVisibility(View.GONE);
         }
 
         if (item instanceof ExternalSong) {

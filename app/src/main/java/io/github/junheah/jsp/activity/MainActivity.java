@@ -22,6 +22,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -65,6 +66,10 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
+import static io.github.junheah.jsp.model.PlayList.MODE_NORMAL;
+import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_ALL;
+import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_SONG;
+import static io.github.junheah.jsp.model.PlayList.MODE_SHUFFLE;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
@@ -72,7 +77,7 @@ import static io.github.junheah.jsp.Utils.YesNoPopup;
 public class MainActivity extends AppCompatActivity {
 
     Context context;
-    ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn;
+    ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn, shufflebtn, repeatbtn;
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
@@ -206,7 +211,8 @@ public class MainActivity extends AppCompatActivity {
         nextbtn = container.findViewById(R.id.next_btn);
         prevbtn = container.findViewById(R.id.prev_btn);
         pausebtn = container.findViewById(R.id.pause_btn);
-
+        shufflebtn = container.findViewById(R.id.shuffle_btn);
+        repeatbtn = container.findViewById(R.id.repeat_btn);
 
         //listeners
         nextbtn.setOnClickListener(new View.OnClickListener() {
@@ -223,6 +229,24 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (bound) {
                     player.prev();
+                }
+            }
+        });
+
+        shufflebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (bound) {
+                    player.toggleShuffle();
+                }
+            }
+        });
+
+        repeatbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(bound){
+                    player.toggleRepeat();
                 }
             }
         });
@@ -408,7 +432,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-
         panel.addPanelSlideListener(panelListener);
         if (panel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
             panelListener.onPanelSlide(panel, 1f);
@@ -418,6 +441,8 @@ public class MainActivity extends AppCompatActivity {
         playListCallback = new PlayListItemClickCallback() {
             @Override
             public void SongClicked(Song song, PlayList list) {
+                //set mode to normal
+                list.setMode(MODE_NORMAL);
                 if(bound){
                     player.setPlayList(list, song);
                 }else if(!Player.running){  //is player.running, wait for it to bind
@@ -508,6 +533,21 @@ public class MainActivity extends AppCompatActivity {
                             else nextbtn.setEnabled(true);
                             if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
                             else prevbtn.setEnabled(true);
+
+                            if(playList.getMode() == MODE_SHUFFLE) {
+                                shufflebtn.setImageResource(R.drawable.player_shuffle);
+                                repeatbtn.setImageResource(R.drawable.player_repeat_off);
+                            }else if(playList.getMode() == MODE_REPEAT_ALL) {
+                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                repeatbtn.setImageResource(R.drawable.player_repeat);
+                            }else if(playList.getMode() == MODE_REPEAT_SONG){
+                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                repeatbtn.setImageResource(R.drawable.player_repeat_song);
+                            }else{
+                                //normal
+                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                repeatbtn.setImageResource(R.drawable.player_repeat_off);
+                            }
 
                             name.setText(current.getName());
                             mini_name.setText(current.getName());
@@ -655,22 +695,6 @@ public class MainActivity extends AppCompatActivity {
     private void startPlayer(String action){
         startPlayer(new Intent(getApplicationContext(), Player.class), action);
     }
-
-    Handler handler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            if(!prevbtn.isEnabled() && msg.arg1>3000)
-                prevbtn.setEnabled(true);
-            String timestamp = getTimeStamp(msg.arg1);
-            timestamp_cur.setText(timestamp);
-            seekBar.setProgress(msg.arg1);
-            mini_progress.setProgress(msg.arg1);
-        }
-    };
-
-
-
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

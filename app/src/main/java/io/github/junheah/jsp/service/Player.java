@@ -58,6 +58,10 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
 import static io.github.junheah.jsp.MainApplication.defaultCover;
+import static io.github.junheah.jsp.model.PlayList.MODE_NORMAL;
+import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_ALL;
+import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_SONG;
+import static io.github.junheah.jsp.model.PlayList.MODE_SHUFFLE;
 
 public class Player extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, AudioManager.OnAudioFocusChangeListener {
     public static final String ACTION_PLAYER_CREATE = "jsp.player_create";
@@ -84,6 +88,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     WifiManager.WifiLock wifiLock;
     Intent pendingIntent;
     final IBinder binder = new PlayerBinder();
+    short mode = MODE_NORMAL;
 
     PlayListChangeCallback playListChangeCallback;
     AudioManager audioManager;
@@ -168,6 +173,38 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getArtist())
                 .build();
         session.setMetadata(data);
+    }
+
+    public void toggleShuffle(){
+        short mode = playList.getMode();
+        if(mode != MODE_SHUFFLE){
+            playList.setMode(MODE_SHUFFLE);
+            this.mode = MODE_SHUFFLE;
+        }else{
+            playList.setMode(MODE_NORMAL);
+            this.mode = MODE_NORMAL;
+        }
+        broadcast();
+    }
+
+    public void toggleRepeat(){
+        short mode = playList.getMode();
+        switch (mode){
+            case MODE_REPEAT_ALL:
+                playList.setMode(MODE_NORMAL);
+                this.mode = MODE_NORMAL;
+                break;
+            case MODE_REPEAT_SONG:
+                playList.setMode(MODE_REPEAT_ALL);
+                this.mode = MODE_REPEAT_ALL;
+                break;
+            case MODE_NORMAL:
+            case MODE_SHUFFLE:
+                playList.setMode(MODE_REPEAT_SONG);
+                this.mode = MODE_REPEAT_SONG;
+                break;
+        }
+        broadcast();
     }
 
     @Override
@@ -364,6 +401,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
 
         this.playList = playList;
+        this.playList.setMode(this.mode);
 
         //set callback to new playlist
         this.playList.setPlayListChangeCallback(playListChangeCallback);
@@ -382,6 +420,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
 
         this.playList = playList;
+
+        this.playList.setMode(this.mode);
 
         //set callback to new playlist
         this.playList.setPlayListChangeCallback(playListChangeCallback);

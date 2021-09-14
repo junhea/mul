@@ -3,4 +3,6 @@
     <color name="fragmentBackground">#FDFDFD</color>
     <color name="colorDarkWindowBackground">#202020</color>
     <color name="panel">#292929</color>
+    <color name="disabled">#505050</color>
+    <color name="enabled">#FFFFFF</color>
 </resources>
