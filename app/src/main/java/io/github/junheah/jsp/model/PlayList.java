@@ -35,7 +35,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
 
     transient PlayListIO playListIO;
 
-    public void setMode(short newmode){
+    public void setMode(short newmode, Song current){
         if(this.mode != newmode) {
             this.mode = newmode;
             if (filtered != null)
@@ -45,6 +45,9 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
                 case MODE_SHUFFLE:
                     filtered = new ArrayList<>(this);
                     Collections.shuffle(filtered);
+                    //put current song to top
+                    filtered.remove(current);
+                    filtered.add(0,current);
                     break;
             }
         }

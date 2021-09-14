@@ -178,10 +178,10 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void toggleShuffle(){
         short mode = playList.getMode();
         if(mode != MODE_SHUFFLE){
-            playList.setMode(MODE_SHUFFLE);
+            playList.setMode(MODE_SHUFFLE,current);
             this.mode = MODE_SHUFFLE;
         }else{
-            playList.setMode(MODE_NORMAL);
+            playList.setMode(MODE_NORMAL,current);
             this.mode = MODE_NORMAL;
         }
         broadcast();
@@ -191,16 +191,16 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         short mode = playList.getMode();
         switch (mode){
             case MODE_REPEAT_ALL:
-                playList.setMode(MODE_NORMAL);
+                playList.setMode(MODE_NORMAL,current);
                 this.mode = MODE_NORMAL;
                 break;
             case MODE_REPEAT_SONG:
-                playList.setMode(MODE_REPEAT_ALL);
+                playList.setMode(MODE_REPEAT_ALL,current);
                 this.mode = MODE_REPEAT_ALL;
                 break;
             case MODE_NORMAL:
             case MODE_SHUFFLE:
-                playList.setMode(MODE_REPEAT_SONG);
+                playList.setMode(MODE_REPEAT_SONG,current);
                 this.mode = MODE_REPEAT_SONG;
                 break;
         }
@@ -401,7 +401,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         }
 
         this.playList = playList;
-        this.playList.setMode(this.mode);
 
         //set callback to new playlist
         this.playList.setPlayListChangeCallback(playListChangeCallback);
@@ -409,6 +408,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(this.playList != null && this.playList.size()>0){
             this.current = this.playList.get(0);
         }
+
+        this.playList.setMode(this.mode, current);
 
         play();
     }
@@ -421,7 +422,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
         this.playList = playList;
 
-        this.playList.setMode(this.mode);
+        this.playList.setMode(this.mode, song);
 
         //set callback to new playlist
         this.playList.setPlayListChangeCallback(playListChangeCallback);

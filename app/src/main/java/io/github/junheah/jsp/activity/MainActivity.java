@@ -441,8 +441,6 @@ public class MainActivity extends AppCompatActivity {
         playListCallback = new PlayListItemClickCallback() {
             @Override
             public void SongClicked(Song song, PlayList list) {
-                //set mode to normal
-                list.setMode(MODE_NORMAL);
                 if(bound){
                     player.setPlayList(list, song);
                 }else if(!Player.running){  //is player.running, wait for it to bind

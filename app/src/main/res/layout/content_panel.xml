@@ -6,20 +6,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@color/panel">
 
-    <ProgressBar
-        android:id="@+id/mini_progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="3dp"
-        android:minHeight="3dp"
-        android:progress="50"
-        android:progressBackgroundTint="@android:color/transparent"
-        android:background="@android:color/transparent"
-        android:layout_gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mini_cover_container"
@@ -239,5 +226,20 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/mini_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="3dp"
+        android:minHeight="3dp"
+        android:progress="50"
+        android:progressBackgroundTint="@android:color/transparent"
+        android:background="@android:color/transparent"
+        android:layout_gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,6 +4,4 @@
         android:title="local song"/>
     <item android:id="@+id/menu_addLocalFolder"
         android:title="local folder"/>
-    <item android:id="@+id/menu_addExternal"
-        android:title="external"/>
 </menu>

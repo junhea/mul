@@ -212,8 +212,6 @@ public class DetailFragment extends CustomFragment {
                     case R.id.menu_addLocalFolder:
                         openDirectory();
                         break;
-                    case R.id.menu_addExternal:
-                        break;
                 }
                 return true;
             }
