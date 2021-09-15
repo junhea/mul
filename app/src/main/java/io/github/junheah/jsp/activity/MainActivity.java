@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.palette.graphics.Palette;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
@@ -22,6 +23,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +31,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -41,6 +44,9 @@ import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -51,8 +57,10 @@ import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.SongDataParser;
 import io.github.junheah.jsp.model.song.SongPlayListParcel;
+import io.github.junheah.jsp.model.viewHolder.LibraryViewHolder;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
@@ -95,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     SlidingUpPanelLayout.PanelSlideListener panelListener;
     SlidingUpPanelLayout panel;
     View playerControl;
+    View panelContent;
     ImageView miniPlayerCover;
     SongDataParser parser;
     public final static int PERMISSION_CODE = 14245;
@@ -103,10 +112,11 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver;
     PlayListIO playListIO;
     IntentFilter filter;
-    View miniPlayerInfoContainer, miniPlayer;
+    View miniPlayerInfoContainer, miniPlayer, activity;
     ImageButton miniPlayerPlaybtn;
     ViewSwitcher viewSwitcher;
     float miniCoverHeight;
+    RequestListener<Bitmap> requestListener;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -127,27 +137,41 @@ public class MainActivity extends AppCompatActivity {
                 songQueue = null;
             }
             //timestamp thread
-            Handler timestampHandler = new Handler(Looper.getMainLooper());
-            final Runnable tr = new Runnable() {
+            Handler uiHandler = new Handler(Looper.getMainLooper());
+            new Thread(new Runnable() {
+                int t;
+                String timestamp;
                 @Override
                 public void run() {
-                    if (bound && player != null) {
-                        status = player.getStatus();
-                        if (status != null && status.playing && status.loaded && !seekbarTouch) {
-                            int t = player.getCurrentPosition();
-                            if (!prevbtn.isEnabled() && t > 3000)
-                                prevbtn.setEnabled(true);
-                            String timestamp = getTimeStamp(t);
-                            timestamp_cur.setText(timestamp);
-                            seekBar.setProgress(t);
-                            mini_progress.setProgress(t);
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    while(true) {
+                        if (bound && player != null) {
+                            status = player.getStatus();
+                            if (status != null && status.playing && status.loaded && !seekbarTouch) {
+                                t = player.getCurrentPosition();
+                                timestamp = getTimeStamp(t);
+                                uiHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (!prevbtn.isEnabled() && t > 3000) prevbtn.setEnabled(true);
+                                        timestamp_cur.setText(timestamp);
+                                        seekBar.setProgress(t);
+                                        mini_progress.setProgress(t);
+                                    }
+                                });
+                            }
+                            try {
+                                Thread.sleep(100);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                break;
+                            }
+                        }else{
+                            break;
                         }
-                        timestampHandler.postDelayed(this, 60);
                     }
                 }
-            };
-            timestampHandler.postDelayed(tr,100);
-
+            }).start();
 
             if(onPlayerConnected != null){
                 onPlayerConnected.run();
@@ -190,6 +214,19 @@ public class MainActivity extends AppCompatActivity {
         miniPlayerCover.setImageResource(R.drawable.music);
     }
 
+    public void setColorPalette(Palette p){
+        if(p == null){
+            //default
+            getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground));
+            panelContent.setBackgroundColor(ContextCompat.getColor(context,R.color.panel));
+            activity.setBackgroundColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground));
+        }else{
+            panelContent.setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context, R.color.panel)));
+            activity.setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground)));
+            getWindow().getDecorView().setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground)));
+        }
+    }
+
     private void reloadPlayerControls(View container, boolean portrait) {
 
         miniPlayer = container.findViewById(R.id.mini_player);
@@ -201,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
         mini_artist = container.findViewById(R.id.mini_artist);
         mini_progress = container.findViewById(R.id.mini_progress);
         playerControl = container.findViewById(R.id.playerControl);
+        panelContent = container.findViewById(R.id.panel_content);
 
         //called on orientation change
         name = container.findViewById(R.id.playerSongName);
@@ -323,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
         panel = this.findViewById(R.id.panel);
+        activity = this.findViewById(R.id.activity_content);
 
         viewPager = this.findViewById(R.id.viewPager);
 
@@ -428,7 +467,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound) player.broadcast();
+                if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound)
+                    player.broadcast();
             }
         };
 
@@ -558,18 +598,22 @@ public class MainActivity extends AppCompatActivity {
                                     if (url != null && url.length() > 0)
                                         System.out.println(url);
                                     Glide.with(miniPlayerCover)
+                                            .asBitmap()
                                             .load(url)
                                             .dontTransform()
                                             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                                             .placeholder(R.drawable.music)
+                                            .addListener(requestListener)
                                             .into(miniPlayerCover);
                                 } else {
                                     Glide.with(miniPlayerCover)
+                                            .asBitmap()
                                             .load(new AudioCoverModel(current.getPath()))
                                             .dontTransform()
                                             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                                             .placeholder(R.drawable.music)
                                             .fallback(R.drawable.music)
+                                            .addListener(requestListener)
                                             .into(miniPlayerCover);
                                 }
                             }catch (Exception e){
@@ -598,7 +642,26 @@ public class MainActivity extends AppCompatActivity {
             onPlayerConnected.run();
             onPlayerConnected = null;
         }
+
+        //palette
+        requestListener = new RequestListener<Bitmap>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                setColorPalette(null);
+                return false;
+            }
+
+            @Override
+            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                if (resource != null) {
+                    Palette p = Palette.from(resource).generate();
+                    setColorPalette(p);
+                }
+                return false;
+            }
+        };
     }
+
 
     @Override
     public void onBackPressed() {

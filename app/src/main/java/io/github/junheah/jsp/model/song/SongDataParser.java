@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class SongDataParser extends Thread {
 
     @Override
     public void run() {
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         while(queue.size()>0 && running) {
             //pop one item
             SongPlayListParcel parcel = queue.get(0);

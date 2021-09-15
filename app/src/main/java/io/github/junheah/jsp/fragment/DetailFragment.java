@@ -266,29 +266,7 @@ public class DetailFragment extends CustomFragment {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-//            //load songs from db
-//            SongDatabase db = SongDatabase.getInstance(getContext());
-//            LocalSongDao ld = db.localDao();
-//            ExternalSongDao ed = db.externalDao();
-//
-//            List<Song> pls = new ArrayList<>();
-//
-//            for(long[] id : playListIO.getids(pl.getName())){
-//                if(stop) break;
-//                Song target;
-//                if (id[0] == LOCAL) {
-//                    target = ld.get(id[1]);
-//                } else {
-//                    target = ed.get(id[1]);
-//                }
-//                pls.add(target);
-//            }
-//            new Handler(Looper.getMainLooper()).post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    pl.addAll(pls);
-//                }
-//            });
+
 
             List<Song> pls = new ArrayList<>();
             //add from mainapplication.library

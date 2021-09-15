@@ -21,6 +21,7 @@ public class LibraryViewHolder extends ParallaxViewHolder {
     public TextView name, artist;
     public ImageView external;
     public ImageView playing;
+    public View overlay;
 
     public LibraryViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -32,6 +33,7 @@ public class LibraryViewHolder extends ParallaxViewHolder {
         cover = itemView.findViewById(R.id.item_cover);
         //handle = itemView.findViewById(R.id.item_handle);
         playing = itemView.findViewById(R.id.item_playing);
+        overlay = itemView.findViewById(R.id.item_cover_overlay);
     }
 
     @Override

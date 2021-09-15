@@ -18,7 +18,9 @@
         android:layout_height="0dp"
         android:id="@+id/item_cover"/>
     <View
-        android:background="@drawable/item_background"
+        android:id="@+id/item_cover_overlay"
+        android:alpha="0.8"
+        android:background="#FFF"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
