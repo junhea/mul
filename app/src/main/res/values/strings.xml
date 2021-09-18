@@ -1,18 +1,36 @@
 <resources>
-    <string name="app_name">JSPlayer</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="acra_dialog_text"></string>
-    <string name="title_activity_file_chooser">FileChooser</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="title_activity_main2">MainActivity</string>
+    <string name="app_name">mul</string>
+    <string name="acra_dialog_text">Application Crashed! Send bug report to developer?</string>
+    <string name="title_activity_file_chooser">File chooser</string>
+    <string name="menu_add_file">Add file</string>
+    <string name="menu_add_folder">Add folder</string>
+    <string name="fragment_home_title">Library</string>
+    <string name="fragment_playlist_title">Playlist</string>
+    <string name="fragment_search_title">Search</string>
+    <string name="msg_create_playlist">Create Playlist</string>
+    <string name="msg_create_playlist_name">playlist name</string>
+    <string name="msg_create_playlist_already_exists">Playlist already exists!</string>
+    <string name="file_chooser_file">Select File</string>
+    <string name="file_chooser_folder">Select Folder</string>
+    <string name="file_chooser_select">Select</string>
+    <string name="menu_add">Add</string>
+    <string name="menu_select_all">Select all</string>
+    <string name="menu_select_source">Select source</string>
+    <string name="menu_source_manager">Source manager</string>
+    <string name="menu_add_playlist">Add playlist</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_debug">Debug</string>
+    <string name="menu_close">Close</string>
+    <string name="menu_add_from_library">Add from library</string>
+    <string name="search_add_to">Add to Playlist:</string>
+    <string name="activity_debug_title">Debug</string>
+    <string name="activity_source_title">Source Manager</string>
+    <string name="activity_file_title">Explorer</string>
+    <string name="source_installed">Installed Sources</string>
+    <string name="source_available">Available Sources</string>
+    <string name="prompt_remove_song_from_playlist">Remove this song from playlist?</string>
+    <string name="prompt_remove_song_from_library">Remove this song from library and playlists?</string>
+    <string name="prompt_yes">Yes</string>
+    <string name="prompt_no">No</string>
+    <string name="msg_delete_playlist">Delete following playlist?</string>
 </resources>

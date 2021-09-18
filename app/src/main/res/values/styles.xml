@@ -1,6 +1,5 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="AppTheme" parent="Theme.AppCompat">
-        <item name="android:windowActionBarOverlay">true</item>
         <item name="colorPrimary">#202020</item>
         <item name="colorPrimaryDark">#202020</item>
         <item name="colorPrimaryVariant">#252525</item>
@@ -11,6 +10,9 @@
         <item name="android:colorBackground">#202020</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="colorAccent">#FFD748</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="windowActionBarOverlay">true</item>
+        <item name="android:windowTranslucentStatus" tools:targetApi="kitkat">true</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">

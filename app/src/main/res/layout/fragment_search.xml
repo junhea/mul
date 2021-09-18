@@ -9,7 +9,7 @@
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
-        android:text="Search"
+        android:text="@string/fragment_search_title"
         android:paddingLeft="20dp"
         style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
         android:gravity="center_vertical"
@@ -35,7 +35,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/search_btn"
-                android:hint="Search"/>
+                android:hint="@string/fragment_search_title"/>
 
             <ImageButton
                 android:id="@+id/search_btn"

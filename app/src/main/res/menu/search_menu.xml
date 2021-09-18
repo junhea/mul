@@ -5,20 +5,20 @@
         app:showAsAction="ifRoom"
         android:visible="false"
         android:icon="@drawable/add"
-        android:title="add"/>
+        android:title="@string/menu_add"/>
     <item android:id="@+id/search_select_all"
         app:showAsAction="ifRoom"
         android:visible="false"
         android:icon="@drawable/ic_baseline_select_all_24"
-        android:title="select all"/>
+        android:title="@string/menu_select_all"/>
     <item android:id="@+id/search_source_select"
-        app:showAsAction="never"
+        app:showAsAction="ifRoom"
         android:visible="true"
         android:icon="@drawable/ic_baseline_source_24"
-        android:title="select source"/>
+        android:title="@string/menu_select_source"/>
     <item android:id="@+id/search_source_manager"
         app:showAsAction="never"
         android:visible="true"
         android:icon="@drawable/ic_baseline_settings_24"
-        android:title="source manager"/>
+        android:title="@string/menu_source_manager"/>
 </menu>

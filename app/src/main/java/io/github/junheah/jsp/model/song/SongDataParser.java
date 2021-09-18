@@ -23,6 +23,7 @@ public class SongDataParser extends Thread {
     Context context;
     LocalSongDao dao;
     public static boolean running;
+    boolean exists;
 
     public SongDataParser(Context context){
         this.queue = new ArrayList<>();
@@ -48,24 +49,29 @@ public class SongDataParser extends Thread {
             queue.remove(0);
 
             for(Song s : parcel.songs){
+                exists = false;
                 try {
                     s.setSid(dao.insert((LocalSong) s));
                     s.fetchData();
                     dao.replace((LocalSong) s);
                 }catch (SQLiteConstraintException e){
                     //already exists
+                    exists = true;
                     s = dao.findWithPath(s.path);
                 }
                 Song finalS = s;
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        library.addWithSort(finalS);
-                        parcel.playList.add(finalS);
+                        if(!exists)
+                            library.addWithSort(finalS);
+                        if(parcel.playList != null)
+                            parcel.playList.add(finalS);
                     }
                 });
             }
-            parcel.playList.forcesave();
+            if(parcel.playList != null)
+                parcel.playList.forcesave();
 
         }
         running = false;

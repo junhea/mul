@@ -1,9 +1,14 @@
 package io.github.junheah.jsp;
 
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
+
+import android.app.Activity;
 import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -33,10 +38,16 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+import io.github.junheah.jsp.activity.FileChooserActivity;
+import io.github.junheah.jsp.activity.MainActivity;
+import io.github.junheah.jsp.fragment.DetailFragment;
+import io.github.junheah.jsp.interfaces.IntegerCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
+import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.service.Player;
 
 public class Utils {
     // static functions
@@ -91,8 +102,22 @@ public class Utils {
         return builder.toString();
     }
 
+    public static PlayList getPlayList(String name){
+        PlayList playList = null;
+        //add song to playlist
+        Player player = MainActivity.getPlayer();
+        if (player != null && player.getPlayList() != null && player.getPlayList().getName().equals(name)) {
+            //from player
+            playList = player.getPlayList();
+        } else if (DetailFragment.getCurrentPlayList() != null && DetailFragment.getCurrentPlayList().getName().equals(name)) {
+            //from playlist fragment
+            playList = DetailFragment.getCurrentPlayList();
+        }
+        return playList;
+    }
 
-    public static void pickerPopup(Fragment fragment, String title, String[] options, StringCallback callback){
+
+    public static void pickerPopup(Fragment fragment, String title, String[] options, IntegerCallback callback){
         View layout = fragment.getLayoutInflater().inflate(R.layout.content_picker_popup, null);
         ListView list = layout.findViewById(R.id.picker_content);
 
@@ -108,7 +133,7 @@ public class Utils {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                callback.callback(options[i]);
+                callback.callback(i);
                 dialog.dismiss();
             }
         });
@@ -175,11 +200,11 @@ public class Utils {
                 .show();
     }
 
-    public static void singleInputPopup(Context context, StringCallback callback){
+    public static void singleInputPopup(Context context, String title, String hint, StringCallback callback){
         final EditText editText = new EditText(context);
-        editText.setHint("플레이리스트 이름");
+        editText.setHint(hint);
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AlertDialogTheme);
-        builder.setTitle("플레이리스트 생성")
+        builder.setTitle(title)
                 .setView(editText)
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                     @Override
@@ -194,8 +219,8 @@ public class Utils {
         new AlertDialog.Builder(context, R.style.AlertDialogTheme)
                 .setTitle(title)
                 .setMessage(content)
-                .setPositiveButton("예", positiveCallback)
-                .setNegativeButton("아니오", null)
+                .setPositiveButton(context.getString(R.string.prompt_yes), positiveCallback)
+                .setNegativeButton(context.getString(R.string.prompt_no), null)
                 .show();
     }
 
@@ -225,6 +250,18 @@ public class Utils {
         drawable.draw(canvas);
 
         return bitmap;
+    }
+
+    public static void openFile(Fragment fragment) {
+        Intent intent = new Intent(fragment.getContext(), FileChooserActivity.class);
+        intent.putExtra("mode", REQUEST_SELECT_SONG);
+        fragment.startActivityForResult(intent, REQUEST_SELECT_SONG);
+    }
+
+    public static void openDirectory(Fragment fragment) {
+        Intent intent = new Intent(fragment.getContext(), FileChooserActivity.class);
+        intent.putExtra("mode", REQUEST_SELECT_FOLDER);
+        fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
 
 

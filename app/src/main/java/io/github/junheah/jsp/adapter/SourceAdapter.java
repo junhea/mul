@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.interfaces.SourceOnClickCallback;
 import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.model.viewHolder.HeaderViewHolder;
-import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 import io.github.junheah.jsp.model.viewHolder.SourceItem;
 import io.github.junheah.jsp.model.viewHolder.SourceViewHolder;
 
@@ -38,13 +36,13 @@ public class SourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.inflater = LayoutInflater.from(context);
         this.items = new ArrayList<>();
         //add local sources first
-        items.add("Installed Sources");
+        items.add(context.getString(R.string.source_installed));
         SourceIO sourceIO = SourceIO.getInstance(context);
         sourceIO.load();
         for(Source s : sourceIO.getSources()){
             items.add(new SourceItem(s.getName(), INSTALLED));
         }
-        items.add("Available Sources");
+        items.add(context.getString(R.string.source_available));
     }
 
     public void addAvailable(SourceItem item){
@@ -104,7 +102,8 @@ public class SourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int p) {
+        int position = holder.getAbsoluteAdapterPosition();
         int type = getItemViewType(position);
         Object item = items.get(position);
         if(type == HEADER){

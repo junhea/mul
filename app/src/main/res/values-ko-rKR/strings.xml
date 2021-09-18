@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">mul</string>
+    <string name="acra_dialog_text">오류가 발생했습니다. 보고서를 제출할까요?</string>
+    <string name="source_installed">설치된 소스</string>
+    <string name="menu_close">닫기</string>
+    <string name="menu_add">추가</string>
+    <string name="menu_add_file">파일</string>
+    <string name="menu_add_folder">폴더</string>
+    <string name="menu_add_from_library">라이브러리에서 선택</string>
+    <string name="menu_add_playlist">재생목록 추가</string>
+    <string name="search_add_to">재생목록에 추가:</string>
+    <string name="msg_create_playlist">재생목록 생성</string>
+    <string name="menu_debug">디버그</string>
+    <string name="activity_debug_title">디버그</string>
+    <string name="menu_edit">편집</string>
+    <string name="activity_file_title">탐색기</string>
+    <string name="title_activity_file_chooser">파일 선택기</string>
+    <string name="source_available">설치 가능한 소스</string>
+    <string name="fragment_home_title">라이브러리</string>
+    <string name="prompt_no">아니오</string>
+    <string name="fragment_playlist_title">재생목록</string>
+    <string name="msg_create_playlist_already_exists">재생목록이 이미 존재합니다!</string>
+    <string name="msg_create_playlist_name">이름</string>
+    <string name="prompt_remove_song_from_library">이 항목을 라이브러리와 재생목록에서 제거할까요?</string>
+    <string name="prompt_remove_song_from_playlist">이 항목을 재생목록에서 제거할까요?</string>
+    <string name="fragment_search_title">검색</string>
+    <string name="file_chooser_select">선택</string>
+    <string name="menu_select_all">전부 선택</string>
+    <string name="file_chooser_file">파일 선택</string>
+    <string name="file_chooser_folder">폴더 선택</string>
+    <string name="menu_select_source">소스 선택</string>
+    <string name="menu_source_manager">소스 관리</string>
+    <string name="activity_source_title">소스 관리</string>
+    <string name="prompt_yes">예</string>
+    <string name="msg_delete_playlist">해당 재생목록을 삭제할까요?</string>
+</resources>

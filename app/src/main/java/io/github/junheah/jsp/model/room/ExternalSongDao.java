@@ -1,6 +1,7 @@
 package io.github.junheah.jsp.model.room;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
@@ -22,4 +23,6 @@ public interface ExternalSongDao {
     ExternalSong get(long sid);
     @Query("SELECT * FROM external WHERE id = (:id)")
     ExternalSong findWithId(String id);
+    @Delete
+    void delete(ExternalSong song);
 }

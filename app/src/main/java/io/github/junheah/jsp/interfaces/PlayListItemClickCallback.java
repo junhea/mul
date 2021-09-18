@@ -7,4 +7,5 @@ public interface PlayListItemClickCallback {
     //any changes made to playlist must be done in MainActivity (because it is the only one bound to player service)
     void SongClicked(Song song, PlayList list);
     void SongLongClicked(Song song, PlayList list);
+    void SongLongClicked(Song song);
 }

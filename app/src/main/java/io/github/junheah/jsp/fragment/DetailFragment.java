@@ -1,5 +1,7 @@
 package io.github.junheah.jsp.fragment;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -48,8 +51,12 @@ import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.openDirectory;
+import static io.github.junheah.jsp.Utils.openFile;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 public class DetailFragment extends CustomFragment {
@@ -64,9 +71,6 @@ public class DetailFragment extends CustomFragment {
 
     private static PlayList playList;
 
-    public final static int REQUEST_SELECT_SONG = 11;
-    public final static int REQUEST_SELECT_FOLDER = 12;
-    public final static int REQUEST_SELECT_EXTERNAL = 13;
 
 
     public static synchronized PlayList getCurrentPlayList(){
@@ -187,17 +191,7 @@ public class DetailFragment extends CustomFragment {
     }
 
 
-    private void openFile() {
-        Intent intent = new Intent(getContext(), FileChooserActivity.class);
-        intent.putExtra("mode", REQUEST_SELECT_SONG);
-        startActivityForResult(intent, REQUEST_SELECT_SONG);
-    }
 
-    public void openDirectory() {
-        Intent intent = new Intent(getContext(), FileChooserActivity.class);
-        intent.putExtra("mode", REQUEST_SELECT_FOLDER);
-        startActivityForResult(intent, REQUEST_SELECT_FOLDER);
-    }
 
     void showAddMenu(){
         View view = getActivity().findViewById(R.id.menu_addSong);
@@ -207,10 +201,13 @@ public class DetailFragment extends CustomFragment {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_addLocalSong:
-                        openFile();
+                        openFile(DetailFragment.this);
                         break;
                     case R.id.menu_addLocalFolder:
-                        openDirectory();
+                        openDirectory(DetailFragment.this);
+                        break;
+                    case R.id.menu_addFromLibrary:
+                        //todo add from library
                         break;
                 }
                 return true;
@@ -267,7 +264,6 @@ public class DetailFragment extends CustomFragment {
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-
             List<Song> pls = new ArrayList<>();
             //add from mainapplication.library
             for(long[] id : playListIO.getids(pl.getName())){
@@ -280,7 +276,6 @@ public class DetailFragment extends CustomFragment {
                     pl.addAll(pls);
                 }
             });
-
         }
 
         @Override

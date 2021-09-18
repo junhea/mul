@@ -1,5 +1,7 @@
 package io.github.junheah.jsp.fragment;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,11 +21,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.transition.Fade;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,6 +37,7 @@ import java.util.List;
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
+import io.github.junheah.jsp.activity.FileChooserActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.activity.SourceManagerActivity;
@@ -47,15 +53,22 @@ import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.openDirectory;
+import static io.github.junheah.jsp.Utils.openFile;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 public class HomeFragment extends CustomFragment {
+
+    public final static int REQUEST_SELECT_SONG = 11;
+    public final static int REQUEST_SELECT_FOLDER = 12;
+    public final static int REQUEST_SELECT_EXTERNAL = 13;
 
     LibraryLoader loader;
     LibraryAdapter adapter;
@@ -81,7 +94,6 @@ public class HomeFragment extends CustomFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
 
 
         RecyclerView recycler = view.findViewById(R.id.recycler);
@@ -126,6 +138,9 @@ public class HomeFragment extends CustomFragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
+            case R.id.menu_addSong:
+                showAddMenu();
+                break;
             case R.id.menu_debug:
                 startActivity(new Intent(getContext(), DebugActivity.class));
                 break;
@@ -145,6 +160,57 @@ public class HomeFragment extends CustomFragment {
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         menu.clear();
         inflater.inflate(R.menu.home_menu, menu);
+    }
+    final static String[] extensions = {"3gp","mp4","m4a","aac","ts","3gp","flac","gsm","mid","xmf","mxmf","rtttl","rtx","ota","imy","mp3","mkv","wav","ogg"};
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        System.out.println("acitivyt result! from home");
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
+            String path = data.getStringExtra("path");
+            LocalSong song = new LocalSong(path, "", path);
+            //add to current visible playlist
+            ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, song));
+        }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
+            String path = data.getStringExtra("path");
+            for(File f : new File(path).listFiles()){
+                if(!f.isDirectory()){
+                    boolean supported = false;
+                    for(String ext : extensions){
+                        if(f.getName().toLowerCase().endsWith("."+ ext)){
+                            supported = true;
+                            break;
+                        }
+                    }
+                    if(supported){
+                        Song song = new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath());
+                        ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, song));
+                    }
+                }
+            }
+        }
+    }
+
+    void showAddMenu(){
+        View view = getActivity().findViewById(R.id.menu_addSong);
+        PopupMenu popupMenu = new PopupMenu(getContext(), view);
+        popupMenu.inflate(R.menu.add_menu);
+        popupMenu.getMenu().findItem(R.id.menu_addFromLibrary).setVisible(false);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_addLocalSong:
+                        openFile(HomeFragment.this);
+                        break;
+                    case R.id.menu_addLocalFolder:
+                        openDirectory(HomeFragment.this);
+                        break;
+                }
+                return true;
+            }
+        });
+        popupMenu.show();
     }
 
     public class LibraryLoader extends Thread{

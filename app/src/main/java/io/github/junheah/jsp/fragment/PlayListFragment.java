@@ -155,13 +155,13 @@ public class PlayListFragment extends CustomFragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_addPlayList:
-                singleInputPopup(getContext(), new StringCallback() {
+                singleInputPopup(getContext(),getString(R.string.msg_create_playlist),getString(R.string.msg_create_playlist_name), new StringCallback() {
                     @Override
                     public void callback(String data) {
                         //playlist io
                         if(playListIO.getNames().contains(data)){
                             //duplicate
-                            showPopup(getContext(),data,"이 플레이리스트는 이미 존재합니다");
+                            showPopup(getContext(),data,getString(R.string.msg_create_playlist_already_exists));
                         }else {
                             //create playlist instance
                             playListIO.create(data);

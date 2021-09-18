@@ -248,6 +248,9 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         set(i, get(j));
         set(j, tmp);
     }
+    public void deleted(){
+        playListChangeCallback.playListRemoved();
+    }
 
 
 

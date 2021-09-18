@@ -65,7 +65,6 @@ public class SourceIO {
     }
 
     public void remove(String name){
-        //TODO
         try {
             if(root == null)
                 root = new File(context.getExternalFilesDir(null), "srcs");

@@ -21,9 +21,13 @@
         android:theme="@style/splashScreenTheme"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activity.LibrarySelectionActivity"
+            android:exported="true" />
+        <activity
             android:name=".activity.FileChooserActivity"
             android:configChanges="orientation|screenSize"
-            android:label="explorer" />
+            android:label="@string/activity_file_title" />
+
         <service
             android:name=".service.Player"
             android:enabled="true">
@@ -51,11 +55,11 @@
         <activity
             android:name=".activity.DebugActivity"
             android:configChanges="orientation|screenSize"
-            android:label="debug" />
+            android:label="@string/activity_debug_title" />
         <activity
             android:name=".activity.SourceManagerActivity"
             android:configChanges="orientation|screenSize"
-            android:label="Sources" />
+            android:label="@string/activity_source_title" />
     </application>
 
 </manifest>

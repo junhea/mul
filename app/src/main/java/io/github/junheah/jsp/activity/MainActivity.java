@@ -6,12 +6,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.palette.graphics.Palette;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -71,6 +75,8 @@ import io.github.junheah.jsp.model.song.Song;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
@@ -78,9 +84,17 @@ import static io.github.junheah.jsp.model.PlayList.MODE_NORMAL;
 import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_ALL;
 import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_SONG;
 import static io.github.junheah.jsp.model.PlayList.MODE_SHUFFLE;
+import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
+import static io.github.junheah.jsp.model.song.Song.LOCAL;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
 import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 import static io.github.junheah.jsp.Utils.YesNoPopup;
+import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_EXIT;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -117,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
     ViewSwitcher viewSwitcher;
     float miniCoverHeight;
     RequestListener<Bitmap> requestListener;
+    int color;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -128,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
             player.broadcast();
             bound = true;
             System.out.println("service bound");
+            panel.setPanelHeight((int)getResources().getDimension(R.dimen.panel_height));
+
             if(playListQueue != null){
                 if(songQueue == null)
                     player.setPlayList(playListQueue);
@@ -149,12 +166,15 @@ public class MainActivity extends AppCompatActivity {
                             status = player.getStatus();
                             if (status != null && status.playing && status.loaded && !seekbarTouch) {
                                 t = player.getCurrentPosition();
-                                timestamp = getTimeStamp(t);
+                                String newTimeStamp = getTimeStamp(t);
                                 uiHandler.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         if (!prevbtn.isEnabled() && t > 3000) prevbtn.setEnabled(true);
-                                        timestamp_cur.setText(timestamp);
+                                        if(!newTimeStamp.equals(timestamp)){
+                                            timestamp = newTimeStamp;
+                                            timestamp_cur.setText(timestamp);
+                                        }
                                         seekBar.setProgress(t);
                                         mini_progress.setProgress(t);
                                     }
@@ -205,8 +225,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
 
     private void resetPlayer(){
+        //hide player
+        panel.setPanelHeight(0);
+        panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        //reset color palette
+        setColorPalette(null);
         //reset all player controls
         toggleButtons(false);
         player = null;
@@ -215,16 +249,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setColorPalette(Palette p){
-        if(p == null){
-            //default
-            getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground));
-            panelContent.setBackgroundColor(ContextCompat.getColor(context,R.color.panel));
-            activity.setBackgroundColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground));
-        }else{
-            panelContent.setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context, R.color.panel)));
-            activity.setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground)));
-            getWindow().getDecorView().setBackgroundColor(p.getDarkMutedColor(ContextCompat.getColor(context,R.color.colorDarkWindowBackground)));
+        View[] views = {panelContent, getWindow().getDecorView(), activity};
+        int newcolor = ContextCompat.getColor(context, R.color.colorDarkWindowBackground);
+        if(p != null){
+            newcolor = p.getDarkMutedColor(ContextCompat.getColor(context, R.color.colorDarkWindowBackground));
         }
+        if(newcolor != color) {
+            for (View v : views) {
+                ObjectAnimator.ofObject(v, "backgroundColor" /*view attribute name*/, new ArgbEvaluator(), color, newcolor)
+                        .setDuration(500)
+                        .start();
+            }
+            color = newcolor;
+        }
+
     }
 
     private void reloadPlayerControls(View container, boolean portrait) {
@@ -286,6 +324,20 @@ public class MainActivity extends AppCompatActivity {
                 if(bound){
                     player.toggleRepeat();
                 }
+            }
+        });
+
+        miniPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                panel.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+            }
+        });
+
+        container.findViewById(R.id.mini_cover_container).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
             }
         });
 
@@ -364,6 +416,29 @@ public class MainActivity extends AppCompatActivity {
         activity = this.findViewById(R.id.activity_content);
 
         viewPager = this.findViewById(R.id.viewPager);
+
+        color = ContextCompat.getColor(context, R.color.colorDarkWindowBackground);
+
+        //hide player
+        panel.setPanelHeight(0);
+        panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+
+
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), new OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
+                //This is where you get DisplayCutoutCompat
+                int statusBarHeight = getStatusBarHeight();
+                int ci;
+                if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
+                else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
+
+                //System.out.println(ci + " : " + statusBarHeight);
+
+                view.setPadding(0,0,0,0);
+                return windowInsetsCompat;
+            }
+        });
 
         //reveal animation
         ImageView logo = this.findViewById(R.id.logo);
@@ -454,11 +529,11 @@ public class MainActivity extends AppCompatActivity {
         panelListener = new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                miniPlayerInfoContainer.setVisibility(slideOffset == 1 ? View.GONE : View.VISIBLE);
+                miniPlayer.setVisibility(slideOffset == 1 ? View.GONE : View.VISIBLE);
                 miniPlayerPlaybtn.setVisibility(slideOffset == 1 ? View.GONE : View.VISIBLE);
 
-                miniPlayerInfoContainer.setAlpha(1-slideOffset*5);
-                miniPlayerPlaybtn.setAlpha(1-slideOffset*5);
+                miniPlayer.setAlpha(1-slideOffset*5);
+
                 playerControl.setAlpha(slideOffset);
                 miniPlayerCover.setAlpha(0.25f + slideOffset);
 
@@ -469,6 +544,9 @@ public class MainActivity extends AppCompatActivity {
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if(newState == SlidingUpPanelLayout.PanelState.EXPANDED && bound)
                     player.broadcast();
+                else if(newState == SlidingUpPanelLayout.PanelState.ANCHORED){
+                    ((SlidingUpPanelLayout)panel).setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                }
             }
         };
 
@@ -494,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void SongLongClicked(Song song, PlayList list) {
                 //delete song
-                YesNoPopup(context, song.getName(), "이 곡을 플레이리스트에서 삭제하겠습니까?",
+                YesNoPopup(context, song.getName(), getString(R.string.prompt_remove_song_from_playlist),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -503,6 +581,39 @@ public class MainActivity extends AppCompatActivity {
 
                                 //save
                                 playListIO.write(list);
+                            }
+                        });
+            }
+
+            @Override
+            public void SongLongClicked(Song song) {
+                //delete song from library
+                YesNoPopup(context, song.getName(), getString(R.string.prompt_remove_song_from_library),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //yes
+                                long[] sid = {song instanceof LocalSong ? LOCAL : EXTERNAL, song.getSid()};
+                                library.remove(song);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //apply to db
+                                        if(song instanceof LocalSong)
+                                            SongDatabase.getInstance(context).localDao().delete((LocalSong) song);
+                                        else
+                                            SongDatabase.getInstance(context).externalDao().delete((ExternalSong) song);
+
+                                        //todo: apply to playlists
+//                                        List<String> names = new ArrayList<>();
+//                                        for(String name : playListIO.getNames()){
+//                                            for(long[] i : playListIO.getids(name)){
+//                                                if(Arrays.equals(i, sid))   //remove from pl
+//                                                    playListIO
+//                                            }
+//                                        }
+                                    }
+                                }).start();
                             }
                         });
             }
@@ -555,78 +666,87 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (bound) {
-                        current = player.getCurrent();
-                        playList = player.getPlayList();
-                        //notify current to fragments
-                        if(adapter != null)
-                            adapter.notify(playList.getName(), current);
-                        if (current == null) {
-                            //no song loaded
-                            nextbtn.setEnabled(false);
-                            prevbtn.setEnabled(false);
-                            pausebtn.setEnabled(false);
-                            miniPlayerCover.setImageResource(R.drawable.music);
-                        } else {
-                            if (playList.getNext(current) == null) nextbtn.setEnabled(false);
-                            else nextbtn.setEnabled(true);
-                            if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
-                            else prevbtn.setEnabled(true);
+                        if(current != player.getCurrent() || playList != player.getPlayList()) {
+                            current = player.getCurrent();
+                            playList = player.getPlayList();
+                            //notify current to fragments
+                            if (adapter != null)
+                                adapter.notify(playList.getName(), current);
+                            if (current == null) {
+                                //no song loaded
+                                nextbtn.setEnabled(false);
+                                prevbtn.setEnabled(false);
+                                pausebtn.setEnabled(false);
+                                miniPlayerCover.setImageResource(R.drawable.music);
+                            } else {
+                                //show player
+                                panel.setPanelHeight((int) getResources().getDimension(R.dimen.panel_height));
+                                if (playList.getNext(current) == null) nextbtn.setEnabled(false);
+                                else nextbtn.setEnabled(true);
+                                if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
+                                else prevbtn.setEnabled(true);
 
-                            if(playList.getMode() == MODE_SHUFFLE) {
-                                shufflebtn.setImageResource(R.drawable.player_shuffle);
-                                repeatbtn.setImageResource(R.drawable.player_repeat_off);
-                            }else if(playList.getMode() == MODE_REPEAT_ALL) {
-                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                repeatbtn.setImageResource(R.drawable.player_repeat);
-                            }else if(playList.getMode() == MODE_REPEAT_SONG){
-                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                repeatbtn.setImageResource(R.drawable.player_repeat_song);
-                            }else{
-                                //normal
-                                shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                repeatbtn.setImageResource(R.drawable.player_repeat_off);
-                            }
-
-                            name.setText(current.getName());
-                            mini_name.setText(current.getName());
-                            artist.setText(current.getArtist());
-                            mini_artist.setText(current.getArtist());
-
-                            try {
-                                if (current instanceof ExternalSong) {
-                                    String url = ((ExternalSong) current).getCoverUrl();
-                                    if (url != null && url.length() > 0)
-                                        System.out.println(url);
-                                    Glide.with(miniPlayerCover)
-                                            .asBitmap()
-                                            .load(url)
-                                            .dontTransform()
-                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                                            .placeholder(R.drawable.music)
-                                            .addListener(requestListener)
-                                            .into(miniPlayerCover);
+                                if (playList.getMode() == MODE_SHUFFLE) {
+                                    shufflebtn.setImageResource(R.drawable.player_shuffle);
+                                    repeatbtn.setImageResource(R.drawable.player_repeat_off);
+                                } else if (playList.getMode() == MODE_REPEAT_ALL) {
+                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                    repeatbtn.setImageResource(R.drawable.player_repeat);
+                                } else if (playList.getMode() == MODE_REPEAT_SONG) {
+                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                    repeatbtn.setImageResource(R.drawable.player_repeat_song);
                                 } else {
-                                    Glide.with(miniPlayerCover)
-                                            .asBitmap()
-                                            .load(new AudioCoverModel(current.getPath()))
-                                            .dontTransform()
-                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                                            .placeholder(R.drawable.music)
-                                            .fallback(R.drawable.music)
-                                            .addListener(requestListener)
-                                            .into(miniPlayerCover);
+                                    //normal
+                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                                    repeatbtn.setImageResource(R.drawable.player_repeat_off);
                                 }
-                            }catch (Exception e){
 
+                                name.setText(current.getName());
+                                mini_name.setText(current.getName());
+                                artist.setText(current.getArtist());
+                                mini_artist.setText(current.getArtist());
+
+                                try {
+                                    if (current instanceof ExternalSong) {
+                                        String url = ((ExternalSong) current).getCoverUrl();
+                                        if (url != null && url.length() > 0)
+                                            System.out.println(url);
+                                        Glide.with(miniPlayerCover)
+                                                .asBitmap()
+                                                .load(url)
+                                                .dontTransform()
+                                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                                .placeholder(R.drawable.music)
+                                                .addListener(requestListener)
+                                                .into(miniPlayerCover);
+                                    } else {
+                                        Glide.with(miniPlayerCover)
+                                                .asBitmap()
+                                                .load(new AudioCoverModel(current.getPath()))
+                                                .dontTransform()
+                                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                                .placeholder(R.drawable.music)
+                                                .fallback(R.drawable.music)
+                                                .addListener(requestListener)
+                                                .into(miniPlayerCover);
+                                    }
+                                } catch (Exception e) {
+
+                                }
                             }
-
                         }
+                    }
+                }else if(intent.getAction().equals(ACTION_PLAYER_EXIT)){
+                    //disconnect if bound
+                    if(bound){
+                        unbindService(connection);
                     }
                 }
             }
         };
         filter = new IntentFilter();
         filter.addAction(ACTION_PLAYER_BROADCAST);
+        filter.addAction(ACTION_PLAYER_EXIT);
 
 
         //viewPager
@@ -739,7 +859,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         //bind service
-        resetPlayer();
         bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
         registerReceiver(receiver, filter);
     }
@@ -760,6 +879,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("activity result from activity");
     }
 
     public Song getCurrent(){

@@ -74,6 +74,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public static final String ACTION_PLAYER_APPEND = "jsp.player_append";
     public static final String ACTION_PLAYER_BROADCAST = "jsp.player_broadcast";
     public static final String ACTION_PLAYER_CREATED = "jsp.player_created";
+    public static final String ACTION_PLAYER_EXIT = "jsp.player_exit";
 
     private static final String CHANNEL_ID = "jsp.media_player_service";
     public static final int nid = 31525694;
@@ -486,7 +487,9 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             mediaPlayer.release();
             mediaPlayer = null;
         }
+
         stopSelf();
+        broadcast();
     }
 
     static int tmpidx = 0;
@@ -610,6 +613,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             intent.putExtra("status", new Gson().toJson(status));
             sendBroadcast(intent);
             showNotification();
+        }else{
+            sendBroadcast(new Intent(ACTION_PLAYER_EXIT));
         }
     }
 

@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/menu_edit"
         android:icon="@drawable/ic_baseline_edit_24"
-        android:title="edit"
+        android:title="@string/menu_edit"
         app:showAsAction="always" />
     <item android:id="@+id/menu_addSong"
         android:icon="@drawable/add"
-        android:title="add song"
+        android:title="@string/menu_add"
         app:showAsAction="always" />
 </menu>

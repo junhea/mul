@@ -22,6 +22,7 @@ import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.Song;
 
+import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
@@ -154,6 +155,11 @@ public class PlayListIO {
     }
 
     public void delete(String name){
+        PlayList pl = getPlayList(name);
+        if(pl != null){
+            //notify playlist removed
+            pl.playListRemoved();
+        }
         editor.remove(name);
         editor.commit();
     }

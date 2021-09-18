@@ -3,6 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/menu_addPlayList"
         android:icon="@drawable/add_playlist"
-        android:title="add playlist"
+        android:title="@string/menu_add_playlist"
         app:showAsAction="always" />
 </menu>

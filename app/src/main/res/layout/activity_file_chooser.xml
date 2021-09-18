@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/select_btn"
         android:visibility="gone"
-        android:text="select"
+        android:text="@string/file_chooser_select"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

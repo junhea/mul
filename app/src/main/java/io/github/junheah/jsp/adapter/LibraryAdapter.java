@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
@@ -81,6 +82,7 @@ public class LibraryAdapter extends PlayListAdapter {
                 }
             }
         });
+        //todo remove song from LIBRARY
         ((LibraryViewHolder)holder).layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -106,6 +108,7 @@ public class LibraryAdapter extends PlayListAdapter {
                 if (url != null && url.length() > 0) {
                     Glide.with(((LibraryViewHolder) holder).cover)
                             .load(url)
+                            .transition(DrawableTransitionOptions.withCrossFade())
                             .into(((LibraryViewHolder) holder).cover);
                     hascover = true;
                 }
@@ -114,7 +117,6 @@ public class LibraryAdapter extends PlayListAdapter {
                     hascover = true;
                     Glide.with(((LibraryViewHolder) holder).cover)
                             .load(new AudioCoverModel(item.getPath()))
-                            .dontTransform()
                             .listener(new RequestListener<Drawable>() {
                                 @Override
                                 public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -128,6 +130,7 @@ public class LibraryAdapter extends PlayListAdapter {
                                     return false;
                                 }
                             })
+                            .transition(DrawableTransitionOptions.withCrossFade())
                             .into(((LibraryViewHolder) holder).cover);
                 }
             }

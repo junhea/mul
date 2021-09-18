@@ -4,5 +4,5 @@
     <item android:id="@+id/explorer_close"
         app:showAsAction="always"
         android:icon="@drawable/ic_baseline_clear"
-        android:title="close"/>
+        android:title="@string/menu_close"/>
 </menu>

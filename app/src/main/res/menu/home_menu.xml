@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/menu_addSong"
+        android:icon="@drawable/add"
+        android:title="@string/menu_add"
+        app:showAsAction="always" />
     <item android:id="@+id/menu_debug"
-        android:title="debug"
+        android:title="@string/menu_debug"
         android:icon="@drawable/debug"/>
 </menu>

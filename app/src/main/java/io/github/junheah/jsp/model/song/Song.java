@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.PrimaryKey;
 
+import java.util.Locale;
+
 import io.github.junheah.jsp.interfaces.BitmapCallback;
 import io.github.junheah.jsp.interfaces.SongInfoObserver;
 import io.github.junheah.jsp.model.PlayList;
@@ -88,7 +90,7 @@ public class Song implements Comparable<Song>{
 
     @Override
     public int compareTo(Song o) {
-        return this.getName().compareTo(o.getName());
+        return this.getName().toLowerCase().compareTo(o.getName().toLowerCase());
     }
 
     @NonNull

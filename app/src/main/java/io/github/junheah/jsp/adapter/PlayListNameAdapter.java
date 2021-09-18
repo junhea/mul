@@ -1,6 +1,9 @@
 package io.github.junheah.jsp.adapter;
 
+import static io.github.junheah.jsp.Utils.YesNoPopup;
+
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,12 +47,26 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        String k = keys.get(position);
+        String k = keys.get(holder.getAbsoluteAdapterPosition());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(callback != null)
                     callback.itemClick(k, ((PlayListNameViewHolder)holder).name);
+            }
+        });
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                YesNoPopup(context, k, context.getString(R.string.msg_delete_playlist), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        playListIO.delete(k);
+                        keys.remove(holder.getAbsoluteAdapterPosition());
+                        notifyItemRemoved(holder.getAbsoluteAdapterPosition());
+                    }
+                });
+                return true;
             }
         });
         ((PlayListNameViewHolder)holder).name.setText(k);

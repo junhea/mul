@@ -34,11 +34,8 @@ import java.util.Map;
 
 import io.github.junheah.jsp.R;
 
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static io.github.junheah.jsp.activity.MainActivity.PERMISSION_CODE;
-import static io.github.junheah.jsp.fragment.DetailFragment.REQUEST_SELECT_FOLDER;
-import static io.github.junheah.jsp.fragment.DetailFragment.REQUEST_SELECT_SONG;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
 
 public class FileChooserActivity extends AppCompatActivity {
     int mode;
@@ -60,6 +57,8 @@ public class FileChooserActivity extends AppCompatActivity {
         context = this;
         history = new ArrayList<>();
         indexHistory = new HashMap<>();
+
+        getSupportActionBar().setTitle(mode == REQUEST_SELECT_SONG ? R.string.file_chooser_file : R.string.file_chooser_folder);
 
         currentDir = Environment.getExternalStorageDirectory();
 

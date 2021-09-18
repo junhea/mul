@@ -13,7 +13,7 @@
         android:layout_height="?attr/actionBarSize"
         android:gravity="center_vertical"
         android:paddingLeft="20dp"
-        android:text="PlayLists"
+        android:text="@string/fragment_playlist_title"
         android:textColor="#FFF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
