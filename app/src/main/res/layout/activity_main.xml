@@ -13,9 +13,7 @@
         android:clickable="false"
         android:focusable="true"
         android:gravity="bottom"
-        sothree:umanoParallaxOffset="68dp"
-        sothree:umanoPanelHeight="@dimen/panel_height"
-        sothree:umanoShadowHeight="4dp">
+        sothree:umanoPanelHeight="@dimen/panel_height">
 
         <include
             layout="@layout/content_main"

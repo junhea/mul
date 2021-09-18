@@ -116,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
     Runnable onPlayerConnected;
     SlidingUpPanelLayout.PanelSlideListener panelListener;
     SlidingUpPanelLayout panel;
-    View playerControl;
     View panelContent;
     ImageView miniPlayerCover;
     SongDataParser parser;
@@ -156,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             //timestamp thread
             Handler uiHandler = new Handler(Looper.getMainLooper());
             new Thread(new Runnable() {
-                int t;
+                int t = -1;
                 String timestamp;
                 @Override
                 public void run() {
@@ -165,20 +164,20 @@ public class MainActivity extends AppCompatActivity {
                         if (bound && player != null) {
                             status = player.getStatus();
                             if (status != null && status.playing && status.loaded && !seekbarTouch) {
-                                t = player.getCurrentPosition();
-                                String newTimeStamp = getTimeStamp(t);
-                                uiHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (!prevbtn.isEnabled() && t > 3000) prevbtn.setEnabled(true);
-                                        if(!newTimeStamp.equals(timestamp)){
-                                            timestamp = newTimeStamp;
+                                int nt = player.getCurrentPosition();
+                                if(nt/1000 != t/1000){
+                                    t = nt;
+                                    timestamp = getTimeStamp(t);
+                                    uiHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (!prevbtn.isEnabled() && t >= 3000) prevbtn.setEnabled(true);
                                             timestamp_cur.setText(timestamp);
+                                            seekBar.setProgress(t);
+                                            mini_progress.setProgress(t);
                                         }
-                                        seekBar.setProgress(t);
-                                        mini_progress.setProgress(t);
-                                    }
-                                });
+                                    });
+                                }
                             }
                             try {
                                 Thread.sleep(100);
@@ -275,7 +274,6 @@ public class MainActivity extends AppCompatActivity {
         mini_name = container.findViewById(R.id.mini_name);
         mini_artist = container.findViewById(R.id.mini_artist);
         mini_progress = container.findViewById(R.id.mini_progress);
-        playerControl = container.findViewById(R.id.playerControl);
         panelContent = container.findViewById(R.id.panel_content);
 
         //called on orientation change
@@ -374,8 +372,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        playerControl.setAlpha(0.0f);
-        playerControl.setVisibility(View.VISIBLE);
+//        playerControl.setAlpha(0.0f);
+//        playerControl.setVisibility(View.VISIBLE);
 
         if(panelListener != null) {
             panel.addPanelSlideListener(panelListener);
@@ -534,7 +532,7 @@ public class MainActivity extends AppCompatActivity {
 
                 miniPlayer.setAlpha(1-slideOffset*5);
 
-                playerControl.setAlpha(slideOffset);
+//                playerControl.setAlpha(slideOffset);
                 miniPlayerCover.setAlpha(0.25f + slideOffset);
 
                 miniPlayerCover.setTranslationY((-miniCoverHeight/2)*(1-slideOffset));
