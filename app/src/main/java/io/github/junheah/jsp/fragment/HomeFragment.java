@@ -165,7 +165,6 @@ public class HomeFragment extends CustomFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        System.out.println("acitivyt result! from home");
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
             String path = data.getStringExtra("path");

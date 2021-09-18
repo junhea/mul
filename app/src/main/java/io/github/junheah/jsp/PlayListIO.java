@@ -67,9 +67,6 @@ public class PlayListIO {
         return pl;
     }
 
-    public void detach(PlayList pl){
-        System.out.println("detach!!! " + pl.getName());
-    }
 
     public String getRaw(){
         Map<String, List<long[]>> data = new HashMap<>();

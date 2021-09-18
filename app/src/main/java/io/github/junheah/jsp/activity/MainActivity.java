@@ -2,6 +2,7 @@ package io.github.junheah.jsp.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -39,6 +40,8 @@ import android.os.Process;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -131,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     float miniCoverHeight;
     RequestListener<Bitmap> requestListener;
     int color;
+    boolean forceUpdate = false;
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -205,6 +209,8 @@ public class MainActivity extends AppCompatActivity {
             //notify current to fragments
             if(adapter != null)
                 adapter.notify("", null);
+            playList = null;
+            current = null;
         }
     };
 
@@ -261,10 +267,17 @@ public class MainActivity extends AppCompatActivity {
             }
             color = newcolor;
         }
+    }
 
+    public void setColor(int c){
+        View[] views = {panelContent, getWindow().getDecorView(), activity};
+        for (View v : views) {
+            v.setBackgroundColor(c);
+        }
     }
 
     private void reloadPlayerControls(View container, boolean portrait) {
+        forceUpdate = true;
 
         miniPlayer = container.findViewById(R.id.mini_player);
         miniPlayerInfoContainer = container.findViewById(R.id.mini_infoContainer);
@@ -398,6 +411,9 @@ public class MainActivity extends AppCompatActivity {
         return player;
     }
 
+    public void setTopPadding(int px){
+
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
@@ -421,22 +437,7 @@ public class MainActivity extends AppCompatActivity {
         panel.setPanelHeight(0);
         panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
-
-        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), new OnApplyWindowInsetsListener() {
-            @Override
-            public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
-                //This is where you get DisplayCutoutCompat
-                int statusBarHeight = getStatusBarHeight();
-                int ci;
-                if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
-                else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
-
-                //System.out.println(ci + " : " + statusBarHeight);
-
-                view.setPadding(0,0,0,0);
-                return windowInsetsCompat;
-            }
-        });
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
 
         //reveal animation
         ImageView logo = this.findViewById(R.id.logo);
@@ -494,9 +495,39 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }else{
-            logo.setVisibility(View.GONE);
-            adapter.onAnimationEnd();
+            viewPager.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    viewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    //set initial
+                    miniCoverHeight = miniPlayerCover.getMeasuredHeight();
+                    refreshPanel();
+
+                    logo.setVisibility(View.GONE);
+                    if(adapter!= null)
+                        adapter.onAnimationEnd();
+                }
+            });
         }
+
+        //fullscreen
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), new OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
+                //This is where you get DisplayCutoutCompat
+                int statusBarHeight = getStatusBarHeight();
+                int ci;
+                if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
+                else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
+
+                logo.setPadding(0,(ci > statusBarHeight ? ci : statusBarHeight)*2,0,0);
+
+                activity.setPadding(0,ci > statusBarHeight ? ci : statusBarHeight,0,0);
+                view.setPadding(windowInsetsCompat.getStableInsetLeft(),0,windowInsetsCompat.getStableInsetRight(),windowInsetsCompat.getStableInsetBottom());
+                return windowInsetsCompat;
+            }
+        });
 
 
 
@@ -620,6 +651,7 @@ public class MainActivity extends AppCompatActivity {
         //broadcast receiver
         receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
+                System.out.println("received!");
                 //if broadcast received, player is running
                 if(intent.getAction().equals(ACTION_PLAYER_BROADCAST)) {
                     toggleButtons(true);
@@ -642,96 +674,89 @@ public class MainActivity extends AppCompatActivity {
                         mini_pausebtn.setImageResource(R.drawable.player_start);
                     }
 
-                    //manual seekbar & timestamp
-                    if (bound && !status.playing) {
-                        seekBar.setProgress(player.getCurrentPosition());
-                        timestamp_cur.setText(getTimeStamp(player.getCurrentPosition()));
-                    }
-
                     //update ui depending on status.loaded
                     pausebtn.setEnabled(status.loaded);
                     seekBar.setEnabled(status.loaded);
 
-                    if (status.loaded) {
-                        timestamp_dur.setText(getTimeStamp(status.duration));
-                        seekBar.setMax(status.duration);
-                        mini_progress.setMax(status.duration);
-                    } else {
+                    if (!status.loaded) {
                         seekBar.setProgress(0);
                         mini_progress.setProgress(0);
                         timestamp_cur.setText("");
                         timestamp_dur.setText("");
+                    }else{
+                        timestamp_cur.setText(getTimeStamp(0));
+                        timestamp_dur.setText(getTimeStamp(status.duration));
+                        seekBar.setMax(status.duration);
+                        mini_progress.setMax(status.duration);
                     }
 
+
                     if (bound) {
-                        if(current != player.getCurrent() || playList != player.getPlayList()) {
+                        //if now playing is new : update text (song name, artist, total duration)
+                        if(current != player.getCurrent() || playList != player.getPlayList() || forceUpdate) {
+
+                            forceUpdate = false;
+
                             current = player.getCurrent();
                             playList = player.getPlayList();
                             //notify current to fragments
                             if (adapter != null)
-                                adapter.notify(playList.getName(), current);
-                            if (current == null) {
-                                //no song loaded
-                                nextbtn.setEnabled(false);
-                                prevbtn.setEnabled(false);
-                                pausebtn.setEnabled(false);
-                                miniPlayerCover.setImageResource(R.drawable.music);
-                            } else {
-                                //show player
-                                panel.setPanelHeight((int) getResources().getDimension(R.dimen.panel_height));
-                                if (playList.getNext(current) == null) nextbtn.setEnabled(false);
-                                else nextbtn.setEnabled(true);
-                                if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
-                                else prevbtn.setEnabled(true);
+                                adapter.notify(playList == null ? null : playList.getName(), current);
 
-                                if (playList.getMode() == MODE_SHUFFLE) {
-                                    shufflebtn.setImageResource(R.drawable.player_shuffle);
-                                    repeatbtn.setImageResource(R.drawable.player_repeat_off);
-                                } else if (playList.getMode() == MODE_REPEAT_ALL) {
-                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                    repeatbtn.setImageResource(R.drawable.player_repeat);
-                                } else if (playList.getMode() == MODE_REPEAT_SONG) {
-                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                    repeatbtn.setImageResource(R.drawable.player_repeat_song);
+                            //show player
+                            panel.setPanelHeight((int) getResources().getDimension(R.dimen.panel_height));
+                            if (playList.getNext(current) == null) nextbtn.setEnabled(false);
+                            else nextbtn.setEnabled(true);
+                            if (playList.getPrev(current) == null) prevbtn.setEnabled(false);
+                            else prevbtn.setEnabled(true);
+
+                            name.setText(current.getName());
+                            mini_name.setText(current.getName());
+                            artist.setText(current.getArtist());
+                            mini_artist.setText(current.getArtist());
+
+                            try {
+                                if (current instanceof ExternalSong) {
+                                    String url = ((ExternalSong) current).getCoverUrl();
+                                    if (url != null && url.length() > 0)
+                                        System.out.println(url);
+                                    Glide.with(miniPlayerCover)
+                                            .asBitmap()
+                                            .load(url)
+                                            .dontTransform()
+                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                            .placeholder(R.drawable.music)
+                                            .addListener(requestListener)
+                                            .into(miniPlayerCover);
                                 } else {
-                                    //normal
-                                    shufflebtn.setImageResource(R.drawable.player_shuffle_off);
-                                    repeatbtn.setImageResource(R.drawable.player_repeat_off);
+                                    Glide.with(miniPlayerCover)
+                                            .asBitmap()
+                                            .load(new AudioCoverModel(current.getPath()))
+                                            .dontTransform()
+                                            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                            .placeholder(R.drawable.music)
+                                            .fallback(R.drawable.music)
+                                            .addListener(requestListener)
+                                            .into(miniPlayerCover);
                                 }
+                            } catch (Exception e) {
 
-                                name.setText(current.getName());
-                                mini_name.setText(current.getName());
-                                artist.setText(current.getArtist());
-                                mini_artist.setText(current.getArtist());
-
-                                try {
-                                    if (current instanceof ExternalSong) {
-                                        String url = ((ExternalSong) current).getCoverUrl();
-                                        if (url != null && url.length() > 0)
-                                            System.out.println(url);
-                                        Glide.with(miniPlayerCover)
-                                                .asBitmap()
-                                                .load(url)
-                                                .dontTransform()
-                                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                                                .placeholder(R.drawable.music)
-                                                .addListener(requestListener)
-                                                .into(miniPlayerCover);
-                                    } else {
-                                        Glide.with(miniPlayerCover)
-                                                .asBitmap()
-                                                .load(new AudioCoverModel(current.getPath()))
-                                                .dontTransform()
-                                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                                                .placeholder(R.drawable.music)
-                                                .fallback(R.drawable.music)
-                                                .addListener(requestListener)
-                                                .into(miniPlayerCover);
-                                    }
-                                } catch (Exception e) {
-
-                                }
                             }
+                        }
+
+                        if (playList.getMode() == MODE_SHUFFLE) {
+                            shufflebtn.setImageResource(R.drawable.player_shuffle);
+                            repeatbtn.setImageResource(R.drawable.player_repeat_off);
+                        } else if (playList.getMode() == MODE_REPEAT_ALL) {
+                            shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                            repeatbtn.setImageResource(R.drawable.player_repeat);
+                        } else if (playList.getMode() == MODE_REPEAT_SONG) {
+                            shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                            repeatbtn.setImageResource(R.drawable.player_repeat_song);
+                        } else {
+                            //normal
+                            shufflebtn.setImageResource(R.drawable.player_shuffle_off);
+                            repeatbtn.setImageResource(R.drawable.player_repeat_off);
                         }
                     }
                 }else if(intent.getAction().equals(ACTION_PLAYER_EXIT)){
@@ -802,6 +827,7 @@ public class MainActivity extends AppCompatActivity {
         boolean portrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
         viewSwitcher.showNext();
         reloadPlayerControls(viewSwitcher.getCurrentView(), portrait);
+        setColor(color);
 
         //set initial player state
         refreshPanel();
@@ -877,7 +903,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        System.out.println("activity result from activity");
     }
 
     public Song getCurrent(){
