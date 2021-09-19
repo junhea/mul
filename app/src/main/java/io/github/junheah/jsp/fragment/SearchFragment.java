@@ -51,6 +51,7 @@ import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
+import static io.github.junheah.jsp.Utils.snackbar;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 
 public class SearchFragment extends CustomFragment {
@@ -304,28 +305,45 @@ public class SearchFragment extends CustomFragment {
                                 }
                                 //ui thread
                                 String data = pls[i];
-                                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if(i>0) {
-                                            //add song to playlist
-                                            PlayList playList = getPlayList(data);
 
-                                            if(playList == null){
-                                                //don't need load : just add via playListio
-                                                playListIO.addSongs(data, ids);
-                                            }else {
-                                                for(Song s : res){
-                                                    playList.add(s);
+                                if(i>0) {
+                                    //add song to playlist
+                                    PlayList playList = getPlayList(data);
+
+                                    if(playList == null){
+                                        //don't need load : just add via playListio
+                                        boolean success = playListIO.addSongs(data, ids);
+                                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                View view = getView();
+                                                if(view != null){
+                                                    snackbar(view, getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate), getString(R.string.msg_ok));
                                                 }
                                             }
-                                        }
+                                        });
 
-                                        for(Song s : res){
-                                            library.addWithSort(s);
-                                        }
+                                    }else {
+                                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                boolean success = true;
+                                                for (Song s : res) {
+                                                    if(!playList.add(s))
+                                                        success = false;
+                                                }
+                                                View view = getView();
+                                                if(view != null){
+                                                    snackbar(view, getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate), getString(R.string.msg_ok));
+                                                }
+                                            }
+                                        });
                                     }
-                                });
+                                }
+
+                                for(Song s : res){
+                                    library.addWithSort(s);
+                                }
                             }
                         }).start();
 

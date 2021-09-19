@@ -100,4 +100,20 @@ public class Song implements Comparable<Song>{
         s.setSid(sid);
         return s;
     }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof long[]){
+            long mode = NONE;
+            if(this instanceof LocalSong) mode = LOCAL;
+            else mode = EXTERNAL;
+
+            return mode == ((long[])obj)[0] && sid == ((long[])obj)[1];
+        }else if(obj instanceof Song){
+            if(((Song)obj).sid == ((Song)this).sid){
+                return (obj instanceof LocalSong && this instanceof LocalSong) || (obj instanceof ExternalSong && this instanceof ExternalSong);
+            }
+        }
+        return super.equals(obj);
+    }
 }

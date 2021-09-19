@@ -142,6 +142,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
     }
 
     public boolean add(Song song, boolean isLoad, boolean silent) {
+        if(indexOf(song)>-1) return false;
         boolean res = super.add(song);
         song.setParent(this);
         if(notifier != null && !silent) {
@@ -195,6 +196,9 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         //notify player (if attached)
         if(playListChangeCallback != null) playListChangeCallback.songRemoved(obj);
 
+        //playlistio
+        if(!tmp) playListIO.write(this);
+
         return obj;
     }
 
@@ -240,7 +244,7 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         if(notifier != null)
             notifier.itemUpdated(indexOf(song));
         // update metadata in db
-        playListIO.write(this);
+        if(!tmp) playListIO.write(this);
     }
 
     public void swap(int i, int j){

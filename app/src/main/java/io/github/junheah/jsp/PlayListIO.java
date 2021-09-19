@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -113,13 +114,22 @@ public class PlayListIO {
         return playList;
     }
 
-    public void addSongs(String playList, List<long[]> items){
+    public boolean addSongs(String playList, List<long[]> items){
+        boolean success = true;
         List<long[]> ids = getids(playList);
         for(long[] id : items){
+            if(success)
+                for(long[] i : ids){
+                    if(Arrays.equals(i, id)) {
+                        success = false;
+                        break;
+                    }
+                }
             ids.add(id);
         }
         editor.putString(playList, g.toJson(ids));
         editor.commit();
+        return success;
     }
 
     public void write(PlayList playList){
@@ -133,6 +143,11 @@ public class PlayListIO {
                 ids.add(new long[]{LOCAL, s.getSid()});
             }
         }
+        editor.putString(name, g.toJson(ids));
+        editor.commit();
+    }
+
+    public void writeIds(String name, List<long[]> ids){
         editor.putString(name, g.toJson(ids));
         editor.commit();
     }

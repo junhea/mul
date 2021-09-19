@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.OnApplyWindowInsetsListener;
@@ -518,12 +519,15 @@ public class MainActivity extends AppCompatActivity {
                 //This is where you get DisplayCutoutCompat
                 int statusBarHeight = getStatusBarHeight();
                 int ci;
+
                 if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
                 else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
 
-                logo.setPadding(0,(ci > statusBarHeight ? ci : statusBarHeight)*2,0,0);
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams)logo.getLayoutParams();
+                params.setMargins(0,ci > statusBarHeight ? ci : statusBarHeight,0,0);
+                logo.setLayoutParams(params);
 
-                activity.setPadding(0,ci > statusBarHeight ? ci : statusBarHeight,0,0);
+                activity.setPadding(0, ci > statusBarHeight ? ci : statusBarHeight,0,0);
                 view.setPadding(windowInsetsCompat.getStableInsetLeft(),0,windowInsetsCompat.getStableInsetRight(),windowInsetsCompat.getStableInsetBottom());
                 return windowInsetsCompat;
             }
@@ -607,9 +611,6 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //yes
                                 list.remove(song);
-
-                                //save
-                                playListIO.write(list);
                             }
                         });
             }
@@ -619,6 +620,8 @@ public class MainActivity extends AppCompatActivity {
                 //delete song from library
                 YesNoPopup(context, song.getName(), getString(R.string.prompt_remove_song_from_library),
                         new DialogInterface.OnClickListener() {
+                            List<Integer> indexes = new ArrayList<>();
+                            PlayList pl;
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //yes
@@ -633,14 +636,36 @@ public class MainActivity extends AppCompatActivity {
                                         else
                                             SongDatabase.getInstance(context).externalDao().delete((ExternalSong) song);
 
-                                        //todo: apply to playlists
-//                                        List<String> names = new ArrayList<>();
-//                                        for(String name : playListIO.getNames()){
-//                                            for(long[] i : playListIO.getids(name)){
-//                                                if(Arrays.equals(i, sid))   //remove from pl
-//                                                    playListIO
-//                                            }
-//                                        }
+                                        //remove instances from playlists
+
+                                        for(String name : playListIO.getNames()){
+                                            indexes.clear();
+                                            //find
+                                            List<long[]> ids  = playListIO.getids(name);
+                                            for(int i = ids.size()-1; i>-1; i--){
+                                                long[] id = ids.get(i);
+                                                if(Arrays.equals(id, sid)) {   //remove from pl
+                                                    ids.remove(i);
+                                                    indexes.add(i);
+                                                }
+                                            }
+                                            //write
+                                            if(indexes.size()>0) {
+                                                pl = getPlayList(name);
+                                                if(pl == null) {
+                                                    playListIO.writeIds(name, ids);
+                                                }else{
+                                                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            for(int i : indexes)
+                                                                pl.remove(i);
+                                                        }
+                                                    });
+                                                }
+
+                                            }
+                                        }
                                     }
                                 }).start();
                             }

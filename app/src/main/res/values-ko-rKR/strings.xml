@@ -34,4 +34,7 @@
     <string name="activity_source_title">소스 관리</string>
     <string name="prompt_yes">예</string>
     <string name="msg_delete_playlist">해당 재생목록을 삭제할까요?</string>
+    <string name="msg_add_success">추가 성공</string>
+    <string name="msg_add_err_duplicate">일부 추가 실패 : 이미 존재합니다</string>
+    <string name="msg_ok">확인</string>
 </resources>

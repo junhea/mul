@@ -15,6 +15,8 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -31,6 +33,8 @@ import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -262,6 +266,17 @@ public class Utils {
         Intent intent = new Intent(fragment.getContext(), FileChooserActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_FOLDER);
         fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
+    }
+
+    public static void snackbar(View layout, String content, String ok){
+        final Snackbar snackbar = Snackbar.make(layout, content, Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction(ok, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
+        snackbar.show();
     }
 
 

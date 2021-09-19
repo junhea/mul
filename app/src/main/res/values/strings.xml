@@ -33,4 +33,7 @@
     <string name="prompt_yes">Yes</string>
     <string name="prompt_no">No</string>
     <string name="msg_delete_playlist">Delete following playlist?</string>
+    <string name="msg_add_success">Successfully added songs to playlist</string>
+    <string name="msg_add_err_duplicate">Failed to add some songs : already exists</string>
+    <string name="msg_ok">Dismiss</string>
 </resources>

@@ -87,7 +87,7 @@ public class LibraryAdapter extends PlayListAdapter {
             @Override
             public boolean onLongClick(View view) {
                 if(callback != null){
-                    callback.SongLongClicked(item, playList);
+                    callback.SongLongClicked(item);
                 }
                 return false;
             }
