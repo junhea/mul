@@ -1,5 +1,6 @@
 package io.github.junheah.jsp.model.song;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
 import android.graphics.Bitmap;
@@ -11,11 +12,13 @@ import android.os.Process;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.fragment.HomeFragment;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.snackbar;
 
 
 public class SongDataParser extends Thread {
@@ -48,6 +51,7 @@ public class SongDataParser extends Thread {
             SongPlayListParcel parcel = queue.get(0);
             queue.remove(0);
 
+            boolean success = true;
             for(Song s : parcel.songs){
                 exists = false;
                 try {
@@ -60,18 +64,36 @@ public class SongDataParser extends Thread {
                     s = dao.findWithPath(s.path);
                 }
                 Song finalS = s;
+                //check if addable
+                boolean addable = false;
+                if(parcel.playList != null)
+                    addable = parcel.playList.addable(finalS);
+                boolean finalAddable = addable;
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         if(!exists)
                             library.addWithSort(finalS);
-                        if(parcel.playList != null)
-                            parcel.playList.add(finalS);
+                        if(finalAddable)
+                            parcel.playList.forceAdd(finalS);
                     }
                 });
+
+                if(!addable)
+                    success = false;
             }
             if(parcel.playList != null)
                 parcel.playList.forcesave();
+
+            boolean finalsuccess = success;
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    snackbar(((Activity)context).findViewById(android.R.id.content),
+                            context.getString(finalsuccess ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                            context.getString(R.string.msg_ok));
+                }
+            });
 
         }
         running = false;

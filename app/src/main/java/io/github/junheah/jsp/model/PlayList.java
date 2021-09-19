@@ -162,6 +162,23 @@ public class PlayList extends ArrayList<Song> implements SongInfoObserver {
         return add(song, false, false);
     }
 
+    public void forceAdd(Song song){
+        super.add(song);
+        song.setParent(this);
+        if(notifier != null) {
+            notifier.itemAdded(size()-1);
+        }
+
+        //notify player (if attached)
+        if(playListChangeCallback != null) playListChangeCallback.playListUpdated();
+        //playlist io
+        if(!tmp) playListIO.write(PlayList.this);
+    }
+
+    public boolean addable(Song song){
+        return indexOf(song)==-1;
+    }
+
     @Override
     public void clear() {
         playListChangeCallback = null;
