@@ -82,7 +82,7 @@ public class LibraryAdapter extends PlayListAdapter {
                 }
             }
         });
-        //todo remove song from LIBRARY
+
         ((LibraryViewHolder)holder).layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {

@@ -48,6 +48,7 @@ import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.service.Player;
 
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.createSnackbar;
 import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
@@ -86,8 +87,6 @@ public class SearchFragment extends CustomFragment {
         return inflater.inflate(R.layout.fragment_search, container, false);
     }
 
-
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -120,22 +119,23 @@ public class SearchFragment extends CustomFragment {
         adapter = new SearchResultAdapter(getContext(), result);
         adapter.setListener(new SearchResultInterface(){
             @Override
-            public void clickedSong(ExternalSong song) {
+            public void clickedSong(Song song) {
                 //fetch data
-                song.fetch(getContext(), new ScriptCallback() {
-                    @Override
-                    public void callback(Object res) {
-                        //play in player
-                        PlayList pl = new PlayList(getContext(),"", true);
-                        pl.add(song);
-                        callback.SongClicked(song, pl);
-                    }
+                if(song instanceof ExternalSong)
+                    ((ExternalSong)song).fetch(getContext(), new ScriptCallback() {
+                        @Override
+                        public void callback(Object res) {
+                            //play in player
+                            PlayList pl = new PlayList(getContext(),"", true);
+                            pl.add(song);
+                            callback.SongClicked(song, pl);
+                        }
 
-                    @Override
-                    public void onError(Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+                        @Override
+                        public void onError(Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
             }
 
             @Override
@@ -185,7 +185,7 @@ public class SearchFragment extends CustomFragment {
             }
 
             @Override
-            public void longClickedSong(ExternalSong song) {
+            public void longClickedSong(Song song) {
                 toggleSelectMode(song);
             }
         });
@@ -227,7 +227,7 @@ public class SearchFragment extends CustomFragment {
         });
     }
 
-    public void toggleSelectMode(ExternalSong song){
+    public void toggleSelectMode(Song song){
         adapter.setSelectMode(!adapter.getSelectMode(), song);
         prevResBtn.setEnabled(!adapter.getSelectMode());
         getActivity().invalidateOptionsMenu();
@@ -271,7 +271,6 @@ public class SearchFragment extends CustomFragment {
         inflater.inflate(R.menu.search_menu, menu);
     }
 
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
@@ -313,15 +312,12 @@ public class SearchFragment extends CustomFragment {
                                     if(playList == null){
                                         //don't need load : just add via playListio
                                         boolean success = playListIO.addSongs(data, ids);
-                                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                View view = getView();
-                                                if(view != null){
-                                                    snackbar(view, getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate), getString(R.string.msg_ok));
-                                                }
-                                            }
-                                        });
+                                        View view = getView();
+                                        if(view != null){
+                                            snackbar(view,
+                                                    getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                                                    getString(R.string.msg_ok));
+                                        }
 
                                     }else {
                                         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -334,7 +330,9 @@ public class SearchFragment extends CustomFragment {
                                                 }
                                                 View view = getView();
                                                 if(view != null){
-                                                    snackbar(view, getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate), getString(R.string.msg_ok));
+                                                    createSnackbar(view,
+                                                            getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                                                            getString(R.string.msg_ok)).show();
                                                 }
                                             }
                                         });

@@ -22,7 +22,8 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".activity.LibrarySelectionActivity"
-            android:exported="true" />
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_library_select" />
         <activity
             android:name=".activity.FileChooserActivity"
             android:configChanges="orientation|screenSize"

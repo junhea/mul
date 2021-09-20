@@ -53,11 +53,17 @@ import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.openDirectory;
 import static io.github.junheah.jsp.Utils.openFile;
+import static io.github.junheah.jsp.Utils.openLibrary;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
+import static io.github.junheah.jsp.Utils.snackbar;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_LIBRARY;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class DetailFragment extends CustomFragment {
     String name;
@@ -191,8 +197,6 @@ public class DetailFragment extends CustomFragment {
     }
 
 
-
-
     void showAddMenu(){
         View view = getActivity().findViewById(R.id.menu_addSong);
         PopupMenu popupMenu = new PopupMenu(getContext(), view);
@@ -208,6 +212,7 @@ public class DetailFragment extends CustomFragment {
                         break;
                     case R.id.menu_addFromLibrary:
                         //todo add from library
+                        openLibrary(DetailFragment.this);
                         break;
                 }
                 return true;
@@ -241,6 +246,17 @@ public class DetailFragment extends CustomFragment {
                         addSong(new SongPlayListParcel(playList, song));
                     }
                 }
+            }
+        }else if(requestCode == REQUEST_SELECT_LIBRARY && resultCode == RESULT_OK){
+            //sid list
+            System.out.println(data.getStringExtra("data"));
+            long[][] d = new Gson().fromJson(data.getStringExtra("data"), new TypeToken<long[][]>(){}.getType());
+            //add
+            for(long[] sid : d){
+                boolean res = playList.add(library.getWithId(sid));
+                snackbar(getView(),
+                        res ? getString(R.string.msg_add_success) : getString(R.string.msg_add_err_duplicate),
+                        getString(R.string.msg_ok));
             }
         }
     }
@@ -283,5 +299,5 @@ public class DetailFragment extends CustomFragment {
             stop = true;
             super.interrupt();
         }
-    };
+    }
 }

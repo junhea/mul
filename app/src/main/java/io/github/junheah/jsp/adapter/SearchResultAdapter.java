@@ -41,7 +41,12 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     final static int BUTTON = 1;
     boolean lock = false;
     boolean selectMode = false;
-    boolean[] checked;
+    short[] checked;
+
+    final static short CHECK = 1;
+    final static short NONE = 0;
+    final static short INVALID = -1;
+
 
     public SearchResultAdapter(Context context, List data) {
         this.data = new ArrayList<>();
@@ -50,24 +55,27 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.data.addAll(data);
         history = new ArrayList<>();
         setHasStableIds(true);
+        this.checked = new short[this.data.size()];
+        for(int i=0; i<this.checked.length; i++) {
+            if(this.data.get(i) instanceof ExternalSongContainer) this.checked[i] = INVALID;
+            else this.checked[i] = NONE;
+        }
     }
 
     public void lockui(boolean lock) {
         this.lock = lock;
     }
 
-    public void setSelectMode(boolean mode, ExternalSong song){
+    public void setSelectMode(boolean mode, Song song){
         this.selectMode = mode;
-        if(song != null) {
-            for (Object o : data) {
-                if (o instanceof ExternalSong) {
-                    ((ExternalSong) o).resetCheck();
-                    if (song != null && o == song) ((ExternalSong) o).toggleCheck();
-                }
-            }
-        }
-        for(int i=0; i<data.size(); i++){
-            if(data.get(i) instanceof ExternalSong && !(data.get(i) instanceof ExternalSongContainer)){
+        for (int i=0; i<data.size(); i++) {
+            Object o = data.get(i);
+            if(o instanceof ExternalSongContainer){
+                checked[i] = INVALID;
+            }else if (o instanceof Song) {
+                //is longclicked song
+                if (song != null && o == song) checked[i] = CHECK;
+                else checked[i] = NONE;
                 notifyItemChanged(i);
             }
         }
@@ -98,14 +106,14 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if(holder instanceof PlayListViewHolder) {
-            ExternalSong song = (ExternalSong)data.get(holder.getAbsoluteAdapterPosition());
+            Song song = (Song)data.get(holder.getAbsoluteAdapterPosition());
             PlayListViewHolder v = (PlayListViewHolder) holder;
             if (song instanceof ExternalSongContainer) {
                 v.layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         if(!lock && !selectMode){
-                            listener.clickedSongContainer((ExternalSongContainer) song);
+                            if(listener != null) listener.clickedSongContainer((ExternalSongContainer) song);
                         }
                     }
                 });
@@ -117,9 +125,9 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     public void onClick(View view) {
                         if(!lock) {
                             if(selectMode){
-                                song.toggleCheck();
+                                checked[holder.getAbsoluteAdapterPosition()] = checked[holder.getAbsoluteAdapterPosition()] == NONE ? CHECK : NONE;
                                 notifyItemChanged(holder.getAbsoluteAdapterPosition());
-                            }else listener.clickedSong(song);
+                            }else if(listener != null) listener.clickedSong(song);
                         }
                     }
                 });
@@ -127,7 +135,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     @Override
                     public boolean onLongClick(View view) {
                         if(!lock){
-                            listener.longClickedSong(song);
+                            if(listener != null) listener.longClickedSong(song);
                         }
                         return true;
                     }
@@ -138,10 +146,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             // ui
             v.name.setText(song.getName());
             v.artist.setText(song.getArtist());
-            v.checkBox.setChecked(song.getChecked());
+            v.checkBox.setChecked(checked[holder.getAbsoluteAdapterPosition()] == CHECK);
 
             if (song instanceof ExternalSong) {
-                String url = song.getCoverUrl();
+                String url = ((ExternalSong)song).getCoverUrl();
                 if (url != null && url.length() > 0)
                     Glide.with(((PlayListViewHolder) holder).cover)
                             .load(url)
@@ -166,7 +174,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 @Override
                 public void onClick(View view) {
                     if(!lock) {
-                        listener.clickedLoadMore();
+                        if(listener != null) listener.clickedLoadMore();
                         item.loading = true;
                         notifyItemChanged(holder.getAbsoluteAdapterPosition());
                     }
@@ -178,9 +186,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void toggleSelectAll(){
         //check if there are any selected items
         boolean flag = false;
-        for(Object o :data){
-            if(o instanceof ExternalSong){
-                if(((ExternalSong)o).getChecked()){
+        for(int i=0; i<data.size(); i++){
+            Object o = data.get(i);
+            if(o instanceof Song){
+                if(checked[i] == CHECK){
                     flag = true;
                     break;
                 }
@@ -190,8 +199,8 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         for(int i = 0; i<data.size(); i++){
             Object o = data.get(i);
             if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)) {
-                if(((ExternalSong)o).getChecked() == flag) {
-                    ((ExternalSong) o).resetCheck(!flag);
+                if(checked[i] == (flag ? CHECK : NONE)) {
+                    checked[i] = (flag ? NONE : CHECK);
                     notifyItemChanged(i);
                 }
             }
@@ -211,6 +220,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void addAll(List songs){
         int size = this.data.size();
+        checked = new short[songs.size()];
         if(size>0){
             if(this.data.get(data.size()-1) instanceof ButtonItem){
                 this.data.remove(data.size()-1);
@@ -247,9 +257,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public List<Song> getSelected(){
         List<Song> res = new ArrayList<>();
-        for(Object o : data){
-            if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)){
-                if(((ExternalSong) o).getChecked()){
+        for(int i=0; i<data.size(); i++){
+            Object o = data.get(i);
+            if(o instanceof Song && !(o instanceof ExternalSongContainer)){
+                if(checked[i] == CHECK){
                     res.add((ExternalSong) o);
                 }
             }

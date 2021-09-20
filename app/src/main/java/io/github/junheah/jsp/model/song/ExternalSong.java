@@ -57,26 +57,12 @@ public class ExternalSong extends Song{
     @TypeConverters(MapConverter.class)
     Map<String, String> headers;
     transient Source source;
-    transient boolean checked = false;
 
     public ExternalSong(String id, String name, String artist, String path, String coverUrl, Map<String, String> headers) {
         super(name, artist, path);
         this.coverUrl = coverUrl;
         this.headers = headers;
         this.id = id;
-    }
-
-    public boolean getChecked(){
-        return checked;
-    }
-    public void toggleCheck(){
-        checked = !checked;
-    }
-    public void resetCheck(){
-        checked = false;
-    }
-    public void resetCheck(boolean flag){
-        checked = flag;
     }
 
     public void setSource(Source source){

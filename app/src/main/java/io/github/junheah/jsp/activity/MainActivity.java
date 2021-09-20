@@ -709,12 +709,11 @@ public class MainActivity extends AppCompatActivity {
                         timestamp_cur.setText("");
                         timestamp_dur.setText("");
                     }else{
-                        timestamp_cur.setText(getTimeStamp(0));
+                        timestamp_cur.setText(getTimeStamp(status.current));
                         timestamp_dur.setText(getTimeStamp(status.duration));
                         seekBar.setMax(status.duration);
                         mini_progress.setMax(status.duration);
                     }
-
 
                     if (bound) {
                         //if now playing is new : update text (song name, artist, total duration)

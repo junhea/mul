@@ -68,7 +68,7 @@ public class HomeFragment extends CustomFragment {
 
     public final static int REQUEST_SELECT_SONG = 11;
     public final static int REQUEST_SELECT_FOLDER = 12;
-    public final static int REQUEST_SELECT_EXTERNAL = 13;
+    public final static int REQUEST_SELECT_LIBRARY = 13;
 
     LibraryLoader loader;
     LibraryAdapter adapter;

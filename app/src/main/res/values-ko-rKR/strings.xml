@@ -37,4 +37,5 @@
     <string name="msg_add_success">추가 성공</string>
     <string name="msg_add_err_duplicate">일부 추가 실패 : 이미 존재합니다</string>
     <string name="msg_ok">확인</string>
+    <string name="activity_library_select">곡 추가</string>
 </resources>

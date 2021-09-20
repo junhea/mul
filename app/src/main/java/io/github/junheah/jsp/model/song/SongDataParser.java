@@ -63,18 +63,16 @@ public class SongDataParser extends Thread {
                     exists = true;
                     s = dao.findWithPath(s.path);
                 }
+
                 Song finalS = s;
                 //check if addable
-                boolean addable = false;
-                if(parcel.playList != null)
-                    addable = parcel.playList.addable(finalS);
-                boolean finalAddable = addable;
+                boolean addable = parcel.playList != null ? parcel.playList.addable(finalS) : false;
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         if(!exists)
                             library.addWithSort(finalS);
-                        if(finalAddable)
+                        if(addable)
                             parcel.playList.forceAdd(finalS);
                     }
                 });
@@ -85,16 +83,9 @@ public class SongDataParser extends Thread {
             if(parcel.playList != null)
                 parcel.playList.forcesave();
 
-            boolean finalsuccess = success;
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    snackbar(((Activity)context).findViewById(android.R.id.content),
-                            context.getString(finalsuccess ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
-                            context.getString(R.string.msg_ok));
-                }
-            });
-
+            snackbar(((Activity)context).findViewById(android.R.id.content),
+                    context.getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                    context.getString(R.string.msg_ok));
         }
         running = false;
     }

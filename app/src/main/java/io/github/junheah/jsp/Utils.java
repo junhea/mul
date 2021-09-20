@@ -1,6 +1,7 @@
 package io.github.junheah.jsp;
 
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
+import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_LIBRARY;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
 
 import android.app.Activity;
@@ -43,6 +44,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import io.github.junheah.jsp.activity.FileChooserActivity;
+import io.github.junheah.jsp.activity.LibrarySelectionActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.fragment.DetailFragment;
 import io.github.junheah.jsp.interfaces.IntegerCallback;
@@ -268,15 +270,37 @@ public class Utils {
         fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
 
+    public static void openLibrary(Fragment fragment) {
+        Intent intent = new Intent(fragment.getContext(), LibrarySelectionActivity.class);
+        intent.putExtra("mode", REQUEST_SELECT_LIBRARY);
+        fragment.startActivityForResult(intent, REQUEST_SELECT_LIBRARY);
+    }
+
     public static void snackbar(View layout, String content, String ok){
-        final Snackbar snackbar = Snackbar.make(layout, content, Snackbar.LENGTH_INDEFINITE);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                final Snackbar snackbar = Snackbar.make(layout, content, Snackbar.LENGTH_LONG);
+                snackbar.setAction(ok, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        snackbar.dismiss();
+                    }
+                });
+                snackbar.show();
+            }
+        });
+    }
+
+    public static Snackbar createSnackbar(View layout, String content, String ok){
+        final Snackbar snackbar = Snackbar.make(layout, content, Snackbar.LENGTH_LONG);
         snackbar.setAction(ok, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 snackbar.dismiss();
             }
         });
-        snackbar.show();
+        return snackbar;
     }
 
 

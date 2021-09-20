@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/library_add"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/add"
+        android:title="@string/menu_add"/>
+    <item android:id="@+id/library_select_all"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_baseline_select_all_24"
+        android:title="@string/menu_select_all"/>
+</menu>

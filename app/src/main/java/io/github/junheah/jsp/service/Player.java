@@ -606,6 +606,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             if (status.loaded) {
                 status.playing = mediaPlayer.isPlaying();
                 status.duration = mediaPlayer.getDuration();
+                status.current = mediaPlayer.getCurrentPosition();
             }else {
                 status.duration = 0;
                 status.playing = false;

@@ -5,6 +5,7 @@ import java.util.List;
 
 public class PlayerStatus {
     public int duration;
+    public int current;
     public boolean playing;
     public boolean loaded;
 }
