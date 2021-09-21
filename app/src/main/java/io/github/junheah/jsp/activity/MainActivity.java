@@ -2,6 +2,7 @@ package io.github.junheah.jsp.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -19,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -31,6 +33,9 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +43,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -80,6 +86,7 @@ import io.github.junheah.jsp.model.song.Song;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.deleteSongPopup;
 import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
@@ -102,20 +109,22 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+
+    public static boolean bound = false;
+    private static Player player;
+    static PlayList playListQueue;
+    static Song songQueue;
+
     Context context;
     ImageButton pausebtn, nextbtn, prevbtn, mini_pausebtn, shufflebtn, repeatbtn;
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
-    private static Player player;
-    boolean bound = false;
     PlayerStatus status;
     boolean seekbarTouch = false;
     ViewPager2 viewPager;
     MainFragmentAdapter adapter;
-    PlayListItemClickCallback playListCallback;
-    PlayList playListQueue;
-    Song songQueue;
+
     Toolbar toolbar;
     Runnable onPlayerConnected;
     SlidingUpPanelLayout.PanelSlideListener panelListener;
@@ -208,12 +217,11 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("service unbound");
             resetPlayer();
             //notify current to fragments
-            if(adapter != null)
-                adapter.notify("", null);
-            playList = null;
-            current = null;
+
         }
     };
+
+
 
     public synchronized void addSong(SongPlayListParcel parcel) {
         if(parcel.songs.get(0) instanceof ExternalSong){
@@ -242,6 +250,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void resetPlayer(){
+        if(adapter != null)
+            adapter.notify(null, null);
+        playList = null;
+        current = null;
         //hide player
         panel.setPanelHeight(0);
         panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
@@ -402,10 +414,6 @@ public class MainActivity extends AppCompatActivity {
         }else{
             toggleButtons(false);
         }
-    }
-
-    public PlayListItemClickCallback getPlayListCallback() {
-        return this.playListCallback;
     }
 
     public static synchronized Player getPlayer(){
@@ -588,90 +596,7 @@ public class MainActivity extends AppCompatActivity {
             panelListener.onPanelSlide(panel, 1f);
         }
 
-        //playlist callback
-        playListCallback = new PlayListItemClickCallback() {
-            @Override
-            public void SongClicked(Song song, PlayList list) {
-                if(bound){
-                    player.setPlayList(list, song);
-                }else if(!Player.running){  //is player.running, wait for it to bind
-                    //set playlist when service connected
-                    playListQueue = list;
-                    songQueue = song;
-                    startPlayer(ACTION_PLAYER_CREATE);
-                }
-            }
 
-            @Override
-            public void SongLongClicked(Song song, PlayList list) {
-                //delete song
-                YesNoPopup(context, song.getName(), getString(R.string.prompt_remove_song_from_playlist),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //yes
-                                list.remove(song);
-                            }
-                        });
-            }
-
-            @Override
-            public void SongLongClicked(Song song) {
-                //delete song from library
-                YesNoPopup(context, song.getName(), getString(R.string.prompt_remove_song_from_library),
-                        new DialogInterface.OnClickListener() {
-                            List<Integer> indexes = new ArrayList<>();
-                            PlayList pl;
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //yes
-                                long[] sid = {song instanceof LocalSong ? LOCAL : EXTERNAL, song.getSid()};
-                                library.remove(song);
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //apply to db
-                                        if(song instanceof LocalSong)
-                                            SongDatabase.getInstance(context).localDao().delete((LocalSong) song);
-                                        else
-                                            SongDatabase.getInstance(context).externalDao().delete((ExternalSong) song);
-
-                                        //remove instances from playlists
-
-                                        for(String name : playListIO.getNames()){
-                                            indexes.clear();
-                                            //find
-                                            List<long[]> ids  = playListIO.getids(name);
-                                            for(int i = ids.size()-1; i>-1; i--){
-                                                long[] id = ids.get(i);
-                                                if(Arrays.equals(id, sid)) {   //remove from pl
-                                                    ids.remove(i);
-                                                    indexes.add(i);
-                                                }
-                                            }
-                                            //write
-                                            if(indexes.size()>0) {
-                                                pl = getPlayList(name);
-                                                if(pl == null) {
-                                                    playListIO.writeIds(name, ids);
-                                                }else{
-                                                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            for(int i : indexes)
-                                                                pl.remove(i);
-                                                        }
-                                                    });
-                                                }
-
-                                            }
-                                        }
-                                    }
-                                }).start();
-                            }
-                        });
-            }
-        };
 
         //broadcast receiver
         receiver = new BroadcastReceiver() {
@@ -788,6 +713,7 @@ public class MainActivity extends AppCompatActivity {
                     if(bound){
                         unbindService(connection);
                     }
+                    resetPlayer();
                 }
             }
         };
@@ -827,6 +753,17 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         };
+    }
+
+    public static void play(Context context, PlayList list, Song song){
+        if(bound){
+            player.setPlayList(list, song);
+        }else if(!Player.running){  //is player.running, wait for it to bind
+            //set playlist when service connected
+            playListQueue = list;
+            songQueue = song;
+            startPlayer(context, ACTION_PLAYER_CREATE);
+        }
     }
 
 
@@ -896,32 +833,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         //unbind player service
         unbindService(connection);
         unregisterReceiver(receiver);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         //bind service
         bindService(new Intent(context, Player.class), connection, Context.BIND_ADJUST_WITH_ACTIVITY);
         registerReceiver(receiver, filter);
     }
 
-    private void startPlayer(Intent intent, String action){
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //refresh
+        if(bound){
+            player.broadcast();
+        }
+    }
+
+    private static void startPlayer(Context context, Intent intent, String action){
         intent.setAction(action);
         if (Build.VERSION.SDK_INT >= 26) {
-            startForegroundService(intent);
+            context.startForegroundService(intent);
         }else{
-            startService(intent);
+            context.startService(intent);
         }
     }
 
     private void startPlayer(String action){
-        startPlayer(new Intent(getApplicationContext(), Player.class), action);
+        startPlayer(getApplicationContext(), new Intent(getApplicationContext(), Player.class), action);
+    }
+
+    private static void startPlayer(Context context, String action){
+        startPlayer(context, new Intent(context, Player.class), action);
     }
 
     @Override

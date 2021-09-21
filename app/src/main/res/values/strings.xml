@@ -37,4 +37,6 @@
     <string name="msg_add_err_duplicate">Failed to add some songs : already exists</string>
     <string name="msg_ok">Dismiss</string>
     <string name="activity_library_select">Select songs</string>
+    <string name="bottom_sheet_delete">Delete</string>
+    <string name="bottom_sheet_actions">Actions</string>
 </resources>

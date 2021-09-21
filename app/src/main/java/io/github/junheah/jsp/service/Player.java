@@ -478,9 +478,16 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void stop(){
+        status.loaded = false;
+        status.playing = false;
         if(audioManager!=null)
             audioManager.abandonAudioFocus(this);
-        if(playList != null) playList.setPlayListChangeCallback(null);
+        if(playList != null){
+            playList.setPlayListChangeCallback(null);
+            playList = null;
+        }
+
+        current = null;
         running = false;
         if(mediaPlayer!=null) {
             mediaPlayer.stop();

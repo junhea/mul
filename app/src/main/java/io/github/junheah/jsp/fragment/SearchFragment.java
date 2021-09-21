@@ -53,6 +53,7 @@ import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.Utils.snackbar;
+import static io.github.junheah.jsp.activity.MainActivity.play;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 
 public class SearchFragment extends CustomFragment {
@@ -60,7 +61,6 @@ public class SearchFragment extends CustomFragment {
     Source source;
     LinearLayoutCompat container;
     List<ExternalSong> result = new ArrayList<>();
-    PlayListItemClickCallback callback;
     SearchResultAdapter adapter;
     Button prevResBtn;
     PlayListIO playListIO;
@@ -128,7 +128,7 @@ public class SearchFragment extends CustomFragment {
                             //play in player
                             PlayList pl = new PlayList(getContext(),"", true);
                             pl.add(song);
-                            callback.SongClicked(song, pl);
+                            play(getContext(), pl, song);
                         }
 
                         @Override
@@ -245,8 +245,6 @@ public class SearchFragment extends CustomFragment {
         //initialize source
         lockui(true);
 
-        //playlist callback
-        callback = ((MainActivity) getActivity()).getPlayListCallback();
 
         playListIO = PlayListIO.getInstance(getContext());
     }

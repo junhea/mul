@@ -1,5 +1,8 @@
 package io.github.junheah.jsp.adapter;
 
+import static io.github.junheah.jsp.Utils.deleteSongPopup;
+import static io.github.junheah.jsp.activity.MainActivity.play;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -21,6 +24,7 @@ import com.bumptech.glide.request.target.Target;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.interfaces.AdapterNotifier;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
+import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.model.ItemMoveCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
@@ -35,11 +39,17 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     PlayList playList;
     Context context;
     LayoutInflater inflater;
-    PlayListItemClickCallback callback;
     boolean editMode = false;
     boolean selectMode = false;
+
+    SongCallback menuCallback;
     ItemMoveCallback.StartDragListener drag;
     Song current;
+
+    public void setMenuCallback(SongCallback callback){
+        this.menuCallback = callback;
+    }
+
 
     AdapterNotifier notifier = new AdapterNotifier() {
         @Override
@@ -189,17 +199,13 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             @Override
             public void onClick(View view) {
                 //on click listener
-                if(callback != null){
-                    callback.SongClicked(item, playList);
-                }
+                play(context, playList, item);
             }
         });
         ((PlayListViewHolder)holder).layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if(callback != null){
-                    callback.SongLongClicked(item, playList);
-                }
+                if(menuCallback != null) menuCallback.notify(item);
                 return false;
             }
         });
@@ -212,9 +218,6 @@ public class PlayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return playList.size();
     }
 
-    public void setCallback(PlayListItemClickCallback callback){
-        this.callback = callback;
-    }
 
     @Override
     public void onRowMoved(int fromPosition, int toPosition) {

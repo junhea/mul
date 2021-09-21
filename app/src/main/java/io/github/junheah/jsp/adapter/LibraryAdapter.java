@@ -1,5 +1,7 @@
 package io.github.junheah.jsp.adapter;
 
+import static io.github.junheah.jsp.activity.MainActivity.play;
+
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -19,6 +21,7 @@ import com.bumptech.glide.request.target.Target;
 import java.util.Map;
 
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.glide.AudioCoverModel;
 import io.github.junheah.jsp.model.song.ExternalSong;
@@ -77,17 +80,15 @@ public class LibraryAdapter extends PlayListAdapter {
             @Override
             public void onClick(View view) {
                 //on click listener
-                if(callback != null){
-                    callback.SongClicked(item, playList);
-                }
+                play(context, playList, item);
             }
         });
 
         ((LibraryViewHolder)holder).layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if(callback != null){
-                    callback.SongLongClicked(item);
+                if(menuCallback != null){
+                    menuCallback.notify(item);
                 }
                 return false;
             }

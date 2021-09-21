@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -37,6 +38,7 @@ import io.github.junheah.jsp.adapter.PlayListAdapter;
 import io.github.junheah.jsp.adapter.PlayListNameAdapter;
 import io.github.junheah.jsp.animation.DetailsTransition;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
+import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.ItemMoveCallback;
 import io.github.junheah.jsp.model.PlayList;
@@ -51,6 +53,7 @@ import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.deleteSongPopup;
 import static io.github.junheah.jsp.Utils.openDirectory;
 import static io.github.junheah.jsp.Utils.openFile;
 import static io.github.junheah.jsp.Utils.openLibrary;
@@ -65,10 +68,9 @@ import static io.github.junheah.jsp.model.song.Song.LOCAL;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-public class DetailFragment extends CustomFragment {
+public class DetailFragment extends CustomFragment implements SongCallback {
     String name;
     PlayListAdapter adapter;
-    PlayListItemClickCallback callback;
     PlayListLoader loader;
     RecyclerView recycler;
     PlayListIO playListIO;
@@ -104,14 +106,12 @@ public class DetailFragment extends CustomFragment {
     public void notify(String pl, Song song) {
         //now playing changed
         this.pl = pl;
-        if(pl != null) {
-            if (pl.equals(this.name))
-                current = song;
-            else
-                current = null;
-            if (adapter != null)
-                adapter.currentChanged(current);
-        }
+        if (pl != null && pl.equals(this.name))
+            current = song;
+        else
+            current = null;
+        if (adapter != null)
+            adapter.currentChanged(current);
     }
 
     @Nullable
@@ -127,7 +127,6 @@ public class DetailFragment extends CustomFragment {
 
         this.title = view.findViewById(R.id.subtitle);
         title.setVisibility(View.VISIBLE);
-        callback = ((MainActivity) getActivity()).getPlayListCallback();
         recycler = view.findViewById(R.id.recycler);
         recycler.setLayoutManager(new SlowLinearLayoutManager(getContext()));
         ((SimpleItemAnimator) recycler.getItemAnimator()).setSupportsChangeAnimations(false);
@@ -143,8 +142,8 @@ public class DetailFragment extends CustomFragment {
             needLoad = true;
         }
         adapter = new PlayListAdapter(getContext(), playList);
+        adapter.setMenuCallback(DetailFragment.this);
         adapter.currentChanged(current);
-        adapter.setCallback(callback);
         //drag
         ItemTouchHelper.Callback callback = new ItemMoveCallback(adapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
@@ -170,6 +169,16 @@ public class DetailFragment extends CustomFragment {
         f.setName(key);
         f.notify(currentpl, current);
         return f;
+    }
+
+    @Override
+    public void notify(Song song) {
+//        SongBottomMenu f = SongBottomMenu.newInstance(playList, song);
+//        f.show(getFragmentManager(), "bottom_menu");
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.add(SongBottomMenu.newInstance(playList, song), "bottom_menu");
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
     public void setName(String name){
@@ -211,7 +220,6 @@ public class DetailFragment extends CustomFragment {
                         openDirectory(DetailFragment.this);
                         break;
                     case R.id.menu_addFromLibrary:
-                        //todo add from library
                         openLibrary(DetailFragment.this);
                         break;
                 }
@@ -232,6 +240,7 @@ public class DetailFragment extends CustomFragment {
             addSong(new SongPlayListParcel(playList, song));
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
             String path = data.getStringExtra("path");
+            List<Song> songs = new ArrayList<>();
             for(File f : new File(path).listFiles()){
                 if(!f.isDirectory()){
                     boolean supported = false;
@@ -242,11 +251,11 @@ public class DetailFragment extends CustomFragment {
                         }
                     }
                     if(supported){
-                        Song song = new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath());
-                        addSong(new SongPlayListParcel(playList, song));
+                        songs.add(new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath()));
                     }
                 }
             }
+            addSong(new SongPlayListParcel(playList, songs));
         }else if(requestCode == REQUEST_SELECT_LIBRARY && resultCode == RESULT_OK){
             //sid list
             System.out.println(data.getStringExtra("data"));

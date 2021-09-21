@@ -1,8 +1,12 @@
 package io.github.junheah.jsp;
 
+import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_LIBRARY;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
+import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
+import static io.github.junheah.jsp.model.song.Song.LOCAL;
+import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
 
 import android.app.Activity;
 import android.app.Application;
@@ -13,13 +17,18 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -27,6 +36,8 @@ import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
@@ -41,7 +52,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import io.github.junheah.jsp.activity.FileChooserActivity;
 import io.github.junheah.jsp.activity.LibrarySelectionActivity;
@@ -51,7 +65,9 @@ import io.github.junheah.jsp.interfaces.IntegerCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.service.Player;
 
@@ -270,6 +286,8 @@ public class Utils {
         fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
 
+
+
     public static void openLibrary(Fragment fragment) {
         Intent intent = new Intent(fragment.getContext(), LibrarySelectionActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_LIBRARY);
@@ -303,6 +321,75 @@ public class Utils {
         return snackbar;
     }
 
+
+    public static void deleteSongPopup(Context context, Song song){
+        //delete song from library
+        PlayListIO playListIO = PlayListIO.getInstance(context);
+        YesNoPopup(context, song.getName(), context.getString(R.string.prompt_remove_song_from_library),
+                new DialogInterface.OnClickListener() {
+                    List<Integer> indexes = new ArrayList<>();
+                    PlayList pl;
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //yes
+                        long[] sid = {song instanceof LocalSong ? LOCAL : EXTERNAL, song.getSid()};
+                        library.remove(song);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //apply to db
+                                if(song instanceof LocalSong)
+                                    SongDatabase.getInstance(context).localDao().delete((LocalSong) song);
+                                else
+                                    SongDatabase.getInstance(context).externalDao().delete((ExternalSong) song);
+
+                                //remove instances from playlists
+
+                                for(String name : playListIO.getNames()){
+                                    indexes.clear();
+                                    //find
+                                    List<long[]> ids  = playListIO.getids(name);
+                                    for(int i = ids.size()-1; i>-1; i--){
+                                        long[] id = ids.get(i);
+                                        if(Arrays.equals(id, sid)) {   //remove from pl
+                                            ids.remove(i);
+                                            indexes.add(i);
+                                        }
+                                    }
+                                    //write
+                                    if(indexes.size()>0) {
+                                        pl = getPlayList(name);
+                                        if(pl == null) {
+                                            playListIO.writeIds(name, ids);
+                                        }else{
+                                            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    for(int i : indexes)
+                                                        pl.remove(i);
+                                                }
+                                            });
+                                        }
+
+                                    }
+                                }
+                            }
+                        }).start();
+                    }
+                });
+    }
+
+
+    public static void deleteSongPopup(Context context, PlayList list, Song song){
+        YesNoPopup(context, song.getName(), context.getString(R.string.prompt_remove_song_from_playlist),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //yes
+                        list.remove(song);
+                    }
+                });
+    }
 
 
 }

@@ -198,7 +198,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         for(int i = 0; i<data.size(); i++){
             Object o = data.get(i);
-            if(o instanceof ExternalSong && !(o instanceof ExternalSongContainer)) {
+            if(o instanceof Song && !(o instanceof ExternalSongContainer)) {
                 if(checked[i] == (flag ? CHECK : NONE)) {
                     checked[i] = (flag ? NONE : CHECK);
                     notifyItemChanged(i);
@@ -261,7 +261,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             Object o = data.get(i);
             if(o instanceof Song && !(o instanceof ExternalSongContainer)){
                 if(checked[i] == CHECK){
-                    res.add((ExternalSong) o);
+                    res.add((Song) o);
                 }
             }
         }

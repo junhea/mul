@@ -38,4 +38,6 @@
     <string name="msg_add_err_duplicate">일부 추가 실패 : 이미 존재합니다</string>
     <string name="msg_ok">확인</string>
     <string name="activity_library_select">곡 추가</string>
+    <string name="bottom_sheet_delete">삭제</string>
+    <string name="bottom_sheet_actions">작업</string>
 </resources>

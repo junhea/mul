@@ -3,7 +3,6 @@ package io.github.junheah.jsp.fragment;
 import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,40 +13,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SimpleItemAnimator;
-import androidx.transition.Fade;
 
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.DebugActivity;
-import io.github.junheah.jsp.activity.FileChooserActivity;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.activity.SourceManagerActivity;
 import io.github.junheah.jsp.adapter.LibraryAdapter;
-import io.github.junheah.jsp.adapter.PlayListAdapter;
-import io.github.junheah.jsp.animation.DetailsTransition;
-import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
+import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.Library;
-import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.room.ExternalSongDao;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
@@ -58,13 +42,12 @@ import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static io.github.junheah.jsp.MainApplication.library;
+import static io.github.junheah.jsp.Utils.deleteSongPopup;
 import static io.github.junheah.jsp.Utils.openDirectory;
 import static io.github.junheah.jsp.Utils.openFile;
-import static io.github.junheah.jsp.Utils.showPopup;
-import static io.github.junheah.jsp.Utils.singleInputPopup;
-import static io.github.junheah.jsp.model.song.Song.LOCAL;
+import static io.github.junheah.jsp.fragment.SongBottomMenu.ACTION_DELETE;
 
-public class HomeFragment extends CustomFragment {
+public class HomeFragment extends CustomFragment{
 
     public final static int REQUEST_SELECT_SONG = 11;
     public final static int REQUEST_SELECT_FOLDER = 12;
@@ -107,7 +90,16 @@ public class HomeFragment extends CustomFragment {
         }
 
         adapter = new LibraryAdapter(getContext(), library);
-        adapter.setCallback(((MainActivity) getActivity()).getPlayListCallback());
+        adapter.setMenuCallback(new SongCallback() {
+            @Override
+            public void notify(Song song) {
+                //open menu
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.add(SongBottomMenu.newInstance(song), "bottom_menu");
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        });
 
         recycler.setAdapter(adapter);
 //        if(needLoad) {
@@ -119,15 +111,17 @@ public class HomeFragment extends CustomFragment {
     @Override
     public void notify(String pl, Song song) {
         this.pl = pl;
-        if(pl != null) {
-            if (pl.equals(""))
-                current = song;
-            else
-                current = null;
-            if (adapter != null)
-                adapter.currentChanged(current);
-        }
+        if (pl != null && pl.equals(""))
+            current = song;
+        else
+            current = null;
+        if (adapter != null)
+            adapter.currentChanged(current);
     }
+
+
+
+
 
     @Override
     public void onAnimationEnd() {
@@ -172,6 +166,7 @@ public class HomeFragment extends CustomFragment {
             //add to current visible playlist
             ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, song));
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
+            List<Song> songs = new ArrayList<>();
             String path = data.getStringExtra("path");
             for(File f : new File(path).listFiles()){
                 if(!f.isDirectory()){
@@ -183,11 +178,11 @@ public class HomeFragment extends CustomFragment {
                         }
                     }
                     if(supported){
-                        Song song = new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath());
-                        ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, song));
+                        songs.add(new LocalSong(f.getAbsolutePath(), "", f.getAbsolutePath()));
                     }
                 }
             }
+            ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, songs));
         }
     }
 
