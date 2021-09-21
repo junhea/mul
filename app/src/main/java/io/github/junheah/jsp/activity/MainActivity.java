@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
     TextView name, artist, timestamp_cur, timestamp_dur, mini_name, mini_artist;
     ProgressBar mini_progress;
     SeekBar seekBar;
-    PlayerStatus status;
     boolean seekbarTouch = false;
     ViewPager2 viewPager;
     MainFragmentAdapter adapter;
@@ -176,8 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     while(true) {
                         if (bound && player != null) {
-                            status = player.getStatus();
-                            if (status != null && status.playing && status.loaded && !seekbarTouch) {
+                            if (PlayerStatus.playing && PlayerStatus.loaded && !seekbarTouch) {
                                 int nt = player.getCurrentPosition();
                                 if(nt/1000 != t/1000){
                                     t = nt;
@@ -216,8 +214,6 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName arg0) {
             System.out.println("service unbound");
             resetPlayer();
-            //notify current to fragments
-
         }
     };
 
@@ -612,11 +608,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     //update status
-                    status = new Gson().fromJson(intent.getStringExtra("status"), new TypeToken<PlayerStatus>() {
-                    }.getType());
 
                     //update ui
-                    if (status.playing) {
+                    if (PlayerStatus.playing) {
                         pausebtn.setImageResource(R.drawable.player_pause);
                         mini_pausebtn.setImageResource(R.drawable.player_pause);
                     } else {
@@ -625,19 +619,19 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     //update ui depending on status.loaded
-                    pausebtn.setEnabled(status.loaded);
-                    seekBar.setEnabled(status.loaded);
+                    pausebtn.setEnabled(PlayerStatus.loaded);
+                    seekBar.setEnabled(PlayerStatus.loaded);
 
-                    if (!status.loaded) {
+                    if (!PlayerStatus.loaded) {
                         seekBar.setProgress(0);
                         mini_progress.setProgress(0);
                         timestamp_cur.setText("");
                         timestamp_dur.setText("");
                     }else{
-                        timestamp_cur.setText(getTimeStamp(status.current));
-                        timestamp_dur.setText(getTimeStamp(status.duration));
-                        seekBar.setMax(status.duration);
-                        mini_progress.setMax(status.duration);
+                        timestamp_cur.setText(getTimeStamp(PlayerStatus.current));
+                        timestamp_dur.setText(getTimeStamp(PlayerStatus.duration));
+                        seekBar.setMax(PlayerStatus.duration);
+                        mini_progress.setMax(PlayerStatus.duration);
                     }
 
                     if (bound) {

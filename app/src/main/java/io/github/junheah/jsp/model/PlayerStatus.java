@@ -4,8 +4,9 @@ import java.io.Serializable;
 import java.util.List;
 
 public class PlayerStatus {
-    public int duration;
-    public int current;
-    public boolean playing;
-    public boolean loaded;
+    public static int duration;
+    public static int current;
+    public static boolean playing;
+    public static boolean loaded;
+
 }

@@ -34,8 +34,6 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
 
     public static final String ACTION_DELETE = "delete";
 
-    //todo :  finish this : add click listeners
-
     public static SongBottomMenu newInstance(Song song) {
         SongBottomMenu f = new SongBottomMenu();
         f.setParentItem(song);
@@ -62,8 +60,6 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
 
         View view = inflater.inflate(R.layout.fragment_bottom_menu, container,
                 false);
-
-        // get the views and attach the listener
 
         view.findViewById(R.id.bottom_sheet_delete).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,7 +89,7 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
-        FragmentManager fragmentManager = getChildFragmentManager();
+        FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         if (fragmentManager.getBackStackEntryCount() > 0)
             fragmentManager.popBackStack();

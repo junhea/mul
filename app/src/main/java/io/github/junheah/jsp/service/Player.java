@@ -81,7 +81,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
     public static boolean running = false;  //used to check if player is created or not
     // (액티비티에서 서비스 생성을 명령한 시점부터 액티비티가 서비스가 생성되었음을 인지할때까지 다른 인스턴스를 만드는 일을 방지)
-    PlayerStatus status;
     PlayList playList;
     Song current;
     Bitmap currentCover;
@@ -98,7 +97,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     MediaSessionCompat.Callback sessionCallback = new MediaSessionCompat.Callback() {
         @Override
         public void onPlay() {
-            if(status.loaded)
+            if(PlayerStatus.loaded)
                 pause();
             else
                 play();
@@ -151,10 +150,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
             }
         else
             return 0;
-    }
-
-    public PlayerStatus getStatus(){
-        return this.status;
     }
 
     void setState(int state){
@@ -235,7 +230,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getApplication().getPackageName());
         wifiLock.acquire();
         pendingIntent = new Intent();
-        status = new PlayerStatus();
         playListChangeCallback = new PlayListChangeCallback() {
             @Override
             public void playListRemoved() {
@@ -291,7 +285,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                         PlaybackStateCompat.ACTION_STOP));
 
         notification.addAction(new NotificationCompat.Action(R.drawable.player_prev, "",MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
-        notification.addAction(new NotificationCompat.Action(status.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)));
+        notification.addAction(new NotificationCompat.Action(PlayerStatus.loaded && mediaPlayer!=null && mediaPlayer.isPlaying() ? R.drawable.player_pause : R.drawable.player_start, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)));
         notification.addAction(new NotificationCompat.Action(R.drawable.player_next, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)));
         notification.addAction(new NotificationCompat.Action(R.drawable.player_stop, "", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP)));
 
@@ -466,7 +460,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void pause(){
-        if(status.loaded) {
+        if(PlayerStatus.loaded) {
             if (mediaPlayer.isPlaying()) {
                 setState(STATE_PAUSED);
                 mediaPlayer.pause();
@@ -478,8 +472,8 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void stop(){
-        status.loaded = false;
-        status.playing = false;
+        PlayerStatus.loaded = false;
+        PlayerStatus.playing = false;
         if(audioManager!=null)
             audioManager.abandonAudioFocus(this);
         if(playList != null){
@@ -502,7 +496,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     static int tmpidx = 0;
 
     public void play(){
-        status.loaded = false;
+        PlayerStatus.loaded = false;
         try {
             if(mediaPlayer == null){
                 mediaPlayerInit();
@@ -555,7 +549,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         if(running) {
-            status.loaded = true;
+            PlayerStatus.loaded = true;
             requestFocusAndPlay();
             broadcast();
         }
@@ -610,15 +604,14 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     public void broadcast(){
         if(running) {
             Intent intent = new Intent(ACTION_PLAYER_BROADCAST);
-            if (status.loaded) {
-                status.playing = mediaPlayer.isPlaying();
-                status.duration = mediaPlayer.getDuration();
-                status.current = mediaPlayer.getCurrentPosition();
+            if (PlayerStatus.loaded) {
+                PlayerStatus.playing = mediaPlayer.isPlaying();
+                PlayerStatus.duration = mediaPlayer.getDuration();
+                PlayerStatus.current = mediaPlayer.getCurrentPosition();
             }else {
-                status.duration = 0;
-                status.playing = false;
+                PlayerStatus.duration = 0;
+                PlayerStatus.playing = false;
             }
-            intent.putExtra("status", new Gson().toJson(status));
             sendBroadcast(intent);
             showNotification();
         }else{
