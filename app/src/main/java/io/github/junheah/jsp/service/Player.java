@@ -133,13 +133,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         super();
     }
 
-    public Song getCurrent(){
-        return this.current;
-    }
-
-    public PlayList getPlayList(){
-        return this.playList;
-    }
+//    public Song getCurrent(){
+//        return this.current;
+//    }
+//
+//    public PlayList getPlayList(){
+//        return this.playList;
+//    }
 
     public int getCurrentPosition(){
         if(mediaPlayer != null)
@@ -206,6 +206,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     @Override
     public void onCreate() {
         super.onCreate();
+
         running = true;
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -366,8 +367,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 broadcast();
                 break;
             case ACTION_PLAYER_CREATE:
-                //sendBroadcast(new Intent(ACTION_PLAYER_CREATED));
-                broadcast();
+                setPlayList(PlayerStatus.playList, PlayerStatus.song);
                 break;
             case ACTION_PLAYER_START:
                 play();
@@ -472,8 +472,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
 
     public void stop(){
-        PlayerStatus.loaded = false;
-        PlayerStatus.playing = false;
+        PlayerStatus.reset();
         if(audioManager!=null)
             audioManager.abandonAudioFocus(this);
         if(playList != null){
@@ -609,9 +608,13 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 PlayerStatus.duration = mediaPlayer.getDuration();
                 PlayerStatus.current = mediaPlayer.getCurrentPosition();
             }else {
-                PlayerStatus.duration = 0;
                 PlayerStatus.playing = false;
+                PlayerStatus.duration = 0;
+                PlayerStatus.current = 0;
             }
+            PlayerStatus.song = current;
+            PlayerStatus.playList = playList;
+
             sendBroadcast(intent);
             showNotification();
         }else{

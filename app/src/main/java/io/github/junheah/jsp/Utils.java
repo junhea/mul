@@ -65,11 +65,13 @@ import io.github.junheah.jsp.interfaces.IntegerCallback;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.service.Player;
+import io.github.junheah.jsp.service.PlayerServiceHandler;
 
 public class Utils {
     // static functions
@@ -127,10 +129,9 @@ public class Utils {
     public static PlayList getPlayList(String name){
         PlayList playList = null;
         //add song to playlist
-        Player player = MainActivity.getPlayer();
-        if (player != null && player.getPlayList() != null && player.getPlayList().getName().equals(name)) {
+        if (PlayerStatus.playList != null && PlayerStatus.playList.getName().equals(name)) {
             //from player
-            playList = player.getPlayList();
+            playList = PlayerStatus.playList;
         } else if (DetailFragment.getCurrentPlayList() != null && DetailFragment.getCurrentPlayList().getName().equals(name)) {
             //from playlist fragment
             playList = DetailFragment.getCurrentPlayList();
@@ -389,6 +390,13 @@ public class Utils {
                         list.remove(song);
                     }
                 });
+    }
+
+    public static String getTimeStamp(int m){
+        long second = (m / 1000) % 60;
+        long minute = (m / (1000 * 60)) % 60;
+        long hour = (m / (1000 * 60 * 60)) % 24;
+        return(String.format("%02d:%02d:%02d", hour, minute, second));
     }
 
 

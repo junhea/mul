@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import io.github.junheah.jsp.model.Library;
+import io.github.junheah.jsp.service.PlayerServiceHandler;
 
 import static io.github.junheah.jsp.Utils.getBaseScript;
 import static io.github.junheah.jsp.Utils.getBitmapFromVectorDrawable;
@@ -44,6 +45,7 @@ public class MainApplication extends MultiDexApplication {
         super.attachBaseContext(base);
         System.out.println("main app start");
         ACRA.init(this);
+        PlayerServiceHandler.init(this);
     }
 
     @Override

@@ -32,6 +32,7 @@ import io.github.junheah.jsp.adapter.LibraryAdapter;
 import io.github.junheah.jsp.interfaces.SongCallback;
 import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.Library;
+import io.github.junheah.jsp.model.PlayList;
 import io.github.junheah.jsp.model.room.ExternalSongDao;
 import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
@@ -43,6 +44,7 @@ import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.deleteSongPopup;
+import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.openDirectory;
 import static io.github.junheah.jsp.Utils.openFile;
 import static io.github.junheah.jsp.fragment.SongBottomMenu.ACTION_DELETE;
@@ -83,10 +85,9 @@ public class HomeFragment extends CustomFragment{
         SlowLinearLayoutManager lm = new SlowLinearLayoutManager(getContext());
         recycler.setLayoutManager(lm);
 
-        Player player = MainActivity.getPlayer();
-        if (player != null && player.getPlayList().getName().equals("")) {
-            //restore using player
-            library = (Library) player.getPlayList();
+        PlayList tmp = getPlayList("");
+        if(tmp != null){
+            library = (Library)tmp;
         }
 
         adapter = new LibraryAdapter(getContext(), library);
@@ -102,10 +103,6 @@ public class HomeFragment extends CustomFragment{
         });
 
         recycler.setAdapter(adapter);
-//        if(needLoad) {
-//            loader = new LibraryLoader();
-//            loader.start();
-//        }
     }
 
     @Override

@@ -54,6 +54,7 @@ import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.MainApplication.library;
 import static io.github.junheah.jsp.Utils.deleteSongPopup;
+import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.openDirectory;
 import static io.github.junheah.jsp.Utils.openFile;
 import static io.github.junheah.jsp.Utils.openLibrary;
@@ -133,11 +134,9 @@ public class DetailFragment extends CustomFragment implements SongCallback {
 
         //playlist selected
         boolean needLoad = false;
-        Player player = MainActivity.getPlayer();
-        if (player != null && player.getPlayList().getName().equals(name)) {
-            //restore using player
-            playList = player.getPlayList();
-        } else {
+
+        playList = getPlayList(name);
+        if (playList == null){
             playList = playListIO.get(name);
             needLoad = true;
         }
