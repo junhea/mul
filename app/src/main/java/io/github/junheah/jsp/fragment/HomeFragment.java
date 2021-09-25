@@ -38,6 +38,7 @@ import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongDataParser;
 import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
@@ -161,7 +162,7 @@ public class HomeFragment extends CustomFragment{
             String path = data.getStringExtra("path");
             LocalSong song = new LocalSong(path, "", path);
             //add to current visible playlist
-            ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, song));
+            SongDataParser.parse(getContext(), new SongPlayListParcel(null, song));
         }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
             List<Song> songs = new ArrayList<>();
             String path = data.getStringExtra("path");
@@ -179,7 +180,7 @@ public class HomeFragment extends CustomFragment{
                     }
                 }
             }
-            ((MainActivity)getActivity()).addSong(new SongPlayListParcel(null, songs));
+            SongDataParser.parse(getContext(), new SongPlayListParcel(null, songs));
         }
     }
 

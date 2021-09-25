@@ -47,8 +47,10 @@ import io.github.junheah.jsp.model.room.LocalSongDao;
 import io.github.junheah.jsp.model.room.SongDatabase;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.song.SongDataParser;
 import io.github.junheah.jsp.model.song.SongPlayListParcel;
 import io.github.junheah.jsp.service.Player;
+import io.github.junheah.jsp.service.PlayerServiceHandler;
 import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 
 import static android.app.Activity.RESULT_OK;
@@ -87,7 +89,7 @@ public class DetailFragment extends CustomFragment implements SongCallback {
     }
 
     public void addSong(SongPlayListParcel parcel) {
-        ((MainActivity)getActivity()).addSong(parcel);
+        SongDataParser.parse(getContext(), parcel);
     }
 
     @Override

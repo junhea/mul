@@ -31,9 +31,14 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -397,6 +402,37 @@ public class Utils {
         long minute = (m / (1000 * 60)) % 60;
         long hour = (m / (1000 * 60 * 60)) % 24;
         return(String.format("%02d:%02d:%02d", hour, minute, second));
+    }
+
+    public static void toggleButtons(ViewGroup group, boolean playerIsRunning){
+        for(int i=0; i<group.getChildCount(); i++){
+            View view = group.getChildAt(i);
+            if(view instanceof Button){
+                view.setEnabled(playerIsRunning);
+            }else if(view instanceof SeekBar){
+                if(!playerIsRunning) ((SeekBar) view).setProgress(0);
+                view.setEnabled(playerIsRunning);
+            }else if(view instanceof ImageButton){
+                view.setEnabled(playerIsRunning);
+            }else if(view instanceof ViewGroup){
+                toggleButtons((ViewGroup) view, playerIsRunning);
+            }else if(view instanceof ProgressBar){
+                if(!playerIsRunning)((ProgressBar) view).setProgress(0);
+            }else if(view instanceof TextView){
+                if(!playerIsRunning) ((TextView) view).setText("");
+            }else if(view instanceof ImageView){
+                if(!playerIsRunning) ((ImageView) view).setImageResource(R.drawable.music);
+            }
+        }
+    }
+
+    public static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 
 

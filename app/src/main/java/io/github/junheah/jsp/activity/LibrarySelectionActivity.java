@@ -29,22 +29,21 @@ import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
-public class LibrarySelectionActivity extends AppCompatActivity {
+public class LibrarySelectionActivity extends PlayerBaseActivity {
 
     RecyclerView recycler;
-    Context context;
     List<Song> data = new ArrayList<>();
     SearchResultAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // returns sid list as result
         // actual add happens in mainactivity
-        setTheme(R.style.FragmentTheme);
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_library_selection);
+        panelOnCreate();
 
         recycler = findViewById(R.id.recycler);
-        context = this;
 
         adapter = new SearchResultAdapter(context, library);
         adapter.setSelectMode(true, null);

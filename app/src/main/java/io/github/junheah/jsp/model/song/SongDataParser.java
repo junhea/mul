@@ -22,11 +22,24 @@ import static io.github.junheah.jsp.Utils.snackbar;
 
 
 public class SongDataParser extends Thread {
+    static SongDataParser instance;
+
     List<SongPlayListParcel> queue;
     Context context;
     LocalSongDao dao;
     public static boolean running;
     boolean exists;
+
+    public static synchronized void parse(Context context, SongPlayListParcel parcel){
+        if(instance == null || !instance.running){
+            instance = new SongDataParser(context);
+            instance.execute(parcel);
+        }else{
+            instance.add(parcel);
+        }
+    }
+
+
 
     public SongDataParser(Context context){
         this.queue = new ArrayList<>();
@@ -34,12 +47,12 @@ public class SongDataParser extends Thread {
         this.dao = SongDatabase.getInstance(context).localDao();
     }
 
-    public synchronized void execute(SongPlayListParcel parcel){
+    public void execute(SongPlayListParcel parcel){
         queue.add(parcel);
         running = true;
         super.start();
     }
-    public synchronized void add(SongPlayListParcel parcel){
+    public void add(SongPlayListParcel parcel){
         queue.add(parcel);
     }
 

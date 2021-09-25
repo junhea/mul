@@ -1,7 +1,7 @@
 package io.github.junheah.jsp.adapter;
 
-import static io.github.junheah.jsp.Utils.deleteSongPopup;
-import static io.github.junheah.jsp.activity.MainActivity.play;
+
+import static io.github.junheah.jsp.service.PlayerServiceHandler.play;
 
 import android.app.Activity;
 import android.content.Context;

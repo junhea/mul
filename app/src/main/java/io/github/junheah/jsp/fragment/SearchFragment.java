@@ -53,8 +53,8 @@ import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.Utils.snackbar;
-import static io.github.junheah.jsp.activity.MainActivity.play;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
+import static io.github.junheah.jsp.service.PlayerServiceHandler.play;
 
 public class SearchFragment extends CustomFragment {
 
