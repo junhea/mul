@@ -24,7 +24,6 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.adapter.SourceAdapter;
 import io.github.junheah.jsp.interfaces.SourceOnClickCallback;
-import io.github.junheah.jsp.model.source.Source;
 import io.github.junheah.jsp.model.viewHolder.SourceItem;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -33,13 +32,13 @@ import static io.github.junheah.jsp.MainApplication.client;
 import static io.github.junheah.jsp.adapter.SourceAdapter.AVAILABLE;
 import static io.github.junheah.jsp.adapter.SourceAdapter.INSTALLED;
 
-public class SourceManagerActivity extends AppCompatActivity {
+public class SourceManagerActivity extends PlayerBaseActivity{
     SourceAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_source_manager);
+        setContentView(R.layout.content_source_manager);
+        panelOnCreate();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

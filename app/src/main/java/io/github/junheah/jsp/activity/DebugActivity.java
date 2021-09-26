@@ -5,7 +5,6 @@ import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 import android.content.Context;
 
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,7 +29,7 @@ import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
 
 
-public class DebugActivity extends AppCompatActivity {
+public class DebugActivity extends PlayerBaseActivity {
     TextView output;
     Context context;
     ScrollView scroll;
@@ -38,9 +37,9 @@ public class DebugActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_debug);
+        setContentView(R.layout.content_debug);
+        panelOnCreate();
 
         Button pref = this.findViewById(R.id.debug_pref);
         output = this.findViewById(R.id.debug_out);

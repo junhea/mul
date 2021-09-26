@@ -40,7 +40,7 @@ public class LibrarySelectionActivity extends PlayerBaseActivity {
         // actual add happens in mainactivity
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_library_selection);
+        setContentView(R.layout.content_library_selection);
         panelOnCreate();
 
         recycler = findViewById(R.id.recycler);

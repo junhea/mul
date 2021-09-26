@@ -98,9 +98,10 @@ public class MainActivity extends PlayerBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        base_layout_id = R.layout.activity_main;
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.content_main);
         panelOnCreate();
 
         //reveal animation

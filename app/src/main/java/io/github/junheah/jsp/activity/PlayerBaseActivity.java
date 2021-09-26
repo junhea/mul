@@ -19,10 +19,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -58,9 +60,9 @@ import io.github.junheah.jsp.model.song.Song;
 import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.service.PlayerServiceHandler;
 
-public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWindowInsetsListener {
+public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWindowInsetsListener, TimerThread.TimerCallback {
     /*
-    Base Activity for every activity that contains player panel
+    Base for every activity that contains player panel
      */
 
     Context context;
@@ -78,18 +80,30 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
     ViewSwitcher viewSwitcher;
     float miniCoverHeight;
     RequestListener<Bitmap> requestListener;
-    int color;
+    static int color;
     boolean forceUpdate = false;
     SlidingUpPanelLayout.PanelSlideListener panelListener;
     SlidingUpPanelLayout panel;
     View panelContent;
     ImageView miniPlayerCover;
     Toolbar toolbar;
+    FrameLayout frame;
+    int base_layout_id = R.layout.activity_player_base;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            color = ContextCompat.getColor(context, R.color.colorDarkWindowBackground);
+        }
+    }
+
+    @Override
+    public void setContentView(int layoutResID) {
+        super.setContentView(base_layout_id);
+        frame = this.findViewById(R.id.player_base_activity_content);
+        frame.addView(getLayoutInflater().inflate(layoutResID, null, false));
     }
 
     public void panelOnCreate(){
@@ -99,8 +113,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
         timestamp_dur = this.findViewById(R.id.timestamp_duration);
         seekBar = this.findViewById(R.id.seekBar);
         panel = this.findViewById(R.id.panel);
-        activity = this.findViewById(R.id.player_activity_content);
-        color = ContextCompat.getColor(context, R.color.colorDarkWindowBackground);
+        activity = this.findViewById(R.id.player_base_activity_content);
 
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
 
@@ -108,17 +121,6 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
         panel.setPanelHeight(0);
         panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
-        //timestamp thread
-        TimerThread.init(new TimerThread.TimerCallback() {
-            @Override
-            public void tick(int t) {
-                String timestamp = getTimeStamp(t);
-                if (!prevbtn.isEnabled() && t >= 3000) prevbtn.setEnabled(true);
-                timestamp_cur.setText(timestamp);
-                seekBar.setProgress(t);
-                mini_progress.setProgress(t);
-            }
-        });
 
         //action bar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -196,8 +198,18 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
                 refreshPanel();
             }
         });
-
-        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(),this);
+        if (Build.VERSION.SDK_INT >= 21) {
+            ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), this);
+        }else{
+            //set top padding to statusbar height
+            activity.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    activity.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    activity.setPadding(0,getStatusBarHeight(context),0,0);
+                }
+            });
+        }
 
         //palette
         requestListener = new RequestListener<Bitmap>() {
@@ -216,6 +228,8 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
                 return false;
             }
         };
+
+        //setColor(color);
     }
 
     @Override
@@ -525,12 +539,27 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
         }else{
             resetPlayer();
         }
+        //color
+        setColor(color);
+
+        //timer tick
+        TimerThread.init(this);
+    }
+
+    @Override
+    public void tick(int t) {
+        String timestamp = getTimeStamp(t);
+        if (!prevbtn.isEnabled() && t >= 3000) prevbtn.setEnabled(true);
+        timestamp_cur.setText(timestamp);
+        seekBar.setProgress(t);
+        mini_progress.setProgress(t);
     }
 
     @Override
     public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
         //This is where you get DisplayCutoutCompat
         int statusBarHeight = getStatusBarHeight(context);
+        System.out.println(statusBarHeight);
         int ci;
 
         if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;

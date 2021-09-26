@@ -1,19 +1,13 @@
 package io.github.junheah.jsp.activity;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -24,7 +18,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,7 +30,7 @@ import io.github.junheah.jsp.R;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
 import static io.github.junheah.jsp.fragment.HomeFragment.REQUEST_SELECT_SONG;
 
-public class FileChooserActivity extends AppCompatActivity {
+public class FileChooserActivity extends PlayerBaseActivity {
     int mode;
     File currentDir;
     Context context;
@@ -50,9 +43,10 @@ public class FileChooserActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_file_chooser);
+        setContentView(R.layout.content_file_chooser);
+        panelOnCreate();
+
         mode = getIntent().getIntExtra("mode", REQUEST_SELECT_SONG);
         context = this;
         history = new ArrayList<>();
