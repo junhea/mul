@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -56,11 +57,12 @@ import io.github.junheah.jsp.ui.SlowLinearLayoutManager;
 import static android.app.Activity.RESULT_OK;
 import static io.github.junheah.jsp.Utils.showPopup;
 import static io.github.junheah.jsp.Utils.singleInputPopup;
+import static io.github.junheah.jsp.model.PlayerStatus.playList;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 
 
-public class PlayListFragment extends CustomFragment {
+public class PlayListFragment extends CustomFragment implements PlayListBottomMenu.PlayListNameChangeNotifier {
 
 
 
@@ -140,6 +142,14 @@ public class PlayListFragment extends CustomFragment {
                         .addToBackStack(null)
                         .commit();
             }
+
+            @Override
+            public void itemLongClick(String key, int pos) {
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.add(PlayListBottomMenu.newInstance(playListIO.get(key), PlayListFragment.this, pos), "bottom_menu");
+                ft.addToBackStack(null);
+                ft.commit();
+            }
         });
 
         recycler.setAdapter(parentadapter);
@@ -182,9 +192,13 @@ public class PlayListFragment extends CustomFragment {
         inflater.inflate(R.menu.playlistlist_menu, menu);
     }
 
+    @Override
+    public void itemRemoved(int pos) {
+        parentadapter.remove(pos);
+    }
 
+    @Override
+    public void itemChanged(int pos) {
 
-
-
-
+    }
 }

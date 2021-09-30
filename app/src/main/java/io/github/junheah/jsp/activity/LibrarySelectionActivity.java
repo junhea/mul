@@ -5,11 +5,9 @@ import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 import static io.github.junheah.jsp.model.song.Song.LOCAL;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,14 +15,12 @@ import android.view.MenuItem;
 
 import com.google.gson.Gson;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.SearchResultInterface;
-import io.github.junheah.jsp.model.song.ExternalSong;
 import io.github.junheah.jsp.model.song.ExternalSongContainer;
 import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
@@ -40,7 +36,7 @@ public class LibrarySelectionActivity extends PlayerBaseActivity {
         // actual add happens in mainactivity
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.content_library_selection);
+        setContentView(R.layout.content_activity_library_selection);
         panelOnCreate();
 
         recycler = findViewById(R.id.recycler);

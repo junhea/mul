@@ -2,16 +2,12 @@ package io.github.junheah.jsp.model.source;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ImporterTopLevel;
-import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.ast.Scope;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,13 +15,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.activity.InputActivity;
-import io.github.junheah.jsp.interfaces.ScriptCallback;
-
 import static io.github.junheah.jsp.MainApplication.baseScript;
 import static io.github.junheah.jsp.MainApplication.client;
-import static io.github.junheah.jsp.Utils.getBaseScript;
 import static io.github.junheah.jsp.Utils.readFile;
 
 public class Source {

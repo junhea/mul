@@ -44,7 +44,7 @@ public class FileChooserActivity extends PlayerBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_file_chooser);
+        setContentView(R.layout.content_activity_file_chooser);
         panelOnCreate();
 
         mode = getIntent().getIntExtra("mode", REQUEST_SELECT_SONG);

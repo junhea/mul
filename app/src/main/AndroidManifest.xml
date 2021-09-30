@@ -25,6 +25,10 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/activity_library_select" />
         <activity
+            android:name=".activity.SourceSettingActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_source_setting" />
+        <activity
             android:name=".activity.FileChooserActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/activity_file_title" />

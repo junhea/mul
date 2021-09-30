@@ -1,7 +1,6 @@
 package io.github.junheah.jsp.fragment;
 
-import static io.github.junheah.jsp.Utils.deleteSongPopup;
-import static io.github.junheah.jsp.service.PlayerServiceHandler.play;
+import static io.github.junheah.jsp.Utils.YesNoPopup;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -24,30 +23,37 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
-import io.github.junheah.jsp.model.Library;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.song.Song;
 
-public class SongBottomMenu extends BottomSheetDialogFragment {
-    //TODO more options, 상단에 곡 세부정보 표시하는것도 좋을듯?
+public class PlayListBottomMenu extends BottomSheetDialogFragment {
 
-    Song song;
     PlayList playList;
+    PlayListNameChangeNotifier notifier;
+    int pos;
 
-    public static final String ACTION_DELETE = "delete";
-    public static final String ACTION_RENAME = "rename";
-    public static final String ACTION_PLAY = "play";
 
-    public static SongBottomMenu newInstance(PlayList playList, Song song) {
-        SongBottomMenu f = new SongBottomMenu();
-        f.setParentItem(song);
-        f.setParentList(playList);
-        return f;
+    public static PlayListBottomMenu newInstance(PlayList playList, PlayListNameChangeNotifier notifier, int pos){
+        PlayListBottomMenu menu = new PlayListBottomMenu();
+        menu.setParent(playList);
+        menu.setNotifier(notifier, pos);
+        return menu;
     }
 
-    public void setParentItem(Song song){this.song = song;}
-    public void setParentList(PlayList playList){this.playList = playList;}
+    public void setNotifier(PlayListNameChangeNotifier notifier, int pos){
+        this.notifier = notifier;
+        this.pos = pos;
+    }
+
+
+    public PlayListBottomMenu() {
+        super();
+    }
+
+    public void setParent(PlayList playList){
+        this.playList = playList;
+    }
 
     @Nullable
     @Override
@@ -55,30 +61,23 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-
-
-        View view = inflater.inflate(R.layout.bottom_menu_song, container,
+        View view = inflater.inflate(R.layout.bottom_menu_playlist, container,
                 false);
 
         view.findViewById(R.id.bottom_menu_delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(playList instanceof Library) deleteSongPopup(getContext(), song);
-                else deleteSongPopup(getContext(), playList, song);
+                YesNoPopup(getContext(), playList.getName(), getContext().getString(R.string.msg_delete_playlist), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        PlayListIO.getInstance(getContext()).delete(playList.getName());
+                        notifier.itemRemoved(pos);
+                    }
+                });
                 getDialog().dismiss();
             }
         });
-
-        view.findViewById(R.id.bottom_menu_play).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                play(getContext(), playList, song);
-                getDialog().dismiss();
-            }
-        });
-
         return view;
-
     }
 
     @NonNull
@@ -123,5 +122,10 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
 
             window.setBackgroundDrawable(windowBackground);
         }
+    }
+
+    public interface PlayListNameChangeNotifier{
+        void itemChanged(int pos);
+        void itemRemoved(int pos);
     }
 }

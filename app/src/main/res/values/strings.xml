@@ -37,6 +37,11 @@
     <string name="msg_add_err_duplicate">Failed to add some songs : already exists</string>
     <string name="msg_ok">Dismiss</string>
     <string name="activity_library_select">Select songs</string>
-    <string name="bottom_sheet_delete">Delete</string>
-    <string name="bottom_sheet_actions">Actions</string>
+    <string name="bottom_menu_delete">Delete</string>
+    <string name="bottom_menu_actions">Actions</string>
+    <string name="search_load_more">Load more</string>
+    <string name="search_previous">Previous</string>
+    <string name="bottom_menu_play">Play</string>
+    <string name="menu_source_setting">Source settings</string>
+    <string name="activity_source_setting">Source Setup</string>
 </resources>

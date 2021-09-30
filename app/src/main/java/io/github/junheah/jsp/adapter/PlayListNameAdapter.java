@@ -11,12 +11,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.fragment.SongBottomMenu;
 
 public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     List<String> keys;
@@ -58,14 +60,9 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                YesNoPopup(context, k, context.getString(R.string.msg_delete_playlist), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        playListIO.delete(k);
-                        keys.remove(holder.getAbsoluteAdapterPosition());
-                        notifyItemRemoved(holder.getAbsoluteAdapterPosition());
-                    }
-                });
+                //todo bottom dialog , provide more actions (rename, duplicate, delete, ...)
+                if(callback != null)
+                    callback.itemLongClick(k, holder.getAbsoluteAdapterPosition());
                 return true;
             }
         });
@@ -80,10 +77,16 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public interface PlayListSelectListener{
         void itemClick(String key, TextView sharedElement);
+        void itemLongClick(String key, int pos);
     }
 
     public void added(String key){
         notifyItemInserted(keys.size()-1);
+    }
+
+    public void remove(int i){
+        keys.remove(i);
+        notifyItemRemoved(i);
     }
 
     public class PlayListNameViewHolder extends RecyclerView.ViewHolder{

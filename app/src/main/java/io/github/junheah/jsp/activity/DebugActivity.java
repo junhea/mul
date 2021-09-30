@@ -38,7 +38,7 @@ public class DebugActivity extends PlayerBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_debug);
+        setContentView(R.layout.content_activity_debug);
         panelOnCreate();
 
         Button pref = this.findViewById(R.id.debug_pref);

@@ -1,7 +1,6 @@
 package io.github.junheah.jsp.activity;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -37,7 +36,7 @@ public class SourceManagerActivity extends PlayerBaseActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_source_manager);
+        setContentView(R.layout.content_activity_source_manager);
         panelOnCreate();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

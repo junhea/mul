@@ -54,7 +54,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="prev"
+            android:text="@string/search_previous"
             android:visibility="gone"
             android:id="@+id/prev_result_btn"/>
         <androidx.recyclerview.widget.RecyclerView

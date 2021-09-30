@@ -80,7 +80,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
     ViewSwitcher viewSwitcher;
     float miniCoverHeight;
     RequestListener<Bitmap> requestListener;
-    static int color;
+    static int color = 0x202020;
     boolean forceUpdate = false;
     SlidingUpPanelLayout.PanelSlideListener panelListener;
     SlidingUpPanelLayout panel;
@@ -94,6 +94,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
+        context = this;
         if(savedInstanceState != null){
             color = ContextCompat.getColor(context, R.color.colorDarkWindowBackground);
         }
@@ -199,7 +200,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
             }
         });
         if (Build.VERSION.SDK_INT >= 21) {
-            ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), this);
+            ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView().getRootView(), this);
         }else{
             //set top padding to statusbar height
             activity.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -558,14 +559,8 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
     @Override
     public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
         //This is where you get DisplayCutoutCompat
-        int statusBarHeight = getStatusBarHeight(context);
-        System.out.println(statusBarHeight);
-        int ci;
-
-        if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
-        else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
-
-        activity.setPadding(0, ci > statusBarHeight ? ci : statusBarHeight,0,0);
+        int ci = Math.max(getStatusBarHeight(context), windowInsetsCompat.getSystemWindowInsetTop());
+        activity.setPadding(0, ci,0,0);
         view.setPadding(windowInsetsCompat.getStableInsetLeft(),0,windowInsetsCompat.getStableInsetRight(),windowInsetsCompat.getStableInsetBottom());
         return windowInsetsCompat;
     }

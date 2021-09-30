@@ -1,5 +1,7 @@
 package io.github.junheah.jsp.fragment;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,6 +34,7 @@ import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.SourceIO;
 import io.github.junheah.jsp.activity.MainActivity;
 import io.github.junheah.jsp.activity.SourceManagerActivity;
+import io.github.junheah.jsp.activity.SourceSettingActivity;
 import io.github.junheah.jsp.adapter.SearchResultAdapter;
 import io.github.junheah.jsp.interfaces.IntegerCallback;
 import io.github.junheah.jsp.interfaces.PlayListItemClickCallback;
@@ -53,6 +56,7 @@ import static io.github.junheah.jsp.Utils.getPlayList;
 import static io.github.junheah.jsp.Utils.lockuiRecursive;
 import static io.github.junheah.jsp.Utils.pickerPopup;
 import static io.github.junheah.jsp.Utils.snackbar;
+import static io.github.junheah.jsp.activity.SourceSettingActivity.SOURCE_SETTING_REQUEST;
 import static io.github.junheah.jsp.model.song.Song.EXTERNAL;
 import static io.github.junheah.jsp.service.PlayerServiceHandler.play;
 
@@ -245,7 +249,6 @@ public class SearchFragment extends CustomFragment {
         //initialize source
         lockui(true);
 
-
         playListIO = PlayListIO.getInstance(getContext());
     }
 
@@ -261,6 +264,7 @@ public class SearchFragment extends CustomFragment {
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.search_add).setVisible(adapter == null ? false : adapter.getSelectMode());
         menu.findItem(R.id.search_select_all).setVisible(adapter == null ? false : adapter.getSelectMode());
+        menu.findItem(R.id.search_source_setting).setVisible(source != null);
     }
 
     @Override
@@ -356,10 +360,18 @@ public class SearchFragment extends CustomFragment {
                         String data = sourceIO.getNames()[i];
                         SearchFragment.this.setSource(sourceIO.getSource(data));
                         setTitle(getString(R.string.fragment_search_title)+ " - " +data);
+
                         adapter.clear();
                         adapter.reset();
+
+                        getActivity().invalidateOptionsMenu();
                     }
                 });
+                break;
+            case R.id.search_source_setting:
+                Intent intent = new Intent(getContext(), SourceSettingActivity.class);
+                intent.putExtra("source", source.getName());
+                startActivityForResult(intent, SOURCE_SETTING_REQUEST);
                 break;
             case R.id.search_source_manager:
                 startActivity(new Intent(getContext(), SourceManagerActivity.class));
@@ -382,6 +394,17 @@ public class SearchFragment extends CustomFragment {
         return BACK_HOME;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case SOURCE_SETTING_REQUEST:
+                if(resultCode == RESULT_OK){
+                    //refresh source
+                }
+                break;
+        }
+    }
 
     public void lockui(boolean lock){
         if(container != null){

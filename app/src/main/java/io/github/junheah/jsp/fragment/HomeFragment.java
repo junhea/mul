@@ -97,7 +97,7 @@ public class HomeFragment extends CustomFragment{
             public void notify(Song song) {
                 //open menu
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
-                ft.add(SongBottomMenu.newInstance(song), "bottom_menu");
+                ft.add(SongBottomMenu.newInstance(library, song), "bottom_menu");
                 ft.addToBackStack(null);
                 ft.commit();
             }
@@ -116,10 +116,6 @@ public class HomeFragment extends CustomFragment{
         if (adapter != null)
             adapter.currentChanged(current);
     }
-
-
-
-
 
     @Override
     public void onAnimationEnd() {

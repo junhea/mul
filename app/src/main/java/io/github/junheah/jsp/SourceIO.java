@@ -111,18 +111,18 @@ public class SourceIO {
     }
 
 
-    //debug
-    public void createExample(){
-        File path = new File(root, "test.mjs");
-        if(!path.exists()) {
-            try {
-                FileWriter myWriter = new FileWriter(path);
-                myWriter.write("// @name::test\n// @author::me\n// @homepage::google.com\n// @version::1.0\n");
-                myWriter.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    //debug
+//    public void createExample(){
+//        File path = new File(root, "test.mjs");
+//        if(!path.exists()) {
+//            try {
+//                FileWriter myWriter = new FileWriter(path);
+//                myWriter.write("// @name::test\n// @author::me\n// @homepage::google.com\n// @version::1.0\n");
+//                myWriter.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
 }

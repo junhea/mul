@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -435,5 +436,15 @@ public class Utils {
         return result;
     }
 
+    public static int getNavigationBarHeight(Context context)
+    {
+        boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
+        int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0 && !hasMenuKey)
+        {
+            return context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
+    }
 
 }

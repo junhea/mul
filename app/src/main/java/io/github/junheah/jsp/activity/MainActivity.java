@@ -1,82 +1,38 @@
 package io.github.junheah.jsp.activity;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
-import androidx.palette.graphics.Palette;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.ViewSwitcher;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-
-import io.github.junheah.jsp.PlayListIO;
-import io.github.junheah.jsp.TimerThread;
 import io.github.junheah.jsp.animation.ZoomOutPageTransformer;
-import io.github.junheah.jsp.model.glide.AudioCoverModel;
-import io.github.junheah.jsp.model.room.SongDatabase;
-import io.github.junheah.jsp.model.song.ExternalSong;
-import io.github.junheah.jsp.model.song.SongDataParser;
-import io.github.junheah.jsp.model.song.SongPlayListParcel;
-import io.github.junheah.jsp.service.Player;
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.adapter.MainFragmentAdapter;
 import io.github.junheah.jsp.model.PlayList;
-import io.github.junheah.jsp.model.PlayerStatus;
 import io.github.junheah.jsp.model.song.Song;
-import io.github.junheah.jsp.service.PlayerServiceHandler;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static io.github.junheah.jsp.Utils.deleteSongPopup;
+import static io.github.junheah.jsp.Utils.getNavigationBarHeight;
 import static io.github.junheah.jsp.Utils.getStatusBarHeight;
-import static io.github.junheah.jsp.Utils.getTimeStamp;
-import static io.github.junheah.jsp.Utils.toggleButtons;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
-import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_ALL;
-import static io.github.junheah.jsp.model.PlayList.MODE_REPEAT_SONG;
-import static io.github.junheah.jsp.model.PlayList.MODE_SHUFFLE;
-import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_BROADCAST;
-import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_CREATE;
-import static io.github.junheah.jsp.service.Player.ACTION_PLAYER_EXIT;
-import static io.github.junheah.jsp.service.PlayerServiceHandler.bound;
-import static io.github.junheah.jsp.service.PlayerServiceHandler.player;
 
 
 public class MainActivity extends PlayerBaseActivity {
@@ -101,7 +57,7 @@ public class MainActivity extends PlayerBaseActivity {
         base_layout_id = R.layout.activity_main;
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_main);
+        setContentView(R.layout.content_activity_main);
         panelOnCreate();
 
         //reveal animation
@@ -204,14 +160,12 @@ public class MainActivity extends PlayerBaseActivity {
 
     @Override
     public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
-        int statusBarHeight = getStatusBarHeight(context);
-        int ci;
-
-        if(windowInsetsCompat.getDisplayCutout() == null) ci = 0;
-        else ci = windowInsetsCompat.getDisplayCutout().getSafeInsetTop();
+        int navBarHeight = getNavigationBarHeight(context);
+        int cb = windowInsetsCompat.getSystemWindowInsetBottom();
 
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams)logo.getLayoutParams();
-        params.setMargins(0,ci > statusBarHeight ? ci : statusBarHeight,0,0);
+
+        params.setMargins(0,Math.max(cb, navBarHeight),0,0);
         logo.setLayoutParams(params);
         return super.onApplyWindowInsets(view, windowInsetsCompat);
     }
