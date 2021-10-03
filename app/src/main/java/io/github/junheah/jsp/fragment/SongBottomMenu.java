@@ -15,6 +15,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,12 +24,21 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import io.github.junheah.jsp.R;
 import io.github.junheah.jsp.model.Library;
 import io.github.junheah.jsp.model.PlayList;
+import io.github.junheah.jsp.model.glide.AudioCoverModel;
+import io.github.junheah.jsp.model.song.ExternalSong;
+import io.github.junheah.jsp.model.song.LocalSong;
 import io.github.junheah.jsp.model.song.Song;
+import io.github.junheah.jsp.model.viewHolder.PlayListViewHolder;
 
 public class SongBottomMenu extends BottomSheetDialogFragment {
     //TODO more options, 상단에 곡 세부정보 표시하는것도 좋을듯?
@@ -76,6 +87,51 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
                 getDialog().dismiss();
             }
         });
+
+        ((TextView)view.findViewById(R.id.bottom_name)).setText(song.getName());
+        ((TextView)view.findViewById(R.id.bottom_artist)).setText(song.getArtist());
+        ((TextView)view.findViewById(R.id.bottom_path)).setText(song.getPath());
+
+
+        ImageView cover = view.findViewById(R.id.bottom_cover);
+        //cover art
+        if (song instanceof ExternalSong) {
+            String url = ((ExternalSong) song).getCoverUrl();
+            if (url != null && url.length() > 0)
+                Glide.with(cover)
+                        .load(url)
+                        .placeholder(R.drawable.music_dark)
+                        .fallback(R.drawable.music_dark)
+                        .into(cover);
+        } else {
+            if(!((LocalSong)song).nocover) {
+                Glide.with(cover)
+                        .load(new AudioCoverModel(song.getPath()))
+                        .dontTransform()
+                        .placeholder(R.drawable.music_dark)
+                        .fallback(R.drawable.music_dark)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                //no cover
+                                ((LocalSong) song).nocover = true;
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                return false;
+                            }
+                        })
+                        .into(cover);
+            }else{
+                //local and no cover
+                Glide.with(cover)
+                        .load(R.drawable.music_dark)
+                        .dontTransform()
+                        .into(cover);
+            }
+        }
 
         return view;
 

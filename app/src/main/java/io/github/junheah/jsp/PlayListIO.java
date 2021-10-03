@@ -157,9 +157,11 @@ public class PlayListIO {
     }
 
     public void rename(PlayList playList, String newName){
-        delete(playList);
+        List<long[]> ids = getids(playList.getName());
+        editor.remove(playList.getName());
+        editor.commit();
         playList.setName(newName);
-        write(playList);
+        writeIds(newName, ids);
     }
 
     public void delete(PlayList playList){

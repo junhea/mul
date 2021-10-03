@@ -44,4 +44,7 @@
     <string name="bottom_menu_play">Play</string>
     <string name="menu_source_setting">Source settings</string>
     <string name="activity_source_setting">Source Setup</string>
+    <string name="bottom_menu_rename">Rename</string>
+    <string name="msg_rename_playlist">Rename playlist</string>
+    <string name="msg_rename_playlist_fail">Fail to rename playlist</string>
 </resources>

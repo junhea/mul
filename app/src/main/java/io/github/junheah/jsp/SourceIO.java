@@ -94,6 +94,7 @@ public class SourceIO {
     }
 
     public void write(String key, String data){
+        //key = source name
         editor.putString(key, data);
         editor.commit();
     }

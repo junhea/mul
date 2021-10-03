@@ -1,6 +1,8 @@
 package io.github.junheah.jsp.fragment;
 
 import static io.github.junheah.jsp.Utils.YesNoPopup;
+import static io.github.junheah.jsp.Utils.singleInputPopup;
+import static io.github.junheah.jsp.Utils.snackbar;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -14,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +28,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import io.github.junheah.jsp.PlayListIO;
 import io.github.junheah.jsp.R;
+import io.github.junheah.jsp.interfaces.StringCallback;
 import io.github.junheah.jsp.model.PlayList;
 
 public class PlayListBottomMenu extends BottomSheetDialogFragment {
@@ -60,6 +64,7 @@ public class PlayListBottomMenu extends BottomSheetDialogFragment {
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        PlayListIO playListIO = PlayListIO.getInstance(getContext());
 
         View view = inflater.inflate(R.layout.bottom_menu_playlist, container,
                 false);
@@ -77,6 +82,28 @@ public class PlayListBottomMenu extends BottomSheetDialogFragment {
                 getDialog().dismiss();
             }
         });
+
+        view.findViewById(R.id.bottom_menu_rename).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                singleInputPopup(getContext(), getContext().getString(R.string.msg_rename_playlist), playList.getName(), new StringCallback() {
+                    @Override
+                    public void callback(String data) {
+                        if(data.length()>0 && playListIO.getNames().indexOf(data) == -1) {
+                            playListIO.rename(playList, data);
+                            notifier.itemChanged(pos, data);
+                        }else{
+                            snackbar(getParentFragment().getView(), getContext().getString(R.string.msg_rename_playlist_fail),getContext().getString(R.string.msg_ok));
+                        }
+                    }
+                });
+                getDialog().dismiss();
+            }
+        });
+
+        ((TextView)view.findViewById(R.id.bottom_name)).setText(playList.getName());
+
+        ((TextView)view.findViewById(R.id.bottom_size)).setText(String.valueOf(playListIO.getids(playList.getName()).size()));
         return view;
     }
 
@@ -125,7 +152,7 @@ public class PlayListBottomMenu extends BottomSheetDialogFragment {
     }
 
     public interface PlayListNameChangeNotifier{
-        void itemChanged(int pos);
+        void itemChanged(int pos, String newName);
         void itemRemoved(int pos);
     }
 }

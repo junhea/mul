@@ -34,6 +34,8 @@ import static io.github.junheah.jsp.fragment.CustomFragment.BACK_HOME;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NONE;
 import static io.github.junheah.jsp.fragment.CustomFragment.BACK_NORMAL;
 
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
 
 public class MainActivity extends PlayerBaseActivity {
 

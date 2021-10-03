@@ -120,7 +120,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
 
         //hide player
         panel.setPanelHeight(0);
-        panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        panel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
 
 
         //action bar
@@ -387,7 +387,7 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
         current = null;
         //hide player
         panel.setPanelHeight(0);
-        panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        panel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         //reset color palette
         setColorPalette(null);
         //reset all player controls
@@ -452,11 +452,13 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
 
                 current = PlayerStatus.song;
                 playList = PlayerStatus.playList;
+
                 //notify current to fragments
                 notifySongChanged(playList, current);
 
                 //show player
                 panel.setPanelHeight((int) getResources().getDimension(R.dimen.panel_height));
+                panel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                 if (playList.getNext(current) == null) nextbtn.setEnabled(false);
                 else nextbtn.setEnabled(true);
                 if (playList.getPrev(current) == null) prevbtn.setEnabled(false);

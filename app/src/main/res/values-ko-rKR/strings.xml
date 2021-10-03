@@ -44,4 +44,7 @@
     <string name="search_previous">이전</string>
     <string name="bottom_menu_play">재생</string>
     <string name="menu_source_setting">소스 설정</string>
+    <string name="bottom_menu_rename">이름 바꾸기</string>
+    <string name="msg_rename_playlist">이름 바꾸기</string>
+    <string name="msg_rename_playlist_fail">이름 바꾸기 실패</string>
 </resources>

@@ -96,4 +96,9 @@ public class PlayListNameAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             name = itemView.findViewById(R.id.subtitle);
         }
     }
+
+    public void rename(int pos, String newName){
+        keys.set(pos, newName);
+        notifyItemChanged(pos);
+    }
 }

@@ -198,7 +198,5 @@ public class PlayListFragment extends CustomFragment implements PlayListBottomMe
     }
 
     @Override
-    public void itemChanged(int pos) {
-
-    }
+    public void itemChanged(int pos, String newName) { parentadapter.rename(pos, newName);}
 }
