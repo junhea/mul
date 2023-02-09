@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="@color/colorDarkWindowBackground"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/bottom_name"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:paddingEnd="16dp"
+            android:layout_weight="1"
+            android:paddingStart="16dp"
+            android:drawableTint="@android:color/white"
+            android:gravity="start|center_vertical"
+            android:text="name"
+            android:textColor="@android:color/white"
+            android:textSize="17sp" />
+        <TextView
+            android:drawableStart="@drawable/music_note"
+            android:drawablePadding="5dp"
+            android:id="@+id/bottom_size"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
+            android:drawableTint="#AAAAAA"
+            android:gravity="end|center_vertical"
+            android:text="count"
+            android:textColor="#AAAAAA"
+            android:textSize="13sp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+<!--    <TextView-->
+<!--        android:layout_height="48dp"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:gravity="center"-->
+<!--        android:text="@string/bottom_menu_actions"-->
+<!--        android:textColor="@android:color/white"/>-->
+
+    <TextView
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:id="@+id/bottom_menu_rename"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingEnd="16dp"
+        android:paddingStart="16dp"
+        android:drawablePadding="32dp"
+        android:drawableStart="@drawable/ic_baseline_edit_24"
+        android:drawableTint="@android:color/white"
+        android:gravity="start|center_vertical"
+        android:text="@string/bottom_menu_rename"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+    <TextView
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:id="@+id/bottom_menu_delete"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingEnd="16dp"
+        android:paddingStart="16dp"
+        android:drawablePadding="32dp"
+        android:drawableStart="@drawable/delete"
+        android:drawableTint="@android:color/white"
+        android:gravity="start|center_vertical"
+        android:text="@string/bottom_menu_delete"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="true"
+        android:gravity="bottom"
+        sothree:umanoPanelHeight="@dimen/panel_height">
+
+
+        <FrameLayout
+            android:id="@+id/player_base_activity_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+        <ViewSwitcher
+            android:id="@+id/viewSwitcher"
+            android:clickable="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <include layout="@layout/content_panel"/>
+            <include layout="@layout/content_panel_landscape"/>
+        </ViewSwitcher>
+    </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+</FrameLayout>

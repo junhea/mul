@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.github.junhea.mul">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        tools:node="replace" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+
+    <application
+        android:name="io.github.junhea.mul.MainApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/splashScreenTheme"
+        android:requestLegacyExternalStorage="true"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name="io.github.junhea.mul.activity.LibrarySelectionActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_library_select" />
+        <activity
+            android:name="io.github.junhea.mul.activity.WatchListManagerActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_watch_list_manager" />
+        <activity
+            android:name="io.github.junhea.mul.activity.SourceSettingActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_source_setting" />
+        <activity
+            android:name="io.github.junhea.mul.activity.SettingsActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_settings" />
+        <activity
+            android:name="io.github.junhea.mul.activity.FileChooserActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_file_title" />
+
+        <service
+            android:name="io.github.junhea.mul.service.Player"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="androidx.media.session.MediaButtonReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="io.github.junhea.mul.activity.MainActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="io.github.junhea.mul.activity.DebugActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_debug_title" />
+        <activity
+            android:name="io.github.junhea.mul.activity.SourceManagerActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_source_title" />
+    </application>
+
+</manifest>

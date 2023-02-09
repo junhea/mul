@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+        app:key="setting_watch_list"
+        app:title="@string/setting_watch_list"
+        app:summary="@string/setting_watch_list_sum"/>
+    <com.jaredrummler.android.colorpicker.ColorPreferenceCompat
+        app:key="setting_point_color"
+        app:title="@string/setting_point_color"
+        app:cpv_dialogTitle="@string/setting_point_color"
+        app:cpv_showAlphaSlider="false"
+        app:defaultValue="@color/point"
+        app:summary="@string/setting_point_color_sum"/>
+    <SeekBarPreference
+        app:key="setting_library_opacity"
+        app:title="@string/setting_opacity"
+        app:min="0"
+        android:max="100"
+        app:defaultValue="20"
+        app:showSeekBarValue="true"
+        app:summary="@string/setting_opacity_sum"/>
+</PreferenceScreen>

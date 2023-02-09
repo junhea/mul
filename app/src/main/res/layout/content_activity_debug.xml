@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    tools:context=".activity.DebugActivity">
+
+    <ScrollView
+        android:id="@+id/debug_scroll"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/action_bar_layout">
+
+        <LinearLayout
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/debug_clear"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="clear output" />
+
+            <Button
+                android:id="@+id/debug_pref"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="sharedpref 보기" />
+
+            <Button
+                android:id="@+id/debug_pref_edit"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="sharedpref 편집" />
+            <Button
+                android:id="@+id/debug_only_album_Art"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="album art 있는 노래만 남기기" />
+            <Button
+                android:id="@+id/debug_reset_watch_list"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="reset watch list" />
+
+
+            <TextView
+                android:focusable="true"
+                android:id="@+id/debug_out"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:longClickable="true"
+                android:text=""
+                android:textIsSelectable="true" />
+
+            <EditText
+                android:id="@+id/debug_edit"
+                android:inputType="text|textMultiLine"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/debug_save"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="save"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/debug_cancel"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="cancel"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <include
+        android:id="@+id/action_bar_layout"
+        layout="@layout/content_action_bar"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
