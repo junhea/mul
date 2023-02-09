@@ -34,8 +34,9 @@ public class AudioCoverFetcher implements DataFetcher<InputStream> {
             }else{
                 callback.onDataReady(null);
             }
-        } finally {
             retriever.release();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
 
     }
