@@ -23,6 +23,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.media.AudioManagerCompat;
@@ -210,7 +211,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
 
 
         session = new MediaSessionCompat(this, getPackageName());
-        session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
+        session.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
         session.setCallback(sessionCallback);
         setState(STATE_NONE);
         session.setActive(true);
@@ -254,8 +255,12 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
     }
     void showNotification() {
         Intent notificationIntent = new Intent(getApplicationContext(), io.github.junhea.mul.activity.MainActivity.class);
+        int intentFlag = 0;
+        if(Build.VERSION.SDK_INT >= 31){
+            intentFlag = PendingIntent.FLAG_MUTABLE;
+        }
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, intentFlag);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationChannel mchannel = new NotificationChannel(CHANNEL_ID, "media player", NotificationManager.IMPORTANCE_LOW);
@@ -305,7 +310,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                                 .fallback(R.drawable.music_dark)
                                 .into(new CustomTarget<Bitmap>() {
                                     @Override
-                                    public void onResourceReady(Bitmap res, Transition<? super Bitmap> t) {
+                                    public void onResourceReady(@NonNull Bitmap res, Transition<? super Bitmap> t) {
                                         notification.setLargeIcon(res);
                                         startForeground(nid, notification.build());
                                     }
@@ -325,7 +330,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                                 .fallback(R.drawable.music_dark)
                                 .into(new CustomTarget<Bitmap>() {
                                     @Override
-                                    public void onResourceReady(Bitmap res, Transition<? super Bitmap> t) {
+                                    public void onResourceReady(@NonNull Bitmap res, Transition<? super Bitmap> t) {
                                         notification.setLargeIcon(res);
                                         startForeground(nid, notification.build());
                                     }
@@ -384,19 +389,22 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         if(this.playList != null){
             this.playList.setPlayListChangeCallback(null);
         }
+        if(playList != null){
+            this.playList = playList;
 
-        this.playList = playList;
+            //set callback to new playlist
+            this.playList.setPlayListChangeCallback(playListChangeCallback);
 
-        //set callback to new playlist
-        this.playList.setPlayListChangeCallback(playListChangeCallback);
+            if(this.playList.size()>0){
+                this.current = this.playList.get(0);
+            }
 
-        if(this.playList != null && this.playList.size()>0){
-            this.current = this.playList.get(0);
+            this.playList.setMode(this.mode, current);
+
+            play();
         }
 
-        this.playList.setMode(this.mode, current);
 
-        play();
     }
 
     public void setPlayList(PlayList playList, Song song){
@@ -629,6 +637,6 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
         public Player getService(){
             return Player.this;
         }
-    };
+    }
 
 }
