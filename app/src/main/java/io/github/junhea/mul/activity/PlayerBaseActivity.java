@@ -39,6 +39,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -573,9 +574,11 @@ public class PlayerBaseActivity extends AppCompatActivity implements OnApplyWind
     @Override
     public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
         //This is where you get DisplayCutoutCompat
-        int ci = Math.max(getStatusBarHeight(context), windowInsetsCompat.getSystemWindowInsetTop());
-        activity.setPadding(0, ci,0,0);
-        view.setPadding(windowInsetsCompat.getStableInsetLeft(),0,windowInsetsCompat.getStableInsetRight(),windowInsetsCompat.getStableInsetBottom());
+        Insets statusBar = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.statusBars());
+        Insets navigationBar = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.navigationBars());
+        Insets cutout = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.displayCutout());
+        activity.setPadding(0, Math.max(statusBar.top, cutout.top),0,0);
+        view.setPadding(navigationBar.left,0,navigationBar.right,navigationBar.bottom);
         return windowInsetsCompat;
     }
 

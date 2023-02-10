@@ -7,6 +7,7 @@ import static io.github.junhea.mul.fragment.HomeFragment.REQUEST_SELECT_SONG;
 import static io.github.junhea.mul.model.song.Song.EXTERNAL;
 import static io.github.junhea.mul.model.song.Song.LOCAL;
 
+import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
@@ -423,18 +425,5 @@ public class Utils {
         }
         return result;
     }
-
-    public static int getNavigationBarHeight(Context context)
-    {
-        boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
-        int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        if (resourceId > 0 && !hasMenuKey)
-        {
-            return context.getResources().getDimensionPixelSize(resourceId);
-        }
-        return 0;
-    }
-
-
 
 }
