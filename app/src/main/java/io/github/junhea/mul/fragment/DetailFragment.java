@@ -15,7 +15,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -26,6 +28,8 @@ import java.util.List;
 
 import io.github.junhea.mul.PlayListIO;
 import io.github.junhea.mul.R;
+import io.github.junhea.mul.activity.DebugActivity;
+import io.github.junhea.mul.activity.SettingsActivity;
 import io.github.junhea.mul.adapter.PlayListAdapter;
 import io.github.junhea.mul.interfaces.SongCallback;
 import io.github.junhea.mul.model.ItemMoveCallback;
@@ -44,6 +48,7 @@ import static io.github.junhea.mul.Utils.openDirectory;
 import static io.github.junhea.mul.Utils.openFile;
 import static io.github.junhea.mul.Utils.openLibrary;
 import static io.github.junhea.mul.Utils.snackbar;
+import static io.github.junhea.mul.activity.SettingsActivity.REQUEST_SETTINGS;
 import static io.github.junhea.mul.fragment.HomeFragment.REQUEST_SELECT_FOLDER;
 import static io.github.junhea.mul.fragment.HomeFragment.REQUEST_SELECT_LIBRARY;
 import static io.github.junhea.mul.fragment.HomeFragment.REQUEST_SELECT_SONG;
@@ -106,6 +111,27 @@ public class DetailFragment extends CustomFragment implements SongCallback {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.playlist_menu, menu);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.menu_addSong:
+                        showAddMenu();
+                        break;
+                    case R.id.menu_edit:
+                        //edit mode
+                        adapter.toggleEditMode();
+                        break;
+                }
+                return true;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+
         this.title = view.findViewById(R.id.subtitle);
         title.setVisibility(View.VISIBLE);
         recycler = view.findViewById(R.id.recycler);
@@ -152,9 +178,7 @@ public class DetailFragment extends CustomFragment implements SongCallback {
 
     @Override
     public void notify(Song song) {
-//        SongBottomMenu f = SongBottomMenu.newInstance(playList, song);
-//        f.show(getFragmentManager(), "bottom_menu");
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        FragmentTransaction ft = getParentFragmentManager().beginTransaction();
         ft.add(SongBottomMenu.newInstance(playList, song), "bottom_menu");
         ft.addToBackStack(null);
         ft.commit();
@@ -170,41 +194,11 @@ public class DetailFragment extends CustomFragment implements SongCallback {
         return BACK_NONE;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_addSong:
-                showAddMenu();
-                break;
-            case R.id.menu_edit:
-                //edit mode
-                adapter.toggleEditMode();
-                break;
-        }
-        return true;
-    }
-
-
     void showAddMenu(){
         View view = getActivity().findViewById(R.id.menu_addSong);
         PopupMenu popupMenu = new PopupMenu(getContext(), view);
         popupMenu.inflate(R.menu.add_menu);
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.menu_addLocalSong:
-                        openFile(DetailFragment.this);
-                        break;
-                    case R.id.menu_addLocalFolder:
-                        openDirectory(DetailFragment.this);
-                        break;
-                    case R.id.menu_addFromLibrary:
-                        openLibrary(DetailFragment.this);
-                        break;
-                }
-                return true;
-            }
-        });
+        popupMenu.setOnMenuItemClickListener(this);
         popupMenu.show();
     }
 
@@ -248,11 +242,6 @@ public class DetailFragment extends CustomFragment implements SongCallback {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.playlist_menu, menu);
-    }
 
     public class PlayListLoader extends Thread{
         boolean stop = false;

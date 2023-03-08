@@ -19,6 +19,8 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,6 +39,7 @@ import io.github.junhea.mul.adapter.SearchResultAdapter;
 import io.github.junhea.mul.interfaces.IntegerCallback;
 import io.github.junhea.mul.interfaces.SearchResultInterface;
 import io.github.junhea.mul.interfaces.ScriptCallback;
+import io.github.junhea.mul.interfaces.StringCallback;
 import io.github.junhea.mul.model.PlayList;
 import io.github.junhea.mul.model.room.SongDatabase;
 import io.github.junhea.mul.model.song.ExternalSong;
@@ -50,6 +53,7 @@ import static io.github.junhea.mul.Utils.createSnackbar;
 import static io.github.junhea.mul.Utils.getPlayList;
 import static io.github.junhea.mul.Utils.lockuiRecursive;
 import static io.github.junhea.mul.Utils.pickerPopup;
+import static io.github.junhea.mul.Utils.singleInputPopup;
 import static io.github.junhea.mul.Utils.snackbar;
 import static io.github.junhea.mul.activity.SourceSettingActivity.SOURCE_SETTING_REQUEST;
 import static io.github.junhea.mul.model.song.Song.EXTERNAL;
@@ -92,6 +96,128 @@ public class SearchFragment extends CustomFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.search_menu, menu);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                switch(menuItem.getItemId()){
+                    case R.id.search_add:
+                        List<Song> res = adapter.getSelected();
+                        toggleSelectMode(null);
+                        String[] pls = new String[playListIO.getNames().size()+1];
+                        pls[0] = getString(R.string.fragment_home_title);
+                        int i = 1;
+                        for(String name : playListIO.getNames()){
+                            pls[i++] = name;
+                        }
+                        pickerPopup(SearchFragment.this, getString(R.string.search_add_to), pls, new IntegerCallback() {
+                            @Override
+                            public void callback(int i) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        SongDatabase db = SongDatabase.getInstance(getContext());
+                                        List<long[]> ids = new ArrayList<>();
+                                        for(int j=0; j<res.size(); j++){
+                                            Song s = res.get(j);
+                                            try {
+                                                long id = db.externalDao().insert((ExternalSong) s);
+                                                s.setSid(id);
+                                                ids.add(new long[]{EXTERNAL, id});
+                                            }catch (Exception e){
+                                                res.set(j, db.externalDao().findWithId(((ExternalSong)s).getId()));
+                                                ids.add(new long[]{EXTERNAL, res.get(j).getSid()});
+                                            }
+                                        }
+                                        //ui thread
+                                        String data = pls[i];
+
+                                        if(i>0) {
+                                            //add song to playlist
+                                            PlayList playList = getPlayList(data);
+
+                                            if(playList == null){
+                                                //don't need load : just add via playListio
+                                                boolean success = playListIO.addSongs(data, ids);
+                                                View view = getView();
+                                                if(view != null){
+                                                    snackbar(view,
+                                                        getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                                                        getString(R.string.msg_ok));
+                                                }
+
+                                            }else {
+                                                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        boolean success = true;
+                                                        for (Song s : res) {
+                                                            if(!playList.add(s))
+                                                                success = false;
+                                                        }
+                                                        View view = getView();
+                                                        if(view != null){
+                                                            createSnackbar(view,
+                                                                getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
+                                                                getString(R.string.msg_ok)).show();
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+
+                                        for(Song s : res){
+                                            library.addWithSort(s);
+                                        }
+                                    }
+                                }).start();
+
+                            }
+                        });
+                        break;
+                    case R.id.search_select_all:
+                        adapter.toggleSelectAll();
+                        break;
+                    case R.id.search_source_select:
+                        pickerPopup(SearchFragment.this, getString(R.string.menu_select_source), sourceIO.getNames(), new IntegerCallback() {
+                            @Override
+                            public void callback(int i) {
+                                String data = sourceIO.getNames()[i];
+                                SearchFragment.this.setSource(sourceIO.getSource(data));
+                                setTitle(getString(R.string.fragment_search_title)+ " - " +data);
+
+                                adapter.clear();
+                                adapter.reset();
+
+                                getActivity().invalidateOptionsMenu();
+                            }
+                        });
+                        break;
+                    case R.id.search_source_setting:
+                        Intent intent = new Intent(getContext(), SourceSettingActivity.class);
+                        intent.putExtra("source", source.getName());
+                        startActivity(intent);
+                        break;
+                    case R.id.search_source_manager:
+                        startActivity(new Intent(getContext(), SourceManagerActivity.class));
+                        break;
+                }
+                return true;
+            }
+
+            @Override
+            public void onPrepareMenu(@NonNull Menu menu) {
+                menu.findItem(R.id.search_add).setVisible(adapter == null ? false : adapter.getSelectMode());
+                menu.findItem(R.id.search_select_all).setVisible(adapter == null ? false : adapter.getSelectMode());
+                menu.findItem(R.id.search_source_setting).setVisible(source != null);
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+
         RecyclerView recyclerView = view.findViewById(R.id.search_result);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         input = view.findViewById(R.id.search_input);
@@ -264,127 +390,6 @@ public class SearchFragment extends CustomFragment {
         super.onSaveInstanceState(outState);
         // save state
         outState.putString("source", new Gson().toJson(source));
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(@NonNull Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.search_add).setVisible(adapter == null ? false : adapter.getSelectMode());
-        menu.findItem(R.id.search_select_all).setVisible(adapter == null ? false : adapter.getSelectMode());
-        menu.findItem(R.id.search_source_setting).setVisible(source != null);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.search_menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch(item.getItemId()){
-            case R.id.search_add:
-                List<Song> res = adapter.getSelected();
-                toggleSelectMode(null);
-                String[] pls = new String[playListIO.getNames().size()+1];
-                pls[0] = getString(R.string.fragment_home_title);
-                int i = 1;
-                for(String name : playListIO.getNames()){
-                    pls[i++] = name;
-                }
-                pickerPopup(SearchFragment.this, getString(R.string.search_add_to), pls, new IntegerCallback() {
-                    @Override
-                    public void callback(int i) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                SongDatabase db = SongDatabase.getInstance(getContext());
-                                List<long[]> ids = new ArrayList<>();
-                                for(int j=0; j<res.size(); j++){
-                                    Song s = res.get(j);
-                                    try {
-                                        long id = db.externalDao().insert((ExternalSong) s);
-                                        s.setSid(id);
-                                        ids.add(new long[]{EXTERNAL, id});
-                                    }catch (Exception e){
-                                        res.set(j, db.externalDao().findWithId(((ExternalSong)s).getId()));
-                                        ids.add(new long[]{EXTERNAL, res.get(j).getSid()});
-                                    }
-                                }
-                                //ui thread
-                                String data = pls[i];
-
-                                if(i>0) {
-                                    //add song to playlist
-                                    PlayList playList = getPlayList(data);
-
-                                    if(playList == null){
-                                        //don't need load : just add via playListio
-                                        boolean success = playListIO.addSongs(data, ids);
-                                        View view = getView();
-                                        if(view != null){
-                                            snackbar(view,
-                                                    getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
-                                                    getString(R.string.msg_ok));
-                                        }
-
-                                    }else {
-                                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                boolean success = true;
-                                                for (Song s : res) {
-                                                    if(!playList.add(s))
-                                                        success = false;
-                                                }
-                                                View view = getView();
-                                                if(view != null){
-                                                    createSnackbar(view,
-                                                            getString(success ? R.string.msg_add_success : R.string.msg_add_err_duplicate),
-                                                            getString(R.string.msg_ok)).show();
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-
-                                for(Song s : res){
-                                    library.addWithSort(s);
-                                }
-                            }
-                        }).start();
-
-                    }
-                });
-                break;
-            case R.id.search_select_all:
-                adapter.toggleSelectAll();
-                break;
-            case R.id.search_source_select:
-                pickerPopup(SearchFragment.this, getString(R.string.menu_select_source), sourceIO.getNames(), new IntegerCallback() {
-                    @Override
-                    public void callback(int i) {
-                        String data = sourceIO.getNames()[i];
-                        SearchFragment.this.setSource(sourceIO.getSource(data));
-                        setTitle(getString(R.string.fragment_search_title)+ " - " +data);
-
-                        adapter.clear();
-                        adapter.reset();
-
-                        getActivity().invalidateOptionsMenu();
-                    }
-                });
-                break;
-            case R.id.search_source_setting:
-                Intent intent = new Intent(getContext(), SourceSettingActivity.class);
-                intent.putExtra("source", source.getName());
-                startActivity(intent);
-                break;
-            case R.id.search_source_manager:
-                startActivity(new Intent(getContext(), SourceManagerActivity.class));
-                break;
-        }
-        return true;
     }
 
     @Override

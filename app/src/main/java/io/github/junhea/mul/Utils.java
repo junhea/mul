@@ -72,6 +72,8 @@ import io.github.junhea.mul.model.song.Song;
 public class Utils {
     // static functions
 
+    public final static String[] extensions = {"3gp","mp4","m4a","aac","ts","3gp","flac","gsm","mid","xmf","mxmf","rtttl","rtx","ota","imy","mp3","mkv","wav","ogg"};
+
     public static void lockuiRecursive(View view, boolean lock){
         view.setEnabled(!lock);
         if(view instanceof ViewGroup && !(view instanceof RecyclerView)) {

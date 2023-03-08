@@ -19,8 +19,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.view.MenuHost;
+import androidx.core.view.MenuProvider;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -46,6 +49,7 @@ import io.github.junhea.mul.ui.SlowLinearLayoutManager;
 
 import static io.github.junhea.mul.MainApplication.library;
 import static io.github.junhea.mul.Utils.deleteSongPopup;
+import static io.github.junhea.mul.Utils.extensions;
 import static io.github.junhea.mul.Utils.getPlayList;
 import static io.github.junhea.mul.Utils.openDirectory;
 import static io.github.junhea.mul.Utils.openFile;
@@ -79,6 +83,30 @@ public class HomeFragment extends CustomFragment{
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.home_menu, menu);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                switch (menuItem.getItemId()){
+                    case R.id.menu_addSong:
+                        showAddMenu();
+                        break;
+                    case R.id.menu_debug:
+                        startActivity(new Intent(getContext(), DebugActivity.class));
+                        break;
+                    case R.id.menu_settings:
+                        getActivity().startActivityForResult(new Intent(getContext(), SettingsActivity.class), REQUEST_SETTINGS);
+                        break;
+
+                }
+                return true;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
 
         RecyclerView recycler = view.findViewById(R.id.recycler);
@@ -124,35 +152,12 @@ public class HomeFragment extends CustomFragment{
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.menu_addSong:
-                showAddMenu();
-                break;
-            case R.id.menu_debug:
-                startActivity(new Intent(getContext(), DebugActivity.class));
-                break;
-            case R.id.menu_settings:
-                getActivity().startActivityForResult(new Intent(getContext(), SettingsActivity.class), REQUEST_SETTINGS);
-                break;
-
-        }
-        return true;
-    }
-
-    @Override
     public void onStop() {
         super.onStop();
         if(loader != null && !loader.stop)
             loader.interrupt();
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.home_menu, menu);
-    }
-    final static String[] extensions = {"3gp","mp4","m4a","aac","ts","3gp","flac","gsm","mid","xmf","mxmf","rtttl","rtx","ota","imy","mp3","mkv","wav","ogg"};
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -215,19 +220,7 @@ public class HomeFragment extends CustomFragment{
         PopupMenu popupMenu = new PopupMenu(getContext(), view);
         popupMenu.inflate(R.menu.add_menu);
         popupMenu.getMenu().findItem(R.id.menu_addFromLibrary).setVisible(false);
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.menu_addLocalSong:
-                        openFile(HomeFragment.this);
-                        break;
-                    case R.id.menu_addLocalFolder:
-                        openDirectory(HomeFragment.this);
-                        break;
-                }
-                return true;
-            }
-        });
+        popupMenu.setOnMenuItemClickListener(this);
         popupMenu.show();
     }
 
