@@ -83,7 +83,7 @@ public class HomeFragment extends CustomFragment{
         recycler.setLayoutManager(lm);
 
         PlayList tmp = getPlayList("");
-        if(tmp != null){
+        if(tmp != null && tmp instanceof Library){
             library = (Library)tmp;
         }
 
