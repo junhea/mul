@@ -10,8 +10,6 @@
     <string name="menu_add_playlist">재생목록 추가</string>
     <string name="search_add_to">재생목록에 추가:</string>
     <string name="msg_create_playlist">재생목록 생성</string>
-    <string name="menu_debug">디버그</string>
-    <string name="activity_debug_title">디버그</string>
     <string name="menu_edit">편집</string>
     <string name="activity_file_title">탐색기</string>
     <string name="title_activity_file_chooser">파일 선택기</string>

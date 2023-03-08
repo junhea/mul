@@ -19,7 +19,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.core.view.MenuHost;
 import androidx.core.view.MenuProvider;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.FragmentTransaction;
@@ -31,7 +30,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.junhea.mul.activity.DebugActivity;
 import io.github.junhea.mul.R;
 import io.github.junhea.mul.activity.SettingsActivity;
 import io.github.junhea.mul.adapter.LibraryAdapter;
@@ -51,8 +49,6 @@ import static io.github.junhea.mul.MainApplication.library;
 import static io.github.junhea.mul.Utils.deleteSongPopup;
 import static io.github.junhea.mul.Utils.extensions;
 import static io.github.junhea.mul.Utils.getPlayList;
-import static io.github.junhea.mul.Utils.openDirectory;
-import static io.github.junhea.mul.Utils.openFile;
 import static io.github.junhea.mul.activity.SettingsActivity.REQUEST_SETTINGS;
 
 public class HomeFragment extends CustomFragment{
@@ -95,9 +91,6 @@ public class HomeFragment extends CustomFragment{
                 switch (menuItem.getItemId()){
                     case R.id.menu_addSong:
                         showAddMenu();
-                        break;
-                    case R.id.menu_debug:
-                        startActivity(new Intent(getContext(), DebugActivity.class));
                         break;
                     case R.id.menu_settings:
                         getActivity().startActivityForResult(new Intent(getContext(), SettingsActivity.class), REQUEST_SETTINGS);

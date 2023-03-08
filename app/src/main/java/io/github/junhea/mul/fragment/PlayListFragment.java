@@ -1,6 +1,5 @@
 package io.github.junhea.mul.fragment;
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,8 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.Fade;
 
 import io.github.junhea.mul.PlayListIO;
-import io.github.junhea.mul.activity.DebugActivity;
-import io.github.junhea.mul.activity.SettingsActivity;
 import io.github.junhea.mul.adapter.PlayListNameAdapter;
 import io.github.junhea.mul.animation.DetailsTransition;
 import io.github.junhea.mul.interfaces.StringCallback;
@@ -33,7 +30,6 @@ import io.github.junhea.mul.ui.SlowLinearLayoutManager;
 import static io.github.junhea.mul.Utils.getPlayList;
 import static io.github.junhea.mul.Utils.singleInputPopup;
 import static io.github.junhea.mul.Utils.snackbar;
-import static io.github.junhea.mul.activity.SettingsActivity.REQUEST_SETTINGS;
 
 
 public class PlayListFragment extends CustomFragment implements PlayListBottomMenu.PlayListNameChangeNotifier {

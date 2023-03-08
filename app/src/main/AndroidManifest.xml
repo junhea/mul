@@ -67,10 +67,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="io.github.junhea.mul.activity.DebugActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/activity_debug_title" />
-        <activity
             android:name="io.github.junhea.mul.activity.SourceManagerActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/activity_source_title" />
