@@ -104,50 +104,40 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             Song song = (Song)data.get(holder.getAbsoluteAdapterPosition());
             PlayListViewHolder v = (PlayListViewHolder) holder;
             if (song instanceof ExternalSongContainer) {
-                v.layout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(!lock && !selectMode){
-                            if(listener != null) listener.clickedSongContainer((ExternalSongContainer) song);
-                        }
+                v.layout.setOnClickListener(view -> {
+                    if(!lock && !selectMode){
+                        if(listener != null) listener.clickedSongContainer((ExternalSongContainer) song);
                     }
                 });
                 v.layout.setOnLongClickListener(null);
                 v.checkBox.setVisibility(View.GONE);
             } else {
-                v.layout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(!lock) {
-                            if(selectMode){
-                                checked[holder.getAbsoluteAdapterPosition()] = checked[holder.getAbsoluteAdapterPosition()] == NONE ? CHECK : NONE;
-                                v.checkBox.performClick();
-                            }else if(listener != null) listener.clickedSong(song);
-                        }
+                v.layout.setOnClickListener(view -> {
+                    if(!lock) {
+                        if(selectMode){
+                            checked[holder.getAbsoluteAdapterPosition()] = checked[holder.getAbsoluteAdapterPosition()] == NONE ? CHECK : NONE;
+                            v.checkBox.performClick();
+                        }else if(listener != null) listener.clickedSong(song);
                     }
                 });
-                v.layout.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View view) {
-                        if(!lock){
-                            if(listener != null) listener.longClickedSong(song);
-                        }
-                        return true;
+                v.layout.setOnLongClickListener(view -> {
+                    if(!lock){
+                        if(listener != null) listener.longClickedSong(song);
                     }
+                    return true;
                 });
-                v.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                        checked[holder.getAbsoluteAdapterPosition()] = b ? CHECK : NONE;
-                    }
-                });
-                v.checkBox.setVisibility(selectMode ? View.VISIBLE : View.GONE);
+                v.checkBox.setOnCheckedChangeListener((compoundButton, b) -> checked[holder.getAbsoluteAdapterPosition()] = b ? CHECK : NONE);
+
+                if(selectMode){
+                    v.checkBox.setVisibility(View.VISIBLE);
+                    v.checkBox.setChecked(checked[holder.getAbsoluteAdapterPosition()] == CHECK);
+                }else
+                    v.checkBox.setVisibility(View.GONE);
             }
 
             // ui
             v.name.setText(song.getName());
             v.artist.setText(song.getArtist());
-            v.checkBox.setChecked(checked[holder.getAbsoluteAdapterPosition()] == CHECK);
 
             if (song instanceof ExternalSong) {
                 String url = ((ExternalSong)song).getCoverUrl();
@@ -170,15 +160,13 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             ButtonItem item = (ButtonItem) data.get(holder.getAbsoluteAdapterPosition());
             ButtonViewHolder v = (ButtonViewHolder) holder;
             v.text.setVisibility(item.loading ? View.GONE : View.VISIBLE);
+            v.text.setText(R.string.search_load_more);
             v.progressBar.setVisibility(item.loading ? View.VISIBLE : View.GONE);
-            v.layout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if(!lock) {
-                        if(listener != null) listener.clickedLoadMore();
-                        item.loading = true;
-                        notifyItemChanged(holder.getAbsoluteAdapterPosition());
-                    }
+            v.layout.setOnClickListener(view -> {
+                if(!lock) {
+                    if(listener != null) listener.clickedLoadMore();
+                    item.loading = true;
+                    notifyItemChanged(holder.getAbsoluteAdapterPosition());
                 }
             });
         }
@@ -221,7 +209,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void addAll(List songs){
         int size = this.data.size();
-        checked = new short[songs.size()];
+        checked = new short[songs.size() + size];
         if(size>0){
             if(this.data.get(data.size()-1) instanceof ButtonItem){
                 this.data.remove(data.size()-1);
@@ -292,12 +280,12 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return data.get(position).hashCode();
     }
 
-    public class ButtonItem{
+    public static class ButtonItem{
         public boolean loading = false;
 
         @Override
         public int hashCode() {
             return loading? -1: -2;
         }
-    };
+    }
 }
