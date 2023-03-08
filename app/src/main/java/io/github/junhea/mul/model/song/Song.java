@@ -6,9 +6,11 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import io.github.junhea.mul.interfaces.BitmapCallback;
 import io.github.junhea.mul.model.PlayList;
+import io.github.junhea.mul.model.room.UriConverter;
 
 public class Song implements Comparable<Song>{
     public final static short NONE = -1;
@@ -22,17 +24,24 @@ public class Song implements Comparable<Song>{
     transient PlayList parent;
     String name="";
     String artist="";
-    String path;
+    @TypeConverters(UriConverter.class)
+    public Uri path;
     transient Uri cover;
 
     public Song(long sid){
         this.sid = sid;
     }
 
-    public Song(String name, String artist, String path){
+    public Song(String name, String artist, Uri path){
         this.name = name;
         this.artist = artist;
         this.path = path;
+    }
+
+    public Song(String name, String artist, String path){
+        this.name = name;
+        this.artist = artist;
+        this.path = Uri.parse(path);
     }
 
     public void setParent(PlayList parent) {
@@ -47,11 +56,7 @@ public class Song implements Comparable<Song>{
         return this.name;
     }
 
-    public Uri getUri() {
-        return Uri.parse(path);
-    }
-
-    public String getPath() {return path;}
+    public Uri getPath() {return path;}
 
     public String getArtist(){
         return this.artist;
@@ -69,11 +74,15 @@ public class Song implements Comparable<Song>{
         this.artist = artist;
     }
 
-    public void setPath(String path) {
+    public void setPath(Uri path) {
         this.path = path;
     }
 
-    public void fetchData(){ }
+    public void setPath(String path) {
+        this.path = Uri.parse(path);
+    }
+
+    public void fetchData(Context context){ }
 
     public long getSid() {
         return sid;

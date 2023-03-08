@@ -135,11 +135,10 @@ public class MainActivity extends PlayerBaseActivity {
         }
 
         //check for permission
-        int permissionCheck = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE);
+        int permissionCheck = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE);
         if(permissionCheck== PackageManager.PERMISSION_DENIED){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
-                //todo api 30 storage permission    https://stackoverflow.com/questions/62782648/android-11-scoped-storage-permissions
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
             }
         }
 

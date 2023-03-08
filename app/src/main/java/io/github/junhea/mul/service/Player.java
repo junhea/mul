@@ -510,7 +510,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                         try {
                             if(mediaPlayer == null) {
                                 mediaPlayerInit();
-                                mediaPlayer.setDataSource(((ExternalSong) current).getPath());
+                                mediaPlayer.setDataSource(current.getPath().toString());
                                 mediaPlayer.prepareAsync();
                                 setState(STATE_BUFFERING);
                                 setMetaData(current);
@@ -531,7 +531,7 @@ public class Player extends Service implements MediaPlayer.OnPreparedListener, M
                 mediaPlayer = null;
                 mediaPlayerInit();
                 setState(STATE_NONE);
-                mediaPlayer.setDataSource(current.getPath());
+                mediaPlayer.setDataSource(getApplicationContext(), current.getPath());
                 mediaPlayer.prepareAsync();
                 setState(STATE_BUFFERING);
                 setMetaData(current);

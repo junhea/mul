@@ -72,14 +72,6 @@ import io.github.junhea.mul.model.song.Song;
 public class Utils {
     // static functions
 
-    public static String getPathFromUri(Context context, Uri uri){
-        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null );
-        cursor.moveToNext();
-        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
-        cursor.close();
-        return path;
-    }
-
     public static void lockuiRecursive(View view, boolean lock){
         view.setEnabled(!lock);
         if(view instanceof ViewGroup && !(view instanceof RecyclerView)) {
@@ -103,10 +95,11 @@ public class Utils {
                     new InputStreamReader(context.getAssets().open("base.mjs")));
 
             // do reading, usually loop until end of file reading
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 //process line
-                builder.append(line+"\n");
+                builder.append(line);
+                builder.append('\n');
             }
         } catch (Exception e) {
             //log the exception
@@ -271,15 +264,36 @@ public class Utils {
         return bitmap;
     }
 
-    public static void openFile(Fragment fragment) {
+    public static void legacyOpenFile(Fragment fragment) {
         Intent intent = new Intent(fragment.getContext(), FileChooserActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_SONG);
         fragment.startActivityForResult(intent, REQUEST_SELECT_SONG);
     }
 
-    public static void openDirectory(Fragment fragment) {
+    public static void openFile(Fragment fragment) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            legacyOpenFile(fragment);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("audio/*");
+        fragment.startActivityForResult(intent, REQUEST_SELECT_SONG);
+    }
+
+    public static void legacyOpenDirectory(Fragment fragment) {
         Intent intent = new Intent(fragment.getContext(), FileChooserActivity.class);
         intent.putExtra("mode", REQUEST_SELECT_FOLDER);
+        fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
+    }
+
+    public static void openDirectory(Fragment fragment) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            legacyOpenDirectory(fragment);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         fragment.startActivityForResult(intent, REQUEST_SELECT_FOLDER);
     }
 

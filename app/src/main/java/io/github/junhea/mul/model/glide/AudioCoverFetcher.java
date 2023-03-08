@@ -1,5 +1,6 @@
 package io.github.junhea.mul.model.glide;
 
+import android.content.Context;
 import android.media.MediaMetadataRetriever;
 
 import androidx.annotation.NonNull;
@@ -17,17 +18,18 @@ import java.io.InputStream;
 public class AudioCoverFetcher implements DataFetcher<InputStream> {
 
     private final AudioCoverModel model;
-    private FileInputStream stream;
+    private final Context context;
 
-    AudioCoverFetcher(AudioCoverModel model) {
+    AudioCoverFetcher(Context context, AudioCoverModel model) {
         this.model = model;
+        this.context = context;
     }
 
     @Override
     public void loadData(@NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
-            retriever.setDataSource(model.mediaPath);
+            retriever.setDataSource(context, model.mediaPath);
             byte[] picture = retriever.getEmbeddedPicture();
             if (null != picture) {
                 callback.onDataReady(new ByteArrayInputStream(picture));
@@ -43,11 +45,7 @@ public class AudioCoverFetcher implements DataFetcher<InputStream> {
 
     @Override
     public void cleanup() {
-        try {
-            if (null != stream) {
-                stream.close();
-            }
-        } catch (IOException ignore) { }
+
     }
 
     @Override

@@ -88,7 +88,7 @@ public class SongBottomMenu extends BottomSheetDialogFragment {
 
         ((TextView)view.findViewById(R.id.bottom_name)).setText(song.getName());
         ((TextView)view.findViewById(R.id.bottom_artist)).setText(song.getArtist());
-        ((TextView)view.findViewById(R.id.bottom_path)).setText(song.getPath());
+        ((TextView)view.findViewById(R.id.bottom_path)).setText(song.getPath().toString());
 
 
         ImageView cover = view.findViewById(R.id.bottom_cover);

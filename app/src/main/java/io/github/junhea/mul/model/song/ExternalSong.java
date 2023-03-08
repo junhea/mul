@@ -1,6 +1,7 @@
 package io.github.junhea.mul.model.song;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
@@ -56,6 +57,13 @@ public class ExternalSong extends Song{
         this.id = id;
     }
 
+    public ExternalSong(String id, String name, String artist, Uri path, String coverUrl, Map<String, String> headers) {
+        super(name, artist, path);
+        this.coverUrl = coverUrl;
+        this.headers = headers;
+        this.id = id;
+    }
+
     public void setSource(Source source){
         this.source = source;
         this.sourceID = source.getName();
@@ -69,7 +77,7 @@ public class ExternalSong extends Song{
         return this.coverUrl;
     }
 
-    public String getPath(){
+    public Uri getPath(){
         return this.path;
     }
 

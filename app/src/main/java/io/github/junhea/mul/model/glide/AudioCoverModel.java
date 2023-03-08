@@ -1,16 +1,19 @@
 package io.github.junhea.mul.model.glide;
 
+import android.content.Context;
+import android.net.Uri;
+
 public class AudioCoverModel {
 
-    public String mediaPath;
+    public Uri mediaPath;
 
-    public AudioCoverModel(String path) {
+    public AudioCoverModel(Uri path) {
         this.mediaPath = path;
     }
 
     @Override
     public int hashCode() {
-        return Math.abs((mediaPath.getBytes().length + mediaPath.hashCode()));
+        return Math.abs(mediaPath.hashCode());
     }
 
     @Override
@@ -22,7 +25,7 @@ public class AudioCoverModel {
         AudioCoverModel compare = (AudioCoverModel) obj;
 
         try {
-            return (compare.mediaPath.equals(this.mediaPath) && compare.mediaPath.getBytes().length == this.mediaPath.getBytes().length);
+            return compare.mediaPath.equals(this.mediaPath);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
+        android:enabled="false"
         app:key="setting_watch_list"
         app:title="@string/setting_watch_list"
         app:summary="@string/setting_watch_list_sum"/>

@@ -16,7 +16,7 @@ public abstract class SongDatabase extends RoomDatabase {
     private static SongDatabase db;
     public static synchronized SongDatabase getInstance(Context context){
         if(db == null){
-            db=Room.databaseBuilder(context.getApplicationContext(), SongDatabase.class, "songs").build();;
+            db=Room.databaseBuilder(context.getApplicationContext(), SongDatabase.class, "songs").addTypeConverter(new UriConverter()).build();
         }
         return db;
     }

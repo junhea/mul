@@ -3,6 +3,8 @@ package io.github.junhea.mul.fragment;
 import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +19,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,7 +64,7 @@ public class HomeFragment extends CustomFragment{
         //don't do anything
     }
 
-    public static final HomeFragment newInstance() {
+    public static HomeFragment newInstance() {
         HomeFragment f = new HomeFragment();
         return f;
     }
@@ -154,14 +157,41 @@ public class HomeFragment extends CustomFragment{
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_SELECT_SONG && resultCode == RESULT_OK){
+        if(resultCode != RESULT_OK)
+            return;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Uri uri = data.getData();
+            getContext().getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            System.out.println(uri.toString());
+            if(requestCode == REQUEST_SELECT_SONG){
+                LocalSong song = new LocalSong(uri.toString(), "", uri);
+                //add to current visible playlist
+                SongDataParser.parse(getContext(), new SongPlayListParcel(null, song));
+            }else if(requestCode == REQUEST_SELECT_FOLDER){
+                DocumentFile dir = DocumentFile.fromTreeUri(getContext(), uri);
+                List<Song> songs = new ArrayList<>();
+                for(DocumentFile f : dir.listFiles()){
+                    if(f.getType() == null || !f.getType().startsWith("audio/")) continue;
+                    Uri fUri = f.getUri();
+                    songs.add(new LocalSong(uri.toString(), "", fUri));
+                }
+                if(songs.size() > 0)
+                    SongDataParser.parse(getContext(), new SongPlayListParcel(null, songs));
+            }
+            return;
+        }
+
+        // legacy
+        if(requestCode == REQUEST_SELECT_SONG){
             String path = data.getStringExtra("path");
             LocalSong song = new LocalSong(path, "", path);
             //add to current visible playlist
             SongDataParser.parse(getContext(), new SongPlayListParcel(null, song));
-        }else if(requestCode == REQUEST_SELECT_FOLDER && resultCode == RESULT_OK){
+        }else if(requestCode == REQUEST_SELECT_FOLDER){
             List<Song> songs = new ArrayList<>();
             String path = data.getStringExtra("path");
+            System.out.println(path);
             for(File f : new File(path).listFiles()){
                 if(!f.isDirectory()){
                     boolean supported = false;

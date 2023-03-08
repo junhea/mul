@@ -1,10 +1,13 @@
 package io.github.junhea.mul.model.room;
 
+import android.net.Uri;
+
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.TypeConverters;
 
 import java.util.List;
 
@@ -23,7 +26,8 @@ public interface LocalSongDao {
     @Query("SELECT * FROM local WHERE sid = (:sid)")
     LocalSong get(long sid);
     @Query("SELECT * FROM local WHERE path = (:path)")
-    LocalSong findWithPath(String path);
+    @TypeConverters(UriConverter.class)
+    LocalSong findWithPath(Uri path);
     @Delete
     void delete(LocalSong song);
 }

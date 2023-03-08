@@ -28,7 +28,7 @@ public class CustomGlideModule extends AppGlideModule {
 
     @Override
     public void registerComponents(@NonNull Context context, @NonNull Glide glide, @NonNull Registry registry) {
-        registry.append(AudioCoverModel.class, InputStream.class, new AudioCoverLoader.Factory());
+        registry.append(AudioCoverModel.class, InputStream.class, new AudioCoverLoader.Factory(context));
     }
 
 }
