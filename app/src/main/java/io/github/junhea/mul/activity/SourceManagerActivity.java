@@ -124,7 +124,7 @@ public class SourceManagerActivity extends PlayerBaseActivity{
         //get available sources
         List<SourceItem> res = new ArrayList<>();
         try {
-            String raw = client.get(new Request.Builder().url("https://api.github.com/repos/junhea/mul-scripts/contents/scripts").build()).getBody();
+            String raw = client.get(new Request.Builder().url("https://api.github.com/repos/junhea/mul-scripts/contents/scripts").build()).body().string();
             JSONArray d = new JSONArray(raw);
             for(int i=0; i<d.length(); i++){
                 JSONObject o = d.getJSONObject(i);

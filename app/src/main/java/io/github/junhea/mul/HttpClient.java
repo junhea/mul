@@ -25,25 +25,29 @@ public class HttpClient {
             cipherSuites.add(CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA);
 
             ConnectionSpec legacyTls = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-                    .cipherSuites(cipherSuites.toArray(new CipherSuite[0]))
-                    .build();
+                .cipherSuites(cipherSuites.toArray(new CipherSuite[0]))
+                .build();
 
             this.client = new OkHttpClient.Builder()
-                    .connectionSpecs(Arrays.asList(legacyTls, ConnectionSpec.CLEARTEXT))
-                    .connectTimeout(20, TimeUnit.SECONDS)
-                    .readTimeout(20, TimeUnit.SECONDS)
-                    .build();
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .connectionSpecs(Arrays.asList(legacyTls, ConnectionSpec.CLEARTEXT))
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .build();
         } else {
             this.client = new OkHttpClient.Builder()
-                    .connectTimeout(20, TimeUnit.SECONDS)
-                    .readTimeout(20, TimeUnit.SECONDS)
-                    .build();
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .build();
         }
     }
 
-    public io.github.junhea.mul.model.source.Response get(Request r){
+    public Response get(Request r){
         try (okhttp3.Response res = client.newCall(r).execute()) {
-            return new io.github.junhea.mul.model.source.Response(res);
+            return res;
         }catch(Exception e){
             e.printStackTrace();
         }
