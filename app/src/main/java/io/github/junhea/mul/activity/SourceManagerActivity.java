@@ -50,7 +50,7 @@ public class SourceManagerActivity extends PlayerBaseActivity{
                 new Thread(){
                     @Override
                     public void run() {
-                        Response r = client.getRaw(new Request.Builder().url(item.url).build());
+                        Response r = client.get(new Request.Builder().url(item.url).build());
 
                         try {
                             InputStream is = r.body().byteStream();
@@ -123,8 +123,11 @@ public class SourceManagerActivity extends PlayerBaseActivity{
     public List<SourceItem> fetch(){
         //get available sources
         List<SourceItem> res = new ArrayList<>();
+        Response r = client.get(new Request.Builder().url("https://api.github.com/repos/junhea/mul-scripts/contents/scripts").build());
         try {
-            String raw = client.get(new Request.Builder().url("https://api.github.com/repos/junhea/mul-scripts/contents/scripts").build()).body().string();
+            String raw = r.body().string();
+            r.close();
+            System.out.println(raw);
             JSONArray d = new JSONArray(raw);
             for(int i=0; i<d.length(); i++){
                 JSONObject o = d.getJSONObject(i);

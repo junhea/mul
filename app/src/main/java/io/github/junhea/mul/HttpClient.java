@@ -46,15 +46,6 @@ public class HttpClient {
     }
 
     public Response get(Request r){
-        try (okhttp3.Response res = client.newCall(r).execute()) {
-            return res;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public Response getRaw(Request r){
         try {
             return client.newCall(r).execute();
         }catch (Exception e){
